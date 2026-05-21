@@ -28,7 +28,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class XPDatabaseHandler {
-    private Connection database;
+    private static Connection database;
     private final Config config;
     private final Logger logger = LoggerFactory.getLogger(XPDatabaseHandler.class);
 
@@ -36,12 +36,12 @@ public class XPDatabaseHandler {
         this.config = config;
     }
 
-    public Connection getDatabase() {
+    public static Connection getDatabase() {
         return database;
     }
 
-    public void setDatabase(Connection database) {
-        this.database = database;
+    public static void setDatabase(Connection connection) {
+        database = connection;
     }
 
     public Connection connectToDatabase() {
