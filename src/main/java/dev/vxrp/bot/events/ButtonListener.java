@@ -39,8 +39,9 @@ public class ButtonListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
-        String buttonId = event.getButton().getId();
-        if (buttonId == null) return;
+        String buttonId = event.getButton().getCustomId();
+        if (buttonId == null)
+            return;
 
         if (buttonId.startsWith("help")) {
             new HelpButtons(event, config, translation).init();
@@ -49,8 +50,7 @@ public class ButtonListener extends ListenerAdapter {
         if (buttonId.startsWith("ticket")) {
             MessageEmbed embed = new PermissionManager(config, translation).checkStatus(
                     StatusMessageType.PANEL,
-                    !config.ticket().settings().ticketLogChannel().isEmpty()
-            );
+                    !config.ticket().settings().ticketLogChannel().isEmpty());
             if (embed != null) {
                 event.replyEmbeds(embed).setEphemeral(true).queue();
             } else {
@@ -61,8 +61,7 @@ public class ButtonListener extends ListenerAdapter {
         if (buttonId.startsWith("application")) {
             MessageEmbed embed = new PermissionManager(config, translation).checkStatus(
                     StatusMessageType.PANEL,
-                    !config.ticket().settings().applicationMessageChannel().isEmpty()
-            );
+                    !config.ticket().settings().applicationMessageChannel().isEmpty());
             if (embed != null) {
                 event.replyEmbeds(embed).setEphemeral(true).queue();
             } else {
@@ -74,8 +73,7 @@ public class ButtonListener extends ListenerAdapter {
             MessageEmbed embed = new PermissionManager(config, translation).checkStatus(
                     StatusMessageType.PANEL,
                     config.settings().verify().active(),
-                    config.settings().webserver().active()
-            );
+                    config.settings().webserver().active());
             if (embed != null) {
                 event.replyEmbeds(embed).setEphemeral(true).queue();
             } else {
@@ -86,8 +84,7 @@ public class ButtonListener extends ListenerAdapter {
         if (buttonId.startsWith("notice_of_departure")) {
             MessageEmbed embed = new PermissionManager(config, translation).checkStatus(
                     StatusMessageType.PANEL,
-                    config.settings().noticeOfDeparture().active()
-            );
+                    config.settings().noticeOfDeparture().active());
             if (embed != null) {
                 event.replyEmbeds(embed).setEphemeral(true).queue();
             } else {
@@ -100,8 +97,7 @@ public class ButtonListener extends ListenerAdapter {
                     StatusMessageType.PANEL,
                     config.settings().regulars().active(),
                     config.settings().verify().active(),
-                    config.settings().webserver().active()
-            );
+                    config.settings().webserver().active());
             if (embed != null) {
                 event.replyEmbeds(embed).setEphemeral(true).queue();
             } else {

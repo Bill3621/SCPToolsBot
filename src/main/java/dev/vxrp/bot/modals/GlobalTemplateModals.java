@@ -17,10 +17,10 @@
 package dev.vxrp.bot.modals;
 
 import dev.vxrp.configuration.data.Translation;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.text.TextInput;
-import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
-import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.components.label.Label;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.modals.Modal;
 
 public class GlobalTemplateModals {
     private final Translation translation;
@@ -30,16 +30,16 @@ public class GlobalTemplateModals {
     }
 
     public Modal reasonModal(String id) {
-        TextInput reason = TextInput.create("reason",
-                        translation.permissions().modalReasonEnterReasonTitle(),
+        Label reason = Label.of(
+                translation.permissions().modalReasonEnterReasonTitle(), TextInput.create("reason",
                         TextInputStyle.PARAGRAPH)
-                .setRequired(true)
-                .setRequiredRange(1, 1000)
-                .setPlaceholder(translation.permissions().modalReasonEnterReasonPlaceholder())
-                .build();
+                        .setRequired(true)
+                        .setRequiredRange(1, 1000)
+                        .setPlaceholder(translation.permissions().modalReasonEnterReasonPlaceholder())
+                        .build());
 
         return Modal.create(id, translation.permissions().modalReasonTitle())
-                .addComponents(ActionRow.of(reason))
+                .addComponents(reason)
                 .build();
     }
 }

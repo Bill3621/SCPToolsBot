@@ -24,6 +24,10 @@ import dev.vxrp.database.tables.database.TicketTable;
 import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -31,9 +35,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import org.slf4j.LoggerFactory;
 
@@ -63,47 +64,55 @@ public class TicketMessageHandler {
                 .build();
 
         channel.sendMessageEmbeds(embed)
-                .setActionRow(StringSelectMenu.create("ticket")
-                        .addOption(translation.selectMenus().textSupportNameGeneral(), "general", translation.selectMenus().textsupportDescriptionGeneral(), Emoji.fromFormatted("⚙️"))
-                        .addOption(translation.selectMenus().textSupportNameReport(), "report", translation.selectMenus().textSupportDescriptionReport(), Emoji.fromFormatted("⚖️"))
-                        .addOption(translation.selectMenus().textSupportNameError(), "error", translation.selectMenus().textSupportDescriptionError(), Emoji.fromFormatted("⛓️‍💥"))
-                        .addOption(translation.selectMenus().textSupportNameUnban(), "unban", translation.selectMenus().textSupportDescriptionUnban(), Emoji.fromFormatted("⌛"))
-                        .addOption(translation.selectMenus().textSupportNameComplaint(), "complaint", translation.selectMenus().textSupportDescriptionComplaint(), Emoji.fromFormatted("🚫"))
-                        .addOption(translation.selectMenus().textSupportNameApplication(), "application", translation.selectMenus().textSupportDescriptionApplication(), Emoji.fromFormatted("📩"))
-                        .build()
-                ).queue();
+                .setComponents(ActionRow.of(StringSelectMenu.create("ticket")
+                        .addOption(translation.selectMenus().textSupportNameGeneral(), "general",
+                                translation.selectMenus().textsupportDescriptionGeneral(), Emoji.fromFormatted("⚙️"))
+                        .addOption(translation.selectMenus().textSupportNameReport(), "report",
+                                translation.selectMenus().textSupportDescriptionReport(), Emoji.fromFormatted("⚖️"))
+                        .addOption(translation.selectMenus().textSupportNameError(), "error",
+                                translation.selectMenus().textSupportDescriptionError(), Emoji.fromFormatted("⛓️‍💥"))
+                        .addOption(translation.selectMenus().textSupportNameUnban(), "unban",
+                                translation.selectMenus().textSupportDescriptionUnban(), Emoji.fromFormatted("⌛"))
+                        .addOption(translation.selectMenus().textSupportNameComplaint(), "complaint",
+                                translation.selectMenus().textSupportDescriptionComplaint(), Emoji.fromFormatted("🚫"))
+                        .addOption(translation.selectMenus().textSupportNameApplication(), "application",
+                                translation.selectMenus().textSupportDescriptionApplication(),
+                                Emoji.fromFormatted("📩"))
+                        .build()))
+                .queue();
     }
 
-    public Message sendMessage(TicketType type, ThreadChannel channel, String userId, String modalId, List<ModalMapping> modalValues) {
+    public Message sendMessage(TicketType type, ThreadChannel channel, String userId, String modalId,
+            List<ModalMapping> modalValues) {
         switch (type) {
             case GENERAL -> {
                 return channel.sendMessageEmbeds(generalMessage(channel, userId, modalValues))
-                        .setActionRow(messageActionRow(TicketStatus.OPEN, TicketType.GENERAL, false))
+                        .setComponents(messageActionRow(TicketStatus.OPEN, TicketType.GENERAL, false))
                         .complete();
             }
             case REPORT -> {
                 return channel.sendMessageEmbeds(reportMessage(channel, userId, modalId, modalValues))
-                        .setActionRow(messageActionRow(TicketStatus.OPEN, TicketType.REPORT, false))
+                        .setComponents(messageActionRow(TicketStatus.OPEN, TicketType.REPORT, false))
                         .complete();
             }
             case ERROR -> {
                 return channel.sendMessageEmbeds(errorMessage(channel, userId, modalValues))
-                        .setActionRow(messageActionRow(TicketStatus.OPEN, TicketType.ERROR, false))
+                        .setComponents(messageActionRow(TicketStatus.OPEN, TicketType.ERROR, false))
                         .complete();
             }
             case UNBAN -> {
                 return channel.sendMessageEmbeds(unbanMessage(channel, userId, modalValues))
-                        .setActionRow(messageActionRow(TicketStatus.OPEN, TicketType.UNBAN, false))
+                        .setComponents(messageActionRow(TicketStatus.OPEN, TicketType.UNBAN, false))
                         .complete();
             }
             case COMPLAINT -> {
                 return channel.sendMessageEmbeds(complaintMessage(channel, userId, modalId, modalValues))
-                        .setActionRow(messageActionRow(TicketStatus.OPEN, TicketType.COMPLAINT, false))
+                        .setComponents(messageActionRow(TicketStatus.OPEN, TicketType.COMPLAINT, false))
                         .complete();
             }
             case APPLICATION -> {
                 return channel.sendMessageEmbeds(applicationMessage(channel, userId, modalId, modalValues))
-                        .setActionRow(messageActionRow(TicketStatus.OPEN, TicketType.APPLICATION, false))
+                        .setComponents(messageActionRow(TicketStatus.OPEN, TicketType.APPLICATION, false))
                         .complete();
             }
             default -> {
@@ -119,12 +128,13 @@ public class TicketMessageHandler {
         TicketStatus status = new TicketTable().getTicketStatus(ticketId);
         TicketType ticketType = new TicketTable().getTicketType(ticketId);
 
-        if (ticketStatus != null) status = ticketStatus;
+        if (ticketStatus != null)
+            status = ticketStatus;
 
         boolean isHandled = handlerId != null;
 
         ticketChannel.editMessageById(message, "")
-                .setActionRow(messageActionRow(status, ticketType, isHandled))
+                .setComponents(messageActionRow(status, ticketType, isHandled))
                 .queue();
     }
 
@@ -134,7 +144,8 @@ public class TicketMessageHandler {
 
         return new EmbedBuilder()
                 .setAuthor(user.getName(), null, user.getAvatarUrl())
-                .setTitle(colorTool.parse(translation.support().embedTicketGeneralTitle().replace("%name%", channel.getName())))
+                .setTitle(colorTool
+                        .parse(translation.support().embedTicketGeneralTitle().replace("%name%", channel.getName())))
                 .setDescription(colorTool.parse(translation.support().embedTicketGeneralBody()
                         .replace("%issuerId%", userId)
                         .replace("%subject%", modalValues.get(0).getAsString())
@@ -143,13 +154,15 @@ public class TicketMessageHandler {
                 .build();
     }
 
-    private MessageEmbed reportMessage(ThreadChannel channel, String userId, String modalId, List<ModalMapping> modalValues) {
+    private MessageEmbed reportMessage(ThreadChannel channel, String userId, String modalId,
+            List<ModalMapping> modalValues) {
         ColorTool colorTool = new ColorTool();
         User user = api.retrieveUserById(userId).complete();
 
         return new EmbedBuilder()
                 .setAuthor(user.getName(), null, user.getAvatarUrl())
-                .setTitle(colorTool.parse(translation.support().embedTicketReportTitle().replace("%name%", channel.getName())))
+                .setTitle(colorTool
+                        .parse(translation.support().embedTicketReportTitle().replace("%name%", channel.getName())))
                 .setDescription(colorTool.parse(translation.support().embedTicketReportBody()
                         .replace("%issuerId%", userId)
                         .replace("%reported%", "<@" + modalId.split(":")[1] + ">")
@@ -165,7 +178,8 @@ public class TicketMessageHandler {
 
         return new EmbedBuilder()
                 .setAuthor(user.getName(), null, user.getAvatarUrl())
-                .setTitle(colorTool.parse(translation.support().embedTicketErrorTitle().replace("%name%", channel.getName())))
+                .setTitle(colorTool
+                        .parse(translation.support().embedTicketErrorTitle().replace("%name%", channel.getName())))
                 .setDescription(colorTool.parse(translation.support().embedTicketErrorBody()
                         .replace("%issuerId%", userId)
                         .replace("%problem%", modalValues.get(0).getAsString())
@@ -182,7 +196,8 @@ public class TicketMessageHandler {
 
         return new EmbedBuilder()
                 .setAuthor(user.getName(), null, user.getAvatarUrl())
-                .setTitle(colorTool.parse(translation.support().embedTicketUnbanTitle().replace("%name%", channel.getName())))
+                .setTitle(colorTool
+                        .parse(translation.support().embedTicketUnbanTitle().replace("%name%", channel.getName())))
                 .setDescription(colorTool.parse(translation.support().embedTicketUnbanBody()
                         .replace("%issuerId%", userId)
                         .replace("%steamId%", modalValues.get(0).getAsString())
@@ -191,12 +206,15 @@ public class TicketMessageHandler {
                 .build();
     }
 
-    private MessageEmbed complaintMessage(ThreadChannel channel, String userId, String modalId, List<ModalMapping> modalValues) {
+    private MessageEmbed complaintMessage(ThreadChannel channel, String userId, String modalId,
+            List<ModalMapping> modalValues) {
         ColorTool colorTool = new ColorTool();
         String userMention = "**Anonymous**";
         String staff = "Anonymous";
-        if (!"anonymous".equals(modalId.split(":")[1])) staff = "<@" + modalId.split(":")[1] + ">";
-        if (!"anonymous".equals(userId)) userMention = "<@" + userId + ">";
+        if (!"anonymous".equals(modalId.split(":")[1]))
+            staff = "<@" + modalId.split(":")[1] + ">";
+        if (!"anonymous".equals(userId))
+            userMention = "<@" + userId + ">";
 
         String authorName;
         String authorIcon;
@@ -211,7 +229,8 @@ public class TicketMessageHandler {
 
         return new EmbedBuilder()
                 .setAuthor(authorName, null, authorIcon)
-                .setTitle(colorTool.parse(translation.support().embedTicketComplaintTitle().replace("%name%", channel.getName())))
+                .setTitle(colorTool
+                        .parse(translation.support().embedTicketComplaintTitle().replace("%name%", channel.getName())))
                 .setDescription(colorTool.parse(translation.support().embedTicketComplaintBody()
                         .replace("%issuerId%", userMention)
                         .replace("%staff%", staff)
@@ -221,13 +240,15 @@ public class TicketMessageHandler {
                 .build();
     }
 
-    private MessageEmbed applicationMessage(ThreadChannel channel, String userId, String modalId, List<ModalMapping> modalValues) {
+    private MessageEmbed applicationMessage(ThreadChannel channel, String userId, String modalId,
+            List<ModalMapping> modalValues) {
         ColorTool colorTool = new ColorTool();
         User user = api.retrieveUserById(userId).complete();
 
         return new EmbedBuilder()
                 .setAuthor(user.getName(), null, user.getAvatarUrl())
-                .setTitle(colorTool.parse(translation.support().embedTicketApplicationTitle().replace("%name%", channel.getName())))
+                .setTitle(colorTool.parse(
+                        translation.support().embedTicketApplicationTitle().replace("%name%", channel.getName())))
                 .setDescription(colorTool.parse(translation.support().embedTicketApplicationBody()
                         .replace("%issuerId%", userId)
                         .replace("%roleId%", modalId.split(":")[1])
@@ -241,7 +262,8 @@ public class TicketMessageHandler {
     }
 
     public void sendClosedMessage(String userId, String handlerId, ThreadChannel threadChannel, String reason) {
-        if ("anonymous".equals(userId)) return;
+        if ("anonymous".equals(userId))
+            return;
         User user = api.retrieveUserById(userId).complete();
         User handler = api.retrieveUserById(handlerId).complete();
 
@@ -259,20 +281,25 @@ public class TicketMessageHandler {
         user.openPrivateChannel().queue(pc -> pc.sendMessageEmbeds(embed).queue());
     }
 
-    private Collection<ItemComponent> messageActionRow(TicketStatus status, TicketType type, boolean handler) {
-        Collection<ItemComponent> rows = new ArrayList<>();
+    private ActionRow messageActionRow(TicketStatus status, TicketType type, boolean handler) {
+        Collection<ActionRowChildComponent> rows = new ArrayList<>();
 
-        Button claim = Button.primary("ticket_claim", translation.buttons().ticketSupportClaim()).withEmoji(Emoji.fromFormatted("🚪"));
-        Button close = Button.danger("ticket_close:" + type, translation.buttons().ticketSupportClose()).withEmoji(Emoji.fromFormatted("🪫"));
-        Button settings = Button.secondary("ticket_settings", translation.buttons().textSupportSettings()).withEmoji(Emoji.fromFormatted("⚙️"));
+        Button claim = Button.primary("ticket_claim", translation.buttons().ticketSupportClaim())
+                .withEmoji(Emoji.fromFormatted("🚪"));
+        Button close = Button.danger("ticket_close:" + type, translation.buttons().ticketSupportClose())
+                .withEmoji(Emoji.fromFormatted("🪫"));
+        Button settings = Button.secondary("ticket_settings", translation.buttons().textSupportSettings())
+                .withEmoji(Emoji.fromFormatted("⚙️"));
 
-        if (handler) claim = claim.asDisabled();
-        if (status == TicketStatus.CLOSED) close = close.asDisabled();
+        if (handler)
+            claim = claim.asDisabled();
+        if (status == TicketStatus.CLOSED)
+            close = close.asDisabled();
 
         rows.add(claim);
         rows.add(close);
         rows.add(settings);
 
-        return rows;
+        return ActionRow.of(rows);
     }
 }

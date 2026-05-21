@@ -21,10 +21,11 @@ import dev.vxrp.database.tables.database.NoticeOfDepartureTable;
 import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.utils.TimeFormat;
 import org.slf4j.LoggerFactory;
 
@@ -50,22 +51,26 @@ public class NoticeOfDepartureMessageHandler {
         builder.setTitle(new ColorTool().parse(translation.noticeOfDeparture().embedTemplateTitle()));
         builder.setDescription(new ColorTool().parse(
                 translation.noticeOfDeparture().embedTemplateBody()
-                        .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting())
-        ));
+                        .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting())));
 
-        channel.sendMessageEmbeds(builder.build()).setActionRow(
-                Button.success("notice_of_departure_file", translation.buttons().textNoticeOfDepartureFile()).withEmoji(Emoji.fromFormatted("\u23F0"))
-        ).queue();
+        channel.sendMessageEmbeds(builder.build()).setComponents(ActionRow.of(
+                Button.success("notice_of_departure_file", translation.buttons().textNoticeOfDepartureFile())
+                        .withEmoji(Emoji.fromFormatted("\u23F0"))))
+                .queue();
     }
 
     public void sendDecisionMessage(String userId, String date, String reason) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(config.settings().noticeOfDeparture().dateFormatting());
+        DateTimeFormatter formatter = DateTimeFormatter
+                .ofPattern(config.settings().noticeOfDeparture().dateFormatting());
         LocalDate currentDate = LocalDate.now();
         LocalDate endDate = LocalDate.parse(date, formatter);
 
-        String discordCurrentDate = TimeFormat.DATE_LONG.atInstant(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
-        String discordEndDate = TimeFormat.DATE_LONG.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
-        String relativeTime = TimeFormat.RELATIVE.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
+        String discordCurrentDate = TimeFormat.DATE_LONG
+                .atInstant(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
+        String discordEndDate = TimeFormat.DATE_LONG.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
+                .toString();
+        String relativeTime = TimeFormat.RELATIVE.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
+                .toString();
 
         var user = api.retrieveUserById(userId).complete();
 
@@ -73,38 +78,42 @@ public class NoticeOfDepartureMessageHandler {
         builder.setTitle(new ColorTool().parse(
                 translation.noticeOfDeparture().embedDecisionTitle()
                         .replace("%number%", String.valueOf(new NoticeOfDepartureTable().retrieveSerial() + 1))
-                        .replace("%user%", String.valueOf(user.getGlobalName()))
-        ));
+                        .replace("%user%", String.valueOf(user.getGlobalName()))));
         builder.setDescription(new ColorTool().parse(
                 translation.noticeOfDeparture().embedDecisionBody()
                         .replace("%current_date%", discordCurrentDate)
                         .replace("%end_date%", discordEndDate)
                         .replace("%relative%", relativeTime)
-                        .replace("%reason%", reason)
-        ));
+                        .replace("%reason%", reason)));
         builder.setTimestamp(Instant.now());
 
         TextChannel channel = api.getTextChannelById(config.settings().noticeOfDeparture().decisionChannel());
         if (channel != null) {
-            channel.sendMessageEmbeds(builder.build()).addActionRow(
-                    Button.success("notice_of_departure_decision_accept:" + userId + ":" + endDate.format(formatter), translation.buttons().textNoticeOfDepartureAccept()).withEmoji(
-                            Emoji.fromFormatted("\uD83D\uDCD8")),
-                    Button.danger("notice_of_departure_decision_dismiss:" + userId + ":" + endDate.format(formatter), translation.buttons().textNoticeOfDepartureDismissed()).withEmoji(
-                            Emoji.fromFormatted("\uFAF7"))
-            ).queue();
+            channel.sendMessageEmbeds(builder.build()).setComponents(ActionRow.of(
+                    Button.success("notice_of_departure_decision_accept:" + userId + ":" + endDate.format(formatter),
+                            translation.buttons().textNoticeOfDepartureAccept()).withEmoji(
+                                    Emoji.fromFormatted("\uD83D\uDCD8")),
+                    Button.danger("notice_of_departure_decision_dismiss:" + userId + ":" + endDate.format(formatter),
+                            translation.buttons().textNoticeOfDepartureDismissed()).withEmoji(
+                                    Emoji.fromFormatted("\uFAF7"))))
+                    .queue();
         } else {
             logger.error("Could not correctly retrieve notice of departure decision channel, does it exist?");
         }
     }
 
     public void sendAcceptedMessage(String reason, String userId, String date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(config.settings().noticeOfDeparture().dateFormatting());
+        DateTimeFormatter formatter = DateTimeFormatter
+                .ofPattern(config.settings().noticeOfDeparture().dateFormatting());
         LocalDate currentDate = LocalDate.now();
         LocalDate endDate = LocalDate.parse(date, formatter);
 
-        String discordCurrentDate = TimeFormat.DATE_LONG.atInstant(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
-        String discordEndDate = TimeFormat.DATE_LONG.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
-        String relativeTime = TimeFormat.RELATIVE.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
+        String discordCurrentDate = TimeFormat.DATE_LONG
+                .atInstant(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
+        String discordEndDate = TimeFormat.DATE_LONG.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
+                .toString();
+        String relativeTime = TimeFormat.RELATIVE.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
+                .toString();
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setColor(0x2ECC70);
@@ -114,8 +123,7 @@ public class NoticeOfDepartureMessageHandler {
                         .replace("%current_date%", discordCurrentDate)
                         .replace("%end_date%", discordEndDate)
                         .replace("%relative%", relativeTime)
-                        .replace("%reason%", reason)
-        ));
+                        .replace("%reason%", reason)));
 
         var privateChannel = api.retrieveUserById(userId).complete().openPrivateChannel().complete();
         privateChannel.sendMessageEmbeds(builder.build()).queue();
@@ -127,21 +135,24 @@ public class NoticeOfDepartureMessageHandler {
         builder.setTitle(new ColorTool().parse(translation.noticeOfDeparture().embedDismissedTitle()));
         builder.setDescription(new ColorTool().parse(
                 translation.noticeOfDeparture().embedDismissedBody()
-                        .replace("%reason%", reason)
-        ));
+                        .replace("%reason%", reason)));
 
         var privateChannel = api.retrieveUserById(userId).complete().openPrivateChannel().complete();
         privateChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
     public void sendNoticeMessage(String reason, String handlerId, String userId, String date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(config.settings().noticeOfDeparture().dateFormatting());
+        DateTimeFormatter formatter = DateTimeFormatter
+                .ofPattern(config.settings().noticeOfDeparture().dateFormatting());
         LocalDate currentDate = LocalDate.now();
         LocalDate endDate = LocalDate.parse(date, formatter);
 
-        String discordCurrentDate = TimeFormat.DATE_LONG.atInstant(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
-        String discordEndDate = TimeFormat.DATE_LONG.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
-        String relativeTime = TimeFormat.RELATIVE.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
+        String discordCurrentDate = TimeFormat.DATE_LONG
+                .atInstant(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
+        String discordEndDate = TimeFormat.DATE_LONG.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
+                .toString();
+        String relativeTime = TimeFormat.RELATIVE.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
+                .toString();
 
         var handler = api.retrieveUserById(handlerId).complete();
         var user = api.retrieveUserById(userId).complete();
@@ -150,16 +161,14 @@ public class NoticeOfDepartureMessageHandler {
         builder.setTitle(new ColorTool().parse(
                 translation.noticeOfDeparture().embedNoticeTitle()
                         .replace("%number%", String.valueOf(new NoticeOfDepartureTable().retrieveSerial() + 1))
-                        .replace("%user%", String.valueOf(user.getGlobalName()))
-        ));
+                        .replace("%user%", String.valueOf(user.getGlobalName()))));
         builder.setDescription(new ColorTool().parse(
                 translation.noticeOfDeparture().embedNoticeBody()
                         .replace("%user%", handler.getAsMention())
                         .replace("%current_date%", discordCurrentDate)
                         .replace("%end_date%", discordEndDate)
                         .replace("%relative%", relativeTime)
-                        .replace("%reason%", reason)
-        ));
+                        .replace("%reason%", reason)));
 
         TextChannel channel = api.getTextChannelById(config.settings().noticeOfDeparture().noticeChannel());
         if (channel == null) {
@@ -167,20 +176,25 @@ public class NoticeOfDepartureMessageHandler {
             return;
         }
 
-        Message message = channel.sendMessageEmbeds(builder.build()).addActionRow(
-                Button.danger("notice_of_departure_revoke:" + userId + ":" + endDate.format(formatter), translation.buttons().textNoticeOfDepartureRevoked())
-        ).complete();
+        Message message = channel.sendMessageEmbeds(builder.build()).setComponents(ActionRow.of(
+                Button.danger("notice_of_departure_revoke:" + userId + ":" + endDate.format(formatter),
+                        translation.buttons().textNoticeOfDepartureRevoked())))
+                .complete();
 
-        new NoticeOfDepartureTable().addToDatabase(userId, true, handlerId, channel.getId(), message.getId(), currentDate.format(formatter), endDate.format(formatter));
+        new NoticeOfDepartureTable().addToDatabase(userId, true, handlerId, channel.getId(), message.getId(),
+                currentDate.format(formatter), endDate.format(formatter));
     }
 
     public void sendRevokedMessage(String reason, String userId, String beginDate, String endDate) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(config.settings().noticeOfDeparture().dateFormatting());
+        DateTimeFormatter formatter = DateTimeFormatter
+                .ofPattern(config.settings().noticeOfDeparture().dateFormatting());
         LocalDate currentDate = LocalDate.parse(beginDate, formatter);
         LocalDate parsedEndDate = LocalDate.parse(endDate, formatter);
 
-        String discordCurrentDate = TimeFormat.DATE_LONG.atInstant(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
-        String discordEndDate = TimeFormat.DATE_LONG.atInstant(parsedEndDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
+        String discordCurrentDate = TimeFormat.DATE_LONG
+                .atInstant(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
+        String discordEndDate = TimeFormat.DATE_LONG
+                .atInstant(parsedEndDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setColor(0xE74D3C);
@@ -189,20 +203,22 @@ public class NoticeOfDepartureMessageHandler {
                 translation.noticeOfDeparture().embedRevokedBody()
                         .replace("%current_date%", discordCurrentDate)
                         .replace("%end_date%", discordEndDate)
-                        .replace("%reason%", reason)
-        ));
+                        .replace("%reason%", reason)));
 
         var privateChannel = api.retrieveUserById(userId).complete().openPrivateChannel().complete();
         privateChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
     public void sendEndedMessage(String userId, String beginDate, String endDate) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(config.settings().noticeOfDeparture().dateFormatting());
+        DateTimeFormatter formatter = DateTimeFormatter
+                .ofPattern(config.settings().noticeOfDeparture().dateFormatting());
         LocalDate currentDate = LocalDate.parse(beginDate, formatter);
         LocalDate parsedEndDate = LocalDate.parse(endDate, formatter);
 
-        String discordCurrentDate = TimeFormat.DATE_LONG.atInstant(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
-        String discordEndDate = TimeFormat.DATE_LONG.atInstant(parsedEndDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
+        String discordCurrentDate = TimeFormat.DATE_LONG
+                .atInstant(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
+        String discordEndDate = TimeFormat.DATE_LONG
+                .atInstant(parsedEndDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setColor(0xE74D3C);
@@ -210,8 +226,7 @@ public class NoticeOfDepartureMessageHandler {
         builder.setDescription(new ColorTool().parse(
                 translation.noticeOfDeparture().embedEndedBody()
                         .replace("%current_date%", discordCurrentDate)
-                        .replace("%end_date%", discordEndDate)
-        ));
+                        .replace("%end_date%", discordEndDate)));
 
         try {
             var privateChannel = api.awaitReady().retrieveUserById(userId).complete().openPrivateChannel().complete();

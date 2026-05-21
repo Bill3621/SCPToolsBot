@@ -41,14 +41,14 @@ public class StringSelectListener extends ListenerAdapter {
 
     @Override
     public void onStringSelectInteraction(@NotNull StringSelectInteractionEvent event) {
-        String menuId = event.getComponent().getId();
-        if (menuId == null) return;
+        String menuId = event.getComponent().getCustomId();
+        if (menuId == null)
+            return;
 
         if (menuId.startsWith("ticket")) {
             MessageEmbed embed = new PermissionManager(config, translation).checkStatus(
                     StatusMessageType.PANEL,
-                    !config.ticket().settings().ticketLogChannel().isEmpty()
-            );
+                    !config.ticket().settings().ticketLogChannel().isEmpty());
             if (embed != null) {
                 event.replyEmbeds(embed).setEphemeral(true).queue();
             } else {
@@ -59,8 +59,7 @@ public class StringSelectListener extends ListenerAdapter {
         if (menuId.startsWith("application")) {
             MessageEmbed embed = new PermissionManager(config, translation).checkStatus(
                     StatusMessageType.PANEL,
-                    !config.ticket().settings().applicationMessageChannel().isEmpty()
-            );
+                    !config.ticket().settings().applicationMessageChannel().isEmpty());
             if (embed != null) {
                 event.replyEmbeds(embed).setEphemeral(true).queue();
             } else {
@@ -73,8 +72,7 @@ public class StringSelectListener extends ListenerAdapter {
                     StatusMessageType.PANEL,
                     config.settings().regulars().active(),
                     config.settings().verify().active(),
-                    config.settings().webserver().active()
-            );
+                    config.settings().webserver().active());
             if (embed != null) {
                 event.replyEmbeds(embed).setEphemeral(true).queue();
             } else {

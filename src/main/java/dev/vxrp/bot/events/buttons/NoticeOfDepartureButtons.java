@@ -35,46 +35,54 @@ public class NoticeOfDepartureButtons {
     }
 
     public void init() {
-        String buttonId = event.getButton().getId();
-        if (buttonId == null) return;
+        String buttonId = event.getButton().getCustomId();
+        if (buttonId == null)
+            return;
 
         if (buttonId.startsWith("notice_of_departure_file")) {
             event.replyModal(new NoticeOfDepartureTemplateModals(config, translation).generalModal()).queue();
         }
 
         if (buttonId.startsWith("notice_of_departure_decision_accept")) {
-            if (permissionCheck(PermissionType.NOTICE_OF_DEPARTURES)) return;
+            if (permissionCheck(PermissionType.NOTICE_OF_DEPARTURES))
+                return;
             String[] splitId = buttonId.split(":");
 
             String userId = splitId[1];
             String endTime = splitId[2];
 
-            event.replyModal(new NoticeOfDepartureTemplateModals(config, translation).reasonActionModal(ActionId.ACCEPTING, userId, endTime)).queue();
+            event.replyModal(new NoticeOfDepartureTemplateModals(config, translation)
+                    .reasonActionModal(ActionId.ACCEPTING, userId, endTime)).queue();
         }
 
         if (buttonId.startsWith("notice_of_departure_decision_dismiss")) {
-            if (permissionCheck(PermissionType.NOTICE_OF_DEPARTURES)) return;
+            if (permissionCheck(PermissionType.NOTICE_OF_DEPARTURES))
+                return;
             String[] splitId = buttonId.split(":");
 
             String userId = splitId[1];
             String endTime = splitId[2];
 
-            event.replyModal(new NoticeOfDepartureTemplateModals(config, translation).reasonActionModal(ActionId.DISMISSING, userId, endTime)).queue();
+            event.replyModal(new NoticeOfDepartureTemplateModals(config, translation)
+                    .reasonActionModal(ActionId.DISMISSING, userId, endTime)).queue();
         }
 
         if (buttonId.startsWith("notice_of_departure_revoke")) {
-            if (permissionCheck(PermissionType.NOTICE_OF_DEPARTURES)) return;
+            if (permissionCheck(PermissionType.NOTICE_OF_DEPARTURES))
+                return;
             String[] splitId = buttonId.split(":");
 
             String userId = splitId[1];
             String endTime = splitId[2];
 
-            event.replyModal(new NoticeOfDepartureTemplateModals(config, translation).reasonActionModal(ActionId.REVOKING, userId, endTime)).queue();
+            event.replyModal(new NoticeOfDepartureTemplateModals(config, translation)
+                    .reasonActionModal(ActionId.REVOKING, userId, endTime)).queue();
         }
     }
 
     private boolean permissionCheck(PermissionType permissionType) {
-        var result = new PermissionManager(config, translation).determinePermissions(event.getUser(), permissionType, null);
+        var result = new PermissionManager(config, translation).determinePermissions(event.getUser(), permissionType,
+                null);
         if (result.getEmbed() != null) {
             event.replyEmbeds(result.getEmbed()).setEphemeral(true).queue();
         }

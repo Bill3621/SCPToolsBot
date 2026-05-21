@@ -21,6 +21,7 @@ import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 
 public class RegularsStringSelectMenus {
@@ -35,13 +36,15 @@ public class RegularsStringSelectMenus {
     }
 
     public void init() {
-        String menuId = event.getComponent().getId();
-        if (menuId == null) return;
+        String menuId = event.getComponent().getCustomId();
+        if (menuId == null)
+            return;
 
         if (menuId.startsWith("regulars_group_select")) {
             var regularsMessageHandler = new RegularsMessageHandler(event.getJDA(), config, translation);
 
-            new RegularsManager(event.getJDA(), config, translation).syncRegulars(event.getUser().getId(), event.getSelectedOptions().get(0).getValue());
+            new RegularsManager(event.getJDA(), config, translation).syncRegulars(event.getUser().getId(),
+                    event.getSelectedOptions().get(0).getValue());
             var embed = new EmbedBuilder()
                     .setColor(0x2ECC70)
                     .setTitle(new ColorTool().parse(translation.regulars().embedSyncSentTitle()))
@@ -50,9 +53,10 @@ public class RegularsStringSelectMenus {
 
             event.getMessage().delete().queue();
             event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
-            event.replyEmbeds(new RegularsMessageHandler(event.getJDA(), config, translation).getSettings(event.getUser(), null, null)).addActionRow(
-                    regularsMessageHandler.getSettingsActionRow(event.getUser().getId())
-            ).setEphemeral(true).queue();
+            event.replyEmbeds(new RegularsMessageHandler(event.getJDA(), config, translation)
+                    .getSettings(event.getUser(), null, null)).setComponents(ActionRow.of(
+                            regularsMessageHandler.getSettingsActionRow(event.getUser().getId())))
+                    .setEphemeral(true).queue();
         }
     }
 }

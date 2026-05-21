@@ -17,10 +17,10 @@
 package dev.vxrp.bot.modals;
 
 import dev.vxrp.configuration.data.Translation;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.text.TextInput;
-import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
-import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.components.label.Label;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.modals.Modal;
 
 public class TicketTemplateModals {
     private final Translation translation;
@@ -30,174 +30,157 @@ public class TicketTemplateModals {
     }
 
     public Modal supportGeneralModal() {
-        TextInput subject = TextInput.create("general_subject",
-                        translation.support().modalGeneralSubjectTitle(),
-                        TextInputStyle.SHORT)
-                .setRequired(true)
-                .setRequiredRange(4, 100)
-                .setPlaceholder(translation.support().modalGeneralSubjectPlaceholder())
-                .build();
+        Label subject = Label.of(translation.support().modalGeneralSubjectTitle(),
+                TextInput.create("general_subject", TextInputStyle.SHORT)
+                        .setRequired(true)
+                        .setRequiredRange(4, 100)
+                        .setPlaceholder(translation.support().modalGeneralSubjectPlaceholder())
+                        .build());
 
-        TextInput explanation = TextInput.create("general_explanation",
-                        translation.support().modalComplaintExplanationTitle(),
-                        TextInputStyle.PARAGRAPH)
-                .setRequired(true)
-                .setRequiredRange(4, 2000)
-                .setPlaceholder(translation.support().modalComplaintExplanationPlaceholder())
-                .build();
+        Label explanation = Label.of(translation.support().modalComplaintExplanationTitle(),
+                TextInput.create("general_explanation", TextInputStyle.PARAGRAPH)
+                        .setRequired(true)
+                        .setRequiredRange(4, 2000)
+                        .setPlaceholder(translation.support().modalComplaintExplanationPlaceholder())
+                        .build());
 
         return Modal.create("ticket_general", translation.support().modalGeneralTitle())
-                .addComponents(ActionRow.of(subject), ActionRow.of(explanation))
+                .addComponents(subject, explanation)
                 .build();
     }
 
     public Modal supportReportModal(String userId) {
-        TextInput reason = TextInput.create("report_reason",
-                        translation.support().modalReportReasonTitle(),
-                        TextInputStyle.SHORT)
-                .setRequired(true)
-                .setRequiredRange(4, 100)
-                .setPlaceholder(translation.support().modalReportReasonPlaceholder())
-                .build();
+        Label reason = Label.of(translation.support().modalReportReasonTitle(),
+                TextInput.create("report_reason", TextInputStyle.SHORT)
+                        .setRequired(true)
+                        .setRequiredRange(4, 100)
+                        .setPlaceholder(translation.support().modalReportReasonPlaceholder())
+                        .build());
 
-        TextInput proof = TextInput.create("report_proof",
-                        translation.support().modalReportProofTitle(),
-                        TextInputStyle.PARAGRAPH)
-                .setRequired(true)
-                .setRequiredRange(4, 2000)
-                .setPlaceholder(translation.support().modalReportProofPlaceholder())
-                .build();
+        Label proof = Label.of(translation.support().modalReportProofTitle(),
+                TextInput.create("report_proof", TextInputStyle.PARAGRAPH)
+                        .setRequired(true)
+                        .setRequiredRange(4, 2000)
+                        .setPlaceholder(translation.support().modalReportProofPlaceholder())
+                        .build());
 
         return Modal.create("ticket_report:" + userId, translation.support().modalReportTitle())
-                .addComponents(ActionRow.of(reason), ActionRow.of(proof))
+                .addComponents(reason, proof)
                 .build();
     }
 
     public Modal supportErrorModal() {
-        TextInput problem = TextInput.create("error_problem",
-                        translation.support().modalErrorProblemTitle(),
-                        TextInputStyle.SHORT)
-                .setRequired(true)
-                .setRequiredRange(4, 100)
-                .setPlaceholder(translation.support().modalErrorProblemPlaceholder())
-                .build();
+        Label problem = Label.of(translation.support().modalErrorProblemTitle(),
+                TextInput.create("error_problem", TextInputStyle.SHORT)
+                        .setRequired(true)
+                        .setRequiredRange(4, 100)
+                        .setPlaceholder(translation.support().modalErrorProblemPlaceholder())
+                        .build());
 
-        TextInput times = TextInput.create("error_times",
-                        translation.support().modalErrorTimesTitle(),
-                        TextInputStyle.SHORT)
-                .setRequired(true)
-                .setRequiredRange(4, 100)
-                .setPlaceholder(translation.support().modalErrorTimesPlaceholder())
-                .build();
+        Label times = Label.of(translation.support().modalErrorTimesTitle(),
+                TextInput.create("error_times", TextInputStyle.SHORT)
+                        .setRequired(true)
+                        .setRequiredRange(4, 100)
+                        .setPlaceholder(translation.support().modalErrorTimesPlaceholder())
+                        .build());
 
-        TextInput reproduce = TextInput.create("error_reproduce",
-                        translation.support().modalErrorReproduceTitle(),
-                        TextInputStyle.PARAGRAPH)
-                .setRequired(true)
-                .setRequiredRange(4, 1000)
-                .setPlaceholder(translation.support().modalErrorReproducePlaceholder())
-                .build();
+        Label reproduce = Label.of(translation.support().modalErrorReproduceTitle(),
+                TextInput.create("error_reproduce", TextInputStyle.PARAGRAPH)
+                        .setRequired(true)
+                        .setRequiredRange(4, 1000)
+                        .setPlaceholder(translation.support().modalErrorReproducePlaceholder())
+                        .build());
 
-        TextInput additional = TextInput.create("error_additional",
-                        translation.support().modalErrorAdditionalTitle(),
-                        TextInputStyle.PARAGRAPH)
-                .setRequired(true)
-                .setRequiredRange(4, 1000)
-                .setPlaceholder(translation.support().modalErrorAdditionalPlaceholder())
-                .build();
+        Label additional = Label.of(translation.support().modalErrorAdditionalTitle(),
+                TextInput.create("error_additional", TextInputStyle.PARAGRAPH)
+                        .setRequired(true)
+                        .setRequiredRange(4, 1000)
+                        .setPlaceholder(translation.support().modalErrorAdditionalPlaceholder())
+                        .build());
 
         return Modal.create("ticket_error", translation.support().modalErrorTitle())
-                .addComponents(ActionRow.of(problem), ActionRow.of(times), ActionRow.of(reproduce), ActionRow.of(additional))
+                .addComponents(problem, times, reproduce, additional)
                 .build();
     }
 
     public Modal supportUnbanModal() {
-        TextInput steamId = TextInput.create("unban_steamID",
-                        translation.support().modalUnbanSteamIdTitle(),
-                        TextInputStyle.SHORT)
-                .setRequired(true)
-                .setRequiredRange(17, 17)
-                .setPlaceholder(translation.support().modalUnbanSteamIdPlaceholder())
-                .build();
+        Label steamId = Label.of(translation.support().modalUnbanSteamIdTitle(),
+                TextInput.create("unban_steamID", TextInputStyle.SHORT)
+                        .setRequired(true)
+                        .setRequiredRange(17, 17)
+                        .setPlaceholder(translation.support().modalUnbanSteamIdPlaceholder())
+                        .build());
 
-        TextInput reason = TextInput.create("unban_reason",
-                        translation.support().modalUnbanReasonTitle(),
-                        TextInputStyle.PARAGRAPH)
-                .setRequired(true)
-                .setRequiredRange(4, 2000)
-                .setPlaceholder(translation.support().modalUnbanReasonPlaceholder())
-                .build();
+        Label reason = Label.of(translation.support().modalUnbanReasonTitle(),
+                TextInput.create("unban_reason", TextInputStyle.PARAGRAPH)
+                        .setRequired(true)
+                        .setRequiredRange(4, 2000)
+                        .setPlaceholder(translation.support().modalUnbanReasonPlaceholder())
+                        .build());
 
         return Modal.create("ticket_unban", translation.support().modalUnbanTitle())
-                .addComponents(ActionRow.of(steamId), ActionRow.of(reason))
+                .addComponents(steamId, reason)
                 .build();
     }
 
     public Modal supportComplaintModal(String userId, boolean anonymous) {
-        TextInput subject = TextInput.create("complaint_subject",
-                        translation.support().modalComplaintSubjectTitle(),
-                        TextInputStyle.SHORT)
-                .setRequired(true)
-                .setRequiredRange(4, 100)
-                .setPlaceholder(translation.support().modalComplaintSubjectPlaceholder())
-                .build();
+        Label subject = Label.of(translation.support().modalComplaintSubjectTitle(),
+                TextInput.create("complaint_subject", TextInputStyle.SHORT)
+                        .setRequired(true)
+                        .setRequiredRange(4, 100)
+                        .setPlaceholder(translation.support().modalComplaintSubjectPlaceholder())
+                        .build());
 
-        TextInput explanation = TextInput.create("complaint_explanation",
-                        translation.support().modalComplaintExplanationTitle(),
-                        TextInputStyle.PARAGRAPH)
-                .setRequired(true)
-                .setRequiredRange(4, 2000)
-                .setPlaceholder(translation.support().modalComplaintExplanationPlaceholder())
-                .build();
+        Label explanation = Label.of(translation.support().modalComplaintExplanationTitle(),
+                TextInput.create("complaint_explanation", TextInputStyle.PARAGRAPH)
+                        .setRequired(true)
+                        .setRequiredRange(4, 2000)
+                        .setPlaceholder(translation.support().modalComplaintExplanationPlaceholder())
+                        .build());
 
         return Modal.create("ticket_complaint:" + userId + ":" + anonymous, translation.support().modalComplaintTitle())
-                .addComponents(ActionRow.of(subject), ActionRow.of(explanation))
+                .addComponents(subject, explanation)
                 .build();
     }
 
     public Modal supportApplicationModal(String roleId) {
-        TextInput name = TextInput.create("application_name",
-                        translation.support().modalApplicationNameTitle(),
-                        TextInputStyle.SHORT)
-                .setRequired(true)
-                .setRequiredRange(4, 100)
-                .setPlaceholder(translation.support().modalApplicationNamePlaceholder())
-                .build();
+        Label name = Label.of(translation.support().modalApplicationNameTitle(),
+                TextInput.create("application_name", TextInputStyle.SHORT)
+                        .setRequired(true)
+                        .setRequiredRange(4, 100)
+                        .setPlaceholder(translation.support().modalApplicationNamePlaceholder())
+                        .build());
 
-        TextInput age = TextInput.create("application_age",
-                        translation.support().modalApplicationAgeTitle(),
-                        TextInputStyle.SHORT)
-                .setRequired(true)
-                .setRequiredRange(2, 3)
-                .setPlaceholder(translation.support().modalApplicationAgePlaceholder())
-                .build();
+        Label age = Label.of(translation.support().modalApplicationAgeTitle(),
+                TextInput.create("application_age", TextInputStyle.SHORT)
+                        .setRequired(true)
+                        .setRequiredRange(2, 3)
+                        .setPlaceholder(translation.support().modalApplicationAgePlaceholder())
+                        .build());
 
-        TextInput playtime = TextInput.create("application_playtime",
-                        translation.support().modalApplicationPlaytimeTitle(),
-                        TextInputStyle.SHORT)
-                .setRequired(true)
-                .setRequiredRange(4, 100)
-                .setPlaceholder(translation.support().modalApplicationPlaytimePlaceholder())
-                .build();
+        Label playtime = Label.of(translation.support().modalApplicationPlaytimeTitle(),
+                TextInput.create("application_playtime", TextInputStyle.SHORT)
+                        .setRequired(true)
+                        .setRequiredRange(4, 100)
+                        .setPlaceholder(translation.support().modalApplicationPlaytimePlaceholder())
+                        .build());
 
-        TextInput reasonOfApplication = TextInput.create("application_reason_of_application",
-                        translation.support().modalApplicationReasonsOfApplicationTitle(),
-                        TextInputStyle.PARAGRAPH)
-                .setRequired(true)
-                .setRequiredRange(4, 1000)
-                .setPlaceholder(translation.support().modalApplicationReasonsOfApplicationPlaceholder())
-                .build();
+        Label reasonOfApplication = Label.of(translation.support().modalApplicationReasonsOfApplicationTitle(),
+                TextInput.create("application_reason_of_application", TextInputStyle.PARAGRAPH)
+                        .setRequired(true)
+                        .setRequiredRange(4, 1000)
+                        .setPlaceholder(translation.support().modalApplicationReasonsOfApplicationPlaceholder())
+                        .build());
 
-        TextInput skills = TextInput.create("application_skills",
-                        translation.support().modalApplicationSkillsTitle(),
-                        TextInputStyle.PARAGRAPH)
-                .setRequired(true)
-                .setRequiredRange(4, 1000)
-                .setPlaceholder(translation.support().modalApplicationSkillsPlaceholder())
-                .build();
+        Label skills = Label.of(translation.support().modalApplicationSkillsTitle(),
+                TextInput.create("application_skills", TextInputStyle.PARAGRAPH)
+                        .setRequired(true)
+                        .setRequiredRange(4, 1000)
+                        .setPlaceholder(translation.support().modalApplicationSkillsPlaceholder())
+                        .build());
 
         return Modal.create("ticket_application:" + roleId, translation.support().modalApplicationTitle())
-                .addComponents(ActionRow.of(name), ActionRow.of(age), ActionRow.of(playtime), ActionRow.of(reasonOfApplication), ActionRow.of(skills))
+                .addComponents(name, age, playtime, reasonOfApplication, skills)
                 .build();
     }
 }

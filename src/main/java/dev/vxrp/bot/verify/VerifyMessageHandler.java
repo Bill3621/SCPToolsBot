@@ -21,11 +21,12 @@ import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.slf4j.LoggerFactory;
 
 public class VerifyMessageHandler {
@@ -48,11 +49,12 @@ public class VerifyMessageHandler {
                 .setDescription(colorTool.parse(translation.verify().embedTemplateBody()))
                 .build();
 
-        channel.sendMessageEmbeds(embed).setActionRow(
-                Button.link(config.settings().verify().oauthLink(), translation.buttons().textVerifyVerify()),
-                Button.secondary("verify_show_data", translation.buttons().textVerifyShowData()),
-                Button.danger("verify_delete", translation.buttons().textVerifyDelete())
-        ).queue();
+        channel.sendMessageEmbeds(embed)
+                .setComponents(ActionRow.of(
+                        Button.link(config.settings().verify().oauthLink(), translation.buttons().textVerifyVerify()),
+                        Button.secondary("verify_show_data", translation.buttons().textVerifyShowData()),
+                        Button.danger("verify_delete", translation.buttons().textVerifyDelete())))
+                .queue();
     }
 
     public void sendVerificationMessage(User user) {

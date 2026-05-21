@@ -25,11 +25,12 @@ import dev.vxrp.database.tables.database.TicketTable;
 import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -52,8 +53,10 @@ public class TicketSettingsHandler {
         var embed = new EmbedBuilder()
                 .setAuthor(user.getGlobalName(), null, user.getAvatarUrl())
                 .setColor(0x2ECC70)
-                .setTitle(colorTool.parse(translation.support().embedTicketClaimedTitle().replace("%user%", user.getGlobalName())))
-                .setDescription(colorTool.parse(translation.support().embedTicketClaimedBody().replace("%user%", user.getAsMention())))
+                .setTitle(colorTool
+                        .parse(translation.support().embedTicketClaimedTitle().replace("%user%", user.getGlobalName())))
+                .setDescription(colorTool
+                        .parse(translation.support().embedTicketClaimedBody().replace("%user%", user.getAsMention())))
                 .build();
 
         ticketChannel.sendMessageEmbeds(embed).queue();
@@ -76,7 +79,8 @@ public class TicketSettingsHandler {
         var embed = new EmbedBuilder()
                 .setAuthor(user.getGlobalName(), null, user.getAvatarUrl())
                 .setColor(0x2ECC70)
-                .setTitle(colorTool.parse(translation.support().embedTicketOpenedTitle().replace("%user%", user.getGlobalName())))
+                .setTitle(colorTool
+                        .parse(translation.support().embedTicketOpenedTitle().replace("%user%", user.getGlobalName())))
                 .setDescription(colorTool.parse(translation.support().embedTicketOpenedBody()))
                 .build();
 
@@ -97,7 +101,8 @@ public class TicketSettingsHandler {
         var embed = new EmbedBuilder()
                 .setAuthor(user.getGlobalName(), null, user.getAvatarUrl())
                 .setColor(0xf1c40f)
-                .setTitle(colorTool.parse(translation.support().embedTicketPausedTitle().replace("%user%", user.getGlobalName())))
+                .setTitle(colorTool
+                        .parse(translation.support().embedTicketPausedTitle().replace("%user%", user.getGlobalName())))
                 .setDescription(colorTool.parse(translation.support().embedTicketPausedBody()))
                 .build();
 
@@ -118,7 +123,8 @@ public class TicketSettingsHandler {
         var embed = new EmbedBuilder()
                 .setAuthor(user.getGlobalName(), null, user.getAvatarUrl())
                 .setColor(0xE74D3C)
-                .setTitle(colorTool.parse(translation.support().embedTicketSuspendedTitle().replace("%user%", user.getGlobalName())))
+                .setTitle(colorTool.parse(
+                        translation.support().embedTicketSuspendedTitle().replace("%user%", user.getGlobalName())))
                 .setDescription(colorTool.parse(translation.support().embedTicketSuspendedBody()))
                 .build();
 
@@ -139,15 +145,18 @@ public class TicketSettingsHandler {
         var embed = new EmbedBuilder()
                 .setAuthor(user.getGlobalName(), null, user.getAvatarUrl())
                 .setColor(0xE74D3C)
-                .setTitle(colorTool.parse(translation.support().embedTicketClosedTitle().replace("%user%", user.getGlobalName())))
-                .setDescription(colorTool.parse(translation.support().embedTicketClosedBody().replace("%reason%", reason)))
+                .setTitle(colorTool
+                        .parse(translation.support().embedTicketClosedTitle().replace("%user%", user.getGlobalName())))
+                .setDescription(
+                        colorTool.parse(translation.support().embedTicketClosedBody().replace("%reason%", reason)))
                 .build();
 
         ticketChannel.sendMessageEmbeds(embed).queue();
         new TicketLogHandler(api, config, translation).closeMessage(id, user, reason);
         String ticketCreator = new TicketTable().getTicketCreator(id);
         if (ticketCreator != null) {
-            new TicketMessageHandler(api, config, translation).sendClosedMessage(ticketCreator, user.getId(), ticketChannel, reason);
+            new TicketMessageHandler(api, config, translation).sendClosedMessage(ticketCreator, user.getId(),
+                    ticketChannel, reason);
         }
         new TicketTable().updateTicketStatus(id, TicketStatus.CLOSED);
         var child = api.getThreadChannelById(id);
@@ -164,13 +173,17 @@ public class TicketSettingsHandler {
         logger.info("Ticket {} archived by user: {}", id, user.getId());
     }
 
-    public Collection<ItemComponent> settingsActionRow(TicketStatus status) {
-        Collection<ItemComponent> rows = new ArrayList<>();
+    public ActionRow settingsActionRow(TicketStatus status) {
+        Collection<ActionRowChildComponent> rows = new ArrayList<>();
 
-        Button open = Button.success("ticket_setting_open", translation.buttons().textSupportSettingsOpen()).withEmoji(Emoji.fromFormatted("🚪"));
-        Button pause = Button.primary("ticket_setting_pause", translation.buttons().textSupportSettingsPause()).withEmoji(Emoji.fromFormatted("🌙"));
-        Button suspend = Button.primary("ticket_setting_suspend", translation.buttons().textSupportSettingsSuspend()).withEmoji(Emoji.fromFormatted("🔒"));
-        Button close = Button.danger("ticket_setting_close", translation.buttons().textSupportSettingsClose()).withEmoji(Emoji.fromFormatted("🪫"));
+        Button open = Button.success("ticket_setting_open", translation.buttons().textSupportSettingsOpen())
+                .withEmoji(Emoji.fromFormatted("🚪"));
+        Button pause = Button.primary("ticket_setting_pause", translation.buttons().textSupportSettingsPause())
+                .withEmoji(Emoji.fromFormatted("🌙"));
+        Button suspend = Button.primary("ticket_setting_suspend", translation.buttons().textSupportSettingsSuspend())
+                .withEmoji(Emoji.fromFormatted("🔒"));
+        Button close = Button.danger("ticket_setting_close", translation.buttons().textSupportSettingsClose())
+                .withEmoji(Emoji.fromFormatted("🪫"));
 
         switch (status) {
             case OPEN -> open = open.asDisabled();
@@ -184,6 +197,6 @@ public class TicketSettingsHandler {
         rows.add(suspend);
         rows.add(close);
 
-        return rows;
+        return ActionRow.of(rows);
     }
 }

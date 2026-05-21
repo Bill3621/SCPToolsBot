@@ -23,12 +23,13 @@ import dev.vxrp.database.tables.database.TicketTable;
 import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
@@ -47,7 +48,8 @@ public class TicketLogHandler {
         this.translation = translation;
     }
 
-    public String logMessage(String creator, User handler, String ticketId, TicketStatus ticketStatus, ThreadChannel childChannel) {
+    public String logMessage(String creator, User handler, String ticketId, TicketStatus ticketStatus,
+            ThreadChannel childChannel) {
         MessageEmbed logEmbed = createMessage(creator, handler, ticketStatus, childChannel, false, null, "None");
 
         var channel = api.getTextChannelById(config.ticket().settings().ticketLogChannel());
@@ -59,7 +61,7 @@ public class TicketLogHandler {
         boolean isHandled = handler != null;
 
         return channel.sendMessageEmbeds(logEmbed)
-                .setActionRow(logActionRow(ticketStatus, isHandled, ticketId))
+                .setComponents(logActionRow(ticketStatus, isHandled, ticketId))
                 .complete()
                 .getId();
     }
@@ -76,9 +78,12 @@ public class TicketLogHandler {
             handlerUser = api.retrieveUserById(handlerId).complete();
         }
 
-        if (creator != null) creatorId = creator;
-        if (handler != null) handlerUser = handler;
-        if (ticketStatus != null) status = ticketStatus;
+        if (creator != null)
+            creatorId = creator;
+        if (handler != null)
+            handlerUser = handler;
+        if (ticketStatus != null)
+            status = ticketStatus;
 
         MessageEmbed logEmbed = createMessage(creatorId, handlerUser, status, child, false, null, "None");
 
@@ -91,7 +96,7 @@ public class TicketLogHandler {
         boolean isHandled = handlerId != null;
 
         channel.editMessageEmbedsById(logMessage, logEmbed)
-                .setActionRow(logActionRow(status, isHandled, ticketId))
+                .setComponents(logActionRow(status, isHandled, ticketId))
                 .queue();
     }
 
@@ -110,10 +115,12 @@ public class TicketLogHandler {
 
         var message = channel.retrieveMessageById(logMessage).complete();
         message.editMessageComponents().queue();
-        message.editMessageEmbeds(createMessage(creator, handler, TicketStatus.CLOSED, childChannel, true, closedUser, reason)).queue();
+        message.editMessageEmbeds(
+                createMessage(creator, handler, TicketStatus.CLOSED, childChannel, true, closedUser, reason)).queue();
     }
 
-    private MessageEmbed createMessage(String ticketCreator, User ticketHandler, TicketStatus ticketStatus, ThreadChannel childChannel, boolean closedMessage, User closedUser, String reason) {
+    private MessageEmbed createMessage(String ticketCreator, User ticketHandler, TicketStatus ticketStatus,
+            ThreadChannel childChannel, boolean closedMessage, User closedUser, String reason) {
         ColorTool colorTool = new ColorTool();
         String thumbnailUrl = "";
         String creatorUserMention = "anonymous";
@@ -126,7 +133,8 @@ public class TicketLogHandler {
             thumbnailUrl = String.valueOf(creatorUser.getAvatarUrl());
             creatorUserMention = api.retrieveUserById(ticketCreator).complete().getAsMention();
         }
-        if (ticketHandler != null) handlerUserName = ticketHandler.getAsMention();
+        if (ticketHandler != null)
+            handlerUserName = ticketHandler.getAsMention();
 
         int usableColor = 0x2ECC70;
         String usableTitle = colorTool.parse(translation.support().embedLogTitle()
@@ -166,16 +174,22 @@ public class TicketLogHandler {
         return builder.build();
     }
 
-    private Collection<ItemComponent> logActionRow(TicketStatus status, boolean handler, String ticketId) {
-        Collection<ItemComponent> rows = new ArrayList<>();
+    private ActionRow logActionRow(TicketStatus status, boolean handler, String ticketId) {
+        Collection<ActionRowChildComponent> rows = new ArrayList<>();
 
-        Button claim = Button.primary("ticket_log_claim:" + ticketId, translation.buttons().textSupportLogClaim()).withEmoji(Emoji.fromFormatted("📫"));
-        Button open = Button.success("ticket_log_open:" + ticketId, translation.buttons().textSupportLogOpen()).withEmoji(Emoji.fromFormatted("🚪"));
-        Button pause = Button.primary("ticket_log_pause:" + ticketId, translation.buttons().textSupportLogPause()).withEmoji(Emoji.fromFormatted("🌙"));
-        Button suspend = Button.primary("ticket_log_suspend:" + ticketId, translation.buttons().textSupportLogSuspend()).withEmoji(Emoji.fromFormatted("🔒"));
-        Button close = Button.danger("ticket_log_close:" + ticketId, translation.buttons().textSupportLogClose()).withEmoji(Emoji.fromFormatted("🪫"));
+        Button claim = Button.primary("ticket_log_claim:" + ticketId, translation.buttons().textSupportLogClaim())
+                .withEmoji(Emoji.fromFormatted("📫"));
+        Button open = Button.success("ticket_log_open:" + ticketId, translation.buttons().textSupportLogOpen())
+                .withEmoji(Emoji.fromFormatted("🚪"));
+        Button pause = Button.primary("ticket_log_pause:" + ticketId, translation.buttons().textSupportLogPause())
+                .withEmoji(Emoji.fromFormatted("🌙"));
+        Button suspend = Button.primary("ticket_log_suspend:" + ticketId, translation.buttons().textSupportLogSuspend())
+                .withEmoji(Emoji.fromFormatted("🔒"));
+        Button close = Button.danger("ticket_log_close:" + ticketId, translation.buttons().textSupportLogClose())
+                .withEmoji(Emoji.fromFormatted("🪫"));
 
-        if (handler) claim = claim.asDisabled();
+        if (handler)
+            claim = claim.asDisabled();
         switch (status) {
             case OPEN -> open = open.asDisabled();
             case PAUSED -> pause = pause.asDisabled();
@@ -189,6 +203,6 @@ public class TicketLogHandler {
         rows.add(suspend);
         rows.add(close);
 
-        return rows;
+        return ActionRow.of(rows);
     }
 }

@@ -23,9 +23,10 @@ import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.util.GlobalVariables;
 import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,8 +47,9 @@ public class ApplicationButtons {
     }
 
     public void init() {
-        String buttonId = event.getButton().getId();
-        if (buttonId == null) return;
+        String buttonId = event.getButton().getCustomId();
+        if (buttonId == null)
+            return;
 
         if (buttonId.startsWith("application_activation_add") && !nullCheck()) {
             var embed = new EmbedBuilder()
@@ -56,12 +58,14 @@ public class ApplicationButtons {
                     .setDescription(new ColorTool().parse(translation.application().embedChoosePositionBody()))
                     .build();
 
-            var menuBuilder = StringSelectMenu.create("application_activation_add:" + event.getUser().getId() + ":" + event.getMessage().getId());
+            var menuBuilder = StringSelectMenu
+                    .create("application_activation_add:" + event.getUser().getId() + ":" + event.getMessage().getId());
             for (var application : GlobalVariables.applicationTypeSet) {
-                menuBuilder.addOption(application.name(), application.roleId(), application.description(), Emoji.fromFormatted(application.emoji()));
+                menuBuilder.addOption(application.name(), application.roleId(), application.description(),
+                        Emoji.fromFormatted(application.emoji()));
             }
 
-            event.replyEmbeds(embed).addActionRow(menuBuilder.build()).setEphemeral(true).queue();
+            event.replyEmbeds(embed).setComponents(ActionRow.of(menuBuilder.build())).setEphemeral(true).queue();
         }
 
         if (buttonId.startsWith("application_activation_remove") && !nullCheck()) {
@@ -71,22 +75,27 @@ public class ApplicationButtons {
                     .setDescription(new ColorTool().parse(translation.application().embedChoosePositionBody()))
                     .build();
 
-            var menuBuilder = StringSelectMenu.create("application_activation_remove:" + event.getUser().getId() + ":" + event.getMessageId());
+            var menuBuilder = StringSelectMenu
+                    .create("application_activation_remove:" + event.getUser().getId() + ":" + event.getMessageId());
             for (var application : GlobalVariables.applicationTypeSet) {
-                menuBuilder.addOption(application.name(), application.roleId(), application.description(), Emoji.fromFormatted(application.emoji()));
+                menuBuilder.addOption(application.name(), application.roleId(), application.description(),
+                        Emoji.fromFormatted(application.emoji()));
             }
 
-            event.replyEmbeds(embed).addActionRow(menuBuilder.build()).setEphemeral(true).queue();
+            event.replyEmbeds(embed).setComponents(ActionRow.of(menuBuilder.build())).setEphemeral(true).queue();
         }
 
         if (buttonId.startsWith("application_activation_complete_setup") && !nullCheck()) {
             if (!config.ticket().settings().applicationMessageChannel().isEmpty()) {
                 event.getMessage().delete().queue();
-                new ApplicationMessageHandler(config, translation).sendApplicationMessage(event.getJDA(), event.getJDA().getTextChannelById(config.ticket().settings().applicationMessageChannel()), true);
+                new ApplicationMessageHandler(config, translation).sendApplicationMessage(event.getJDA(),
+                        event.getJDA().getTextChannelById(config.ticket().settings().applicationMessageChannel()),
+                        true);
                 var embed = new EmbedBuilder()
                         .setColor(0x2ECC70)
                         .setTitle(new ColorTool().parse(translation.application().embedApplicationActivatedTitle()))
-                        .setDescription(new ColorTool().parse(translation.application().embedApplicationActivatedBody()))
+                        .setDescription(
+                                new ColorTool().parse(translation.application().embedApplicationActivatedBody()))
                         .build();
                 event.replyEmbeds(embed).setEphemeral(true).queue();
             } else {
@@ -102,20 +111,25 @@ public class ApplicationButtons {
                 int position = -1;
                 for (var type : config.ticket().applicationTypes()) {
                     position += 1;
-                    listOfTypes.add(new ApplicationType(position, type.roleID(), "/", "/", "/", false, event.getUser().getId(), 0));
+                    listOfTypes.add(new ApplicationType(position, type.roleID(), "/", "/", "/", false,
+                            event.getUser().getId(), 0));
                 }
 
                 GlobalVariables.applicationTypeSet = new HashSet<>(listOfTypes);
 
                 for (var type : config.ticket().applicationTypes()) {
-                    new ApplicationManager(config, translation).changeApplicationType(type.roleID(), null, null, null, false, event.getUser().getId(), 0);
+                    new ApplicationManager(config, translation).changeApplicationType(type.roleID(), null, null, null,
+                            false, event.getUser().getId(), 0);
                 }
 
-                new ApplicationMessageHandler(config, translation).sendApplicationMessage(event.getJDA(), event.getJDA().getTextChannelById(config.ticket().settings().applicationMessageChannel()), false);
+                new ApplicationMessageHandler(config, translation).sendApplicationMessage(event.getJDA(),
+                        event.getJDA().getTextChannelById(config.ticket().settings().applicationMessageChannel()),
+                        false);
                 var embed = new EmbedBuilder()
                         .setColor(0xE74D3C)
                         .setTitle(new ColorTool().parse(translation.application().embedApplicationDeactivatedTitle()))
-                        .setDescription(new ColorTool().parse(translation.application().embedApplicationDeactivatedBody()))
+                        .setDescription(
+                                new ColorTool().parse(translation.application().embedApplicationDeactivatedBody()))
                         .build();
                 event.replyEmbeds(embed).setEphemeral(true).queue();
             } else {
@@ -131,15 +145,17 @@ public class ApplicationButtons {
 
             var menuBuilder = StringSelectMenu.create("application_position");
             for (var type : config.ticket().applicationTypes()) {
-                menuBuilder.addOption(type.name(), type.roleID(), type.description(), Emoji.fromFormatted(type.emoji()));
+                menuBuilder.addOption(type.name(), type.roleID(), type.description(),
+                        Emoji.fromFormatted(type.emoji()));
             }
 
-            event.replyEmbeds(embed).addActionRow(menuBuilder.build()).setEphemeral(true).queue();
+            event.replyEmbeds(embed).setComponents(ActionRow.of(menuBuilder.build())).setEphemeral(true).queue();
         }
     }
 
     private boolean nullCheck() {
-        if (!GlobalVariables.applicationTypeSet.isEmpty()) return false;
+        if (!GlobalVariables.applicationTypeSet.isEmpty())
+            return false;
         event.getMessage().delete().queue();
         event.reply("This message has expired, please execute the command again").setEphemeral(true).queue();
         return true;

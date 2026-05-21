@@ -20,9 +20,10 @@ import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.component.EntitySelectInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class TicketEntitySelectMenus {
     private final EntitySelectInteractionEvent event;
@@ -34,8 +35,9 @@ public class TicketEntitySelectMenus {
         this.config = config;
         this.translation = translation;
 
-        String menuId = event.getComponent().getId();
-        if (menuId == null) return;
+        String menuId = event.getComponent().getCustomId();
+        if (menuId == null)
+            return;
 
         if (menuId.startsWith("ticket_report")) {
             var user = event.getValues().get(0);
@@ -49,10 +51,12 @@ public class TicketEntitySelectMenus {
                     .setDescription(new ColorTool().parse(translation.support().embedComplaintAnonymousBody()))
                     .build();
 
-            event.replyEmbeds(embed).setActionRow(
-                    Button.success("ticket_anonymous_accept:" + user.getId(), translation.buttons().textSupportAnonymousAccept()).withEmoji(Emoji.fromFormatted("🔒")),
-                    Button.danger("ticket_anonymous_deny:" + user.getId(), translation.buttons().textSupportAnonymousDeny()).withEmoji(Emoji.fromFormatted("🔓"))
-            ).setEphemeral(true).queue();
+            event.replyEmbeds(embed).setComponents(ActionRow.of(
+                    Button.success("ticket_anonymous_accept:" + user.getId(),
+                            translation.buttons().textSupportAnonymousAccept()).withEmoji(Emoji.fromFormatted("🔒")),
+                    Button.danger("ticket_anonymous_deny:" + user.getId(),
+                            translation.buttons().textSupportAnonymousDeny()).withEmoji(Emoji.fromFormatted("🔓"))))
+                    .setEphemeral(true).queue();
         }
     }
 }

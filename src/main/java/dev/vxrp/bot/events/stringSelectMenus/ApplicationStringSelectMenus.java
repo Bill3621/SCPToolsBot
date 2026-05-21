@@ -37,12 +37,14 @@ public class ApplicationStringSelectMenus {
     }
 
     public void init() {
-        String menuId = event.getComponent().getId();
-        if (menuId == null) return;
+        String menuId = event.getComponent().getCustomId();
+        if (menuId == null)
+            return;
 
         if (menuId.startsWith("application_activation_add")) {
             String[] parts = menuId.split(":");
-            event.replyModal(new ApplicationTemplateModals(translation).chooseCountModal(event.getSelectedOptions().get(0).getValue(), parts[2])).queue();
+            event.replyModal(new ApplicationTemplateModals(translation)
+                    .chooseCountModal(event.getSelectedOptions().get(0).getValue(), parts[2])).queue();
         }
 
         if (menuId.startsWith("application_activation_remove")) {
@@ -50,7 +52,8 @@ public class ApplicationStringSelectMenus {
             String messageId = menuId.split(":")[2];
 
             event.deferEdit().queue();
-            new ApplicationMessageHandler(config, translation).editActivationMessage(event.getUser().getId(), roleId, event.getChannel().asTextChannel(), messageId, null, null, null, false, event.getUser().getId(), 0);
+            new ApplicationMessageHandler(config, translation).editActivationMessage(event.getUser().getId(), roleId,
+                    event.getChannel().asTextChannel(), messageId, null, null, null, false, event.getUser().getId(), 0);
         }
 
         if (menuId.startsWith("application_position")) {
@@ -63,7 +66,8 @@ public class ApplicationStringSelectMenus {
                         .build();
                 event.replyEmbeds(embed).setEphemeral(true).queue();
             } else {
-                event.replyModal(new TicketTemplateModals(translation).supportApplicationModal(event.getSelectedOptions().get(0).getValue())).queue();
+                event.replyModal(new TicketTemplateModals(translation)
+                        .supportApplicationModal(event.getSelectedOptions().get(0).getValue())).queue();
             }
         }
     }

@@ -22,10 +22,11 @@ import dev.vxrp.database.tables.database.RegularsTable;
 import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +45,9 @@ public class RegularsMessageHandler {
     public void sendRegulars(TextChannel channel) {
         List<MessageEmbed> embeds = new ArrayList<>();
         EmbedBuilder mainBuilder = new EmbedBuilder();
-        mainBuilder.setThumbnail(api.getGuildById(config.settings().guildId()) != null ? api.getGuildById(config.settings().guildId()).getIconUrl() : null);
+        mainBuilder.setThumbnail(api.getGuildById(config.settings().guildId()) != null
+                ? api.getGuildById(config.settings().guildId()).getIconUrl()
+                : null);
         mainBuilder.setTitle(new ColorTool().parse(translation.regulars().embedTemplateTitle()));
         mainBuilder.setDescription(new ColorTool().parse(translation.regulars().embedTemplateBody()));
         embeds.add(mainBuilder.build());
@@ -75,8 +78,7 @@ public class RegularsMessageHandler {
                                 .replace("%timeframe%", timeframe)
                                 .replace("%playtime%", playtime)
                                 .replace("%xp%", xp)
-                                .replace("%level%", level)
-                ));
+                                .replace("%level%", level)));
             }
 
             String groupRoleStr = "<@&" + regular.manifest().customRole().id() + ">";
@@ -90,15 +92,15 @@ public class RegularsMessageHandler {
                             .replace("%group%", regular.manifest().name())
                             .replace("%description%", regular.manifest().description())
                             .replace("%group_role%", groupRoleStr)
-                            .replace("%roles%", stringBuilder.toString())
-            ));
+                            .replace("%roles%", stringBuilder.toString())));
 
             embeds.add(groupBuilder.build());
         }
 
-        channel.sendMessageEmbeds(embeds).addActionRow(
-                Button.success("regulars_open_settings", translation.buttons().textRegularOpenSettings())
-        ).queue();
+        channel.sendMessageEmbeds(embeds)
+                .setComponents(ActionRow
+                        .of(Button.success("regulars_open_settings", translation.buttons().textRegularOpenSettings())))
+                .queue();
     }
 
     public MessageEmbed getSettings(User user, String injectTitle, String injectDescription) {
@@ -111,7 +113,8 @@ public class RegularsMessageHandler {
 
         RegularsTable table = new RegularsTable();
         if (table.exists(user.getId())) {
-            RegularsConfigRole regularRole = new RegularsFileHandler(config).queryRoleFromConfig(table.getGroup(user.getId()), table.getRole(user.getId()));
+            RegularsConfigRole regularRole = new RegularsFileHandler(config)
+                    .queryRoleFromConfig(table.getGroup(user.getId()), table.getRole(user.getId()));
 
             requirementType = regularRole != null ? regularRole.requirementType() : "";
             String groupRoleVal = table.getGroupRole(user.getId());
@@ -124,7 +127,8 @@ public class RegularsMessageHandler {
         }
 
         String embedTitle = injectTitle != null ? injectTitle : translation.regulars().embedSettingsTitle();
-        String embedDescription = injectDescription != null ? injectDescription : translation.regulars().embedSettingsBody();
+        String embedDescription = injectDescription != null ? injectDescription
+                : translation.regulars().embedSettingsBody();
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setThumbnail(user.getAvatarUrl());
@@ -154,8 +158,10 @@ public class RegularsMessageHandler {
     public List<Button> getSettingsActionRow(String userId) {
         RegularsTable table = new RegularsTable();
         Button syncButton = Button.success("regulars_sync", translation.buttons().textRegularSync());
-        Button syncReactivateButton = Button.success("regulars_sync_reactivate", translation.buttons().textRegularSyncReactivate());
-        Button syncDeactivateButton = Button.danger("regulars_sync_deactivate", translation.buttons().textRegularSyncDeactivate());
+        Button syncReactivateButton = Button.success("regulars_sync_reactivate",
+                translation.buttons().textRegularSyncReactivate());
+        Button syncDeactivateButton = Button.danger("regulars_sync_deactivate",
+                translation.buttons().textRegularSyncDeactivate());
         Button syncRemoveButton = Button.danger("regulars_sync_remove", translation.buttons().textRegularSyncRemove());
 
         if (!table.exists(userId)) {

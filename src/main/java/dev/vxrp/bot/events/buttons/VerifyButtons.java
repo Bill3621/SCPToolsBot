@@ -41,8 +41,9 @@ public class VerifyButtons {
                 .setDescription(new ColorTool().parse(translation.verify().embedNoDataBody()))
                 .build();
 
-        String buttonId = event.getButton().getId();
-        if (buttonId == null) return;
+        String buttonId = event.getButton().getCustomId();
+        if (buttonId == null)
+            return;
 
         if (buttonId.startsWith("verify_show_data")) {
             if (!new UserTable().exists(event.getUser().getId())) {
@@ -65,8 +66,10 @@ public class VerifyButtons {
                     .setTitle(new ColorTool().parse(translation.verify().embedDataTitle()))
                     .setDescription(new ColorTool().parse(translation.verify().embedDataBody()))
                     .addField(translation.verify().embedDataFieldVerifiedTitle(), verified, true)
-                    .addField(translation.verify().embedDataFieldSteamIdTitle(), steamId != null ? steamId : "Unknown", true)
-                    .addField(translation.verify().embedDataFieldTimestampTitle(), timestamp != null ? timestamp : "Unknown", true)
+                    .addField(translation.verify().embedDataFieldSteamIdTitle(), steamId != null ? steamId : "Unknown",
+                            true)
+                    .addField(translation.verify().embedDataFieldTimestampTitle(),
+                            timestamp != null ? timestamp : "Unknown", true)
                     .addField("", translation.verify().embedDataFieldDeleteValue(), false)
                     .build();
 

@@ -20,8 +20,9 @@ import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 public class VerifyCommand {
     private final Config config;
@@ -50,10 +51,9 @@ public class VerifyCommand {
                 .setDescription(new ColorTool().parse(translation.verify().embedTemplateBody()))
                 .build();
 
-        event.replyEmbeds(embed).setActionRow(
+        event.replyEmbeds(embed).setComponents(ActionRow.of(
                 Button.link(config.settings().verify().oauthLink(), translation.buttons().textVerifyVerify()),
                 Button.secondary("verify_show_data", translation.buttons().textVerifyShowData()),
-                Button.danger("verify_delete", translation.buttons().textVerifyDelete())
-        ).setEphemeral(true).queue();
+                Button.danger("verify_delete", translation.buttons().textVerifyDelete()))).setEphemeral(true).queue();
     }
 }

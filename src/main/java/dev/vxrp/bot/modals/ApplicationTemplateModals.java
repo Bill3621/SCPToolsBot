@@ -17,10 +17,10 @@
 package dev.vxrp.bot.modals;
 
 import dev.vxrp.configuration.data.Translation;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.text.TextInput;
-import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
-import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.components.label.Label;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.modals.Modal;
 
 public class ApplicationTemplateModals {
     private final Translation translation;
@@ -30,17 +30,17 @@ public class ApplicationTemplateModals {
     }
 
     public Modal chooseCountModal(String roleId, String modalId) {
-        TextInput number = TextInput.create("application_choose_count_number",
-                        translation.application().modalChooseCountNumberTitle(),
+        Label number = Label.of(translation.application().modalChooseCountNumberTitle(),
+                TextInput.create("application_choose_count_number",
                         TextInputStyle.SHORT)
-                .setRequired(true)
-                .setRequiredRange(1, 1000)
-                .setPlaceholder(translation.application().modalChooseCountNumberPlaceholder())
-                .build();
+                        .setRequired(true)
+                        .setRequiredRange(1, 1000)
+                        .setPlaceholder(translation.application().modalChooseCountNumberPlaceholder())
+                        .build());
 
         return Modal.create("application_choose_count:" + roleId + ":" + modalId,
-                        translation.application().modalChooseCountTitle())
-                .addComponents(ActionRow.of(number))
+                translation.application().modalChooseCountTitle())
+                .addComponents(number)
                 .build();
     }
 }

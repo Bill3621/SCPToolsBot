@@ -39,14 +39,14 @@ public class EntitySelectListener extends ListenerAdapter {
 
     @Override
     public void onEntitySelectInteraction(@NotNull EntitySelectInteractionEvent event) {
-        String menuId = event.getComponent().getId();
-        if (menuId == null) return;
+        String menuId = event.getComponent().getCustomId();
+        if (menuId == null)
+            return;
 
         if (menuId.startsWith("ticket")) {
             MessageEmbed embed = new PermissionManager(config, translation).checkStatus(
                     StatusMessageType.PANEL,
-                    !config.ticket().settings().ticketLogChannel().isEmpty()
-            );
+                    !config.ticket().settings().ticketLogChannel().isEmpty());
             if (embed != null) {
                 event.replyEmbeds(embed).setEphemeral(true).queue();
             } else {

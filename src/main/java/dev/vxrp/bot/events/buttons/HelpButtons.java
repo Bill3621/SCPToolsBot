@@ -32,20 +32,23 @@ public class HelpButtons {
     }
 
     public void init() {
-        String buttonId = event.getButton().getId();
-        if (buttonId == null) return;
+        String buttonId = event.getButton().getCustomId();
+        if (buttonId == null)
+            return;
 
         if (buttonId.startsWith("help_first_page")) {
             event.deferEdit().queue(hook -> {
-                event.getChannel().editMessageEmbedsById(event.getMessageId(), new HelpCommand(translation).pages().get(0))
-                        .setActionRow(new HelpCommand(translation).actionRow(0)).queue();
+                event.getChannel()
+                        .editMessageEmbedsById(event.getMessageId(), new HelpCommand(translation).pages().get(0))
+                        .setComponents(new HelpCommand(translation).actionRow(0)).queue();
             });
         }
 
         if (buttonId.startsWith("help_last_page")) {
             event.deferEdit().queue(hook -> {
-                event.getChannel().editMessageEmbedsById(event.getMessageId(), new HelpCommand(translation).pages().get(5))
-                        .setActionRow(new HelpCommand(translation).actionRow(5)).queue();
+                event.getChannel()
+                        .editMessageEmbedsById(event.getMessageId(), new HelpCommand(translation).pages().get(5))
+                        .setComponents(new HelpCommand(translation).actionRow(5)).queue();
             });
         }
 
@@ -53,8 +56,9 @@ public class HelpButtons {
             String[] parts = event.getComponentId().split(":");
             int page = Integer.parseInt(parts[1]) - 1;
             event.deferEdit().queue(hook -> {
-                event.getChannel().editMessageEmbedsById(event.getMessageId(), new HelpCommand(translation).pages().get(page))
-                        .setActionRow(new HelpCommand(translation).actionRow(page)).queue();
+                event.getChannel()
+                        .editMessageEmbedsById(event.getMessageId(), new HelpCommand(translation).pages().get(page))
+                        .setComponents(new HelpCommand(translation).actionRow(page)).queue();
             });
         }
 
@@ -62,8 +66,9 @@ public class HelpButtons {
             String[] parts = event.getComponentId().split(":");
             int page = Integer.parseInt(parts[1]) + 1;
             event.deferEdit().queue(hook -> {
-                event.getChannel().editMessageEmbedsById(event.getMessageId(), new HelpCommand(translation).pages().get(page))
-                        .setActionRow(new HelpCommand(translation).actionRow(page)).queue();
+                event.getChannel()
+                        .editMessageEmbedsById(event.getMessageId(), new HelpCommand(translation).pages().get(page))
+                        .setComponents(new HelpCommand(translation).actionRow(page)).queue();
             });
         }
     }

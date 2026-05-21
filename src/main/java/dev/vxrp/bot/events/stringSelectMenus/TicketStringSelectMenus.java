@@ -20,10 +20,11 @@ import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.selections.EntitySelectMenu;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.selections.EntitySelectMenu;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
 public class TicketStringSelectMenus {
     private final StringSelectInteractionEvent event;
@@ -50,9 +51,9 @@ public class TicketStringSelectMenus {
                     .setDescription(new ColorTool().parse(translation.support().embedReportUserBody()))
                     .build();
 
-            event.replyEmbeds(embed).addActionRow(
-                    EntitySelectMenu.create("ticket_report", EntitySelectMenu.SelectTarget.USER).build()
-            ).setEphemeral(true).queue();
+            event.replyEmbeds(embed).setComponents(ActionRow.of(
+                    EntitySelectMenu.create("ticket_report", EntitySelectMenu.SelectTarget.USER).build()))
+                    .setEphemeral(true).queue();
         }
 
         if (selectedValue.startsWith("error")) {
@@ -69,9 +70,9 @@ public class TicketStringSelectMenus {
                     .setDescription(new ColorTool().parse(translation.support().embedComplaintUserBody()))
                     .build();
 
-            event.replyEmbeds(embed).addActionRow(
-                    EntitySelectMenu.create("ticket_complaint", EntitySelectMenu.SelectTarget.USER).build()
-            ).setEphemeral(true).queue();
+            event.replyEmbeds(embed).setComponents(ActionRow.of(
+                    EntitySelectMenu.create("ticket_complaint", EntitySelectMenu.SelectTarget.USER).build()))
+                    .setEphemeral(true).queue();
         }
 
         if (selectedValue.startsWith("application")) {
@@ -82,10 +83,11 @@ public class TicketStringSelectMenus {
 
             var menuBuilder = StringSelectMenu.create("application_position");
             for (var type : config.ticket().applicationTypes()) {
-                menuBuilder.addOption(type.name(), type.roleID(), type.description(), Emoji.fromFormatted(type.emoji()));
+                menuBuilder.addOption(type.name(), type.roleID(), type.description(),
+                        Emoji.fromFormatted(type.emoji()));
             }
 
-            event.replyEmbeds(embed).addActionRow(menuBuilder.build()).setEphemeral(true).queue();
+            event.replyEmbeds(embed).setComponents(ActionRow.of(menuBuilder.build())).setEphemeral(true).queue();
         }
     }
 }

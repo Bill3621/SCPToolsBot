@@ -23,9 +23,10 @@ import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.database.tables.database.UserTable;
 import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 
 public class RegularsButtons {
     private final ButtonInteractionEvent event;
@@ -39,19 +40,22 @@ public class RegularsButtons {
     }
 
     public void init() {
-        String buttonId = event.getButton().getId();
-        if (buttonId == null) return;
+        String buttonId = event.getButton().getCustomId();
+        if (buttonId == null)
+            return;
 
         if (buttonId.startsWith("regulars_open_settings")) {
             var regularsMessageHandler = new RegularsMessageHandler(event.getJDA(), config, translation);
 
-            event.replyEmbeds(regularsMessageHandler.getSettings(event.getUser(), null, null)).addActionRow(
-                    regularsMessageHandler.getSettingsActionRow(event.getUser().getId())
-            ).setEphemeral(true).queue();
+            event.replyEmbeds(regularsMessageHandler.getSettings(event.getUser(), null, null))
+                    .setComponents(ActionRow.of(
+                            regularsMessageHandler.getSettingsActionRow(event.getUser().getId())))
+                    .setEphemeral(true).queue();
         }
 
         if ("regulars_sync".equals(buttonId)) {
-            if (notVerified()) return;
+            if (notVerified())
+                return;
 
             var embed = new EmbedBuilder()
                     .setTitle(new ColorTool().parse(translation.regulars().embedSyncGroupSelectTitle()))
@@ -63,12 +67,13 @@ public class RegularsButtons {
             for (var group : new RegularsFileHandler(config).query()) {
                 menuBuilder.addOption(group.manifest().name(), group.manifest().name());
             }
-            event.replyEmbeds(embed).addActionRow(menuBuilder.build()).setEphemeral(true).queue();
+            event.replyEmbeds(embed).setComponents(ActionRow.of(menuBuilder.build())).setEphemeral(true).queue();
         }
 
         if (buttonId.startsWith("regulars_sync_reactivate")) {
             var regularsMessageHandler = new RegularsMessageHandler(event.getJDA(), config, translation);
-            if (notVerified()) return;
+            if (notVerified())
+                return;
 
             new RegularsManager(event.getJDA(), config, translation).reactivateSync(event.getUser().getId());
             var embed = new EmbedBuilder()
@@ -79,13 +84,15 @@ public class RegularsButtons {
 
             event.getMessage().delete().queue();
             event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
-            event.replyEmbeds(new RegularsMessageHandler(event.getJDA(), config, translation).getSettings(event.getUser(), null, null)).addActionRow(
-                    regularsMessageHandler.getSettingsActionRow(event.getUser().getId())
-            ).setEphemeral(true).queue();
+            event.replyEmbeds(new RegularsMessageHandler(event.getJDA(), config, translation)
+                    .getSettings(event.getUser(), null, null)).setComponents(ActionRow.of(
+                            regularsMessageHandler.getSettingsActionRow(event.getUser().getId())))
+                    .setEphemeral(true).queue();
         }
 
         if ("regulars_sync_remove".equals(buttonId)) {
-            if (notVerified()) return;
+            if (notVerified())
+                return;
 
             var embed = new EmbedBuilder()
                     .setTitle(new ColorTool().parse(translation.regulars().embedSyncRemovedConfirmTitle()))
@@ -93,14 +100,15 @@ public class RegularsButtons {
                     .build();
 
             event.getMessage().delete().queue();
-            event.replyEmbeds(embed).addActionRow(
-                    Button.success("regulars_sync_remove_confirm", translation.buttons().textRegularSyncRemove())
-            ).setEphemeral(true).queue();
+            event.replyEmbeds(embed).setComponents(ActionRow.of(
+                    Button.success("regulars_sync_remove_confirm", translation.buttons().textRegularSyncRemove())))
+                    .setEphemeral(true).queue();
         }
 
         if (buttonId.startsWith("regulars_sync_remove_confirm")) {
             var regularsMessageHandler = new RegularsMessageHandler(event.getJDA(), config, translation);
-            if (notVerified()) return;
+            if (notVerified())
+                return;
 
             new RegularsManager(event.getJDA(), config, translation).removeSync(event.getUser().getId());
             var embed = new EmbedBuilder()
@@ -111,9 +119,10 @@ public class RegularsButtons {
 
             event.getMessage().delete().queue();
             event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
-            event.replyEmbeds(new RegularsMessageHandler(event.getJDA(), config, translation).getSettings(event.getUser(), null, null)).addActionRow(
-                    regularsMessageHandler.getSettingsActionRow(event.getUser().getId())
-            ).setEphemeral(true).queue();
+            event.replyEmbeds(new RegularsMessageHandler(event.getJDA(), config, translation)
+                    .getSettings(event.getUser(), null, null)).setComponents(ActionRow.of(
+                            regularsMessageHandler.getSettingsActionRow(event.getUser().getId())))
+                    .setEphemeral(true).queue();
         }
     }
 
