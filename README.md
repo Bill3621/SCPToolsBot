@@ -7,6 +7,12 @@
 <br/>
 
 # SCPToolsBot
+
+> [!NOTE]
+> This is my personal fork of [SCPToolsBot](https://github.com/Vxrpenter/SCPToolsBot) by [Vxrpenter](https://github.com/Vxrpenter).
+> It contains my own modifications and tweaks that may not be present in the upstream project.
+> For the original project, please refer to the link above.
+
 <div align="left">
   <a href="https://github.com/Vxrpenter/SCPToolsBot/releases"><img src="https://img.shields.io/github/v/release/Vxrpenter/SCPToolsBot?include_prereleases&logo=github&logoSize=amg&logoColor=a74040&labelColor=333834&sort=date&display_name=tag&style=for-the-badge&label=LATEST%20RELEASE&color=a74040" /></a>&nbsp;
   <img src="https://img.shields.io/github/downloads/Vxrpenter/SCPToolsBot/total?style=for-the-badge&logo=gitbook&logoSize=amg&label=Downloads&labelColor=333834&logoColor=a74040&color=a74040" />&nbsp;
