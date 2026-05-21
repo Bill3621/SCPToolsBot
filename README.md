@@ -13,13 +13,20 @@
 > It contains my own modifications and tweaks that may not be present in the upstream project.
 > For the original project, please refer to the link above.
 
+## Fork Changes
+
+The following is a list of changes made in this fork that differ from upstream:
+
+- Rewrote the entire codebase from Kotlin to Java
+
 <div align="left">
   <a href="https://github.com/Vxrpenter/SCPToolsBot/releases"><img src="https://img.shields.io/github/v/release/Vxrpenter/SCPToolsBot?include_prereleases&logo=github&logoSize=amg&logoColor=a74040&labelColor=333834&sort=date&display_name=tag&style=for-the-badge&label=LATEST%20RELEASE&color=a74040" /></a>&nbsp;
   <img src="https://img.shields.io/github/downloads/Vxrpenter/SCPToolsBot/total?style=for-the-badge&logo=gitbook&logoSize=amg&label=Downloads&labelColor=333834&logoColor=a74040&color=a74040" />&nbsp;
   <a href="https://hub.docker.com/r/vxrpenter/scptoolsbot"><img src="https://img.shields.io/docker/pulls/vxrpenter/scptoolsbot?style=for-the-badge&logo=docker&logoSize=amg&label=Docker%20Pulls&labelColor=333834&logoColor=a74040&color=a74040" /></a>&nbsp; <a href="https://github.com/Vxrpenter/SCPToolsBot/issues"><img src="https://img.shields.io/github/issues/Vxrpenter/SCPToolsBot?style=for-the-badge&logo=git&logoSize=amg&label=Issues&labelColor=333834&logoColor=a74040&color=a74040" /></a>&nbsp;<a href="https://github.com/Vxrpenter/SCPToolsBot/pulls"><img src="https://img.shields.io/github/issues-pr-raw/Vxrpenter/SCPToolsBot?style=for-the-badge&logo=git&logoSize=amg&label=Pull%20Requests&labelColor=333834&logoColor=a74040&color=a74040" /></a>&nbsp; <a href="https://github.com/Vxrpenter/SCPToolsBot/blob/master/LICENSE"><img src="https://img.shields.io/github/license/Vxrpenter/SCPToolsBot?style=for-the-badge&logo=amazoniam&logoSize=amg&logoColor=a74040&label=Licenced%20Under&labelColor=333834&color=a74040"/></a>&nbsp;
 </div>
 
-## What is ScpToolsBot 
+## What is ScpToolsBot
+
 ScpTools Bot is an application
 to enhance your Scp Secret Laboratory server
 by providing quality-of-life features in combination with moderation and team management tools.
@@ -33,7 +40,7 @@ For more information check out the [wiki](https://override.gitbook.io/scptoolsbo
 ## What Features are included
 
 | Feature                        | What is this                                                                                                                                                                                           |
-|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Fully customizable translation | All text can be changed to anything you can imagine, there are even color codes and other utility functions for even more customizability                                                              |
 | Configuration options          | Many features can be changed to personal liking, e.g. disabling a certain part of it or enabling something else that is not active by default                                                          |
 | Status bot cluster             | A cluster of bots that show the player count of your server. They also send connection messages to a channel that was configured by the sysadmin, that show if the server can currently not be reached |
@@ -48,13 +55,17 @@ For more indepth explanation see the [wiki](https://override.gitbook.io/scptools
 ## Installation
 
 ### Quick Install
+
 Install the installer from the latest release or download it from the master branch:
+
 ```sh
 sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/Vxrpenter/SCPToolsBot/master/installer.sh)"
 ```
+
 A more detailed installation and setup guide can be found on the [wiki](https://override.gitbook.io/scptoolsbot/setup/getting-started)
 
 ### Build from Source
+
 ```sh
 git clone https://github.com/Vxrpenter/SCPToolsBot
 
@@ -65,18 +76,21 @@ chmod +x gradlew
 ```
 
 ## Handling Issues
+
 If you're running into any issues, please first check the [wiki](https://override.gitbook.io/scptoolsbot) for help.
 If you can't fix the issue, create an issue here so we're able to review it and find possible bugs. If you have any questions about the working or plans of development contact `@vxrpenter` on discord, or open up a [discussion](https://github.com/Vxrpenter/SCPToolsBot/discussions/new?category=questions)
 
 ---
 
 ## Build information
+
 Full releases are marked as such in the release.
 If a release contains the `alpha` tag, it is experimental and features and more have not been tested.
 
 Releases containing the `beta` tag are mostly tested but could still be considered unstable.
 
 ## Licencing
+
 > [!IMPORTANT]
 > Copyright (c) 2024 Vxrpenter and the SCPToolsBot Contributors
 >
@@ -91,12 +105,14 @@ Releases containing the `beta` tag are mostly tested but could still be consider
 > This is no legal advice, please read the license conditions
 
 ## Special Thanks
+
 - Special thanks goes to [ced777ric](https://github.com/ced777ric) who helped me a lot with the cedmod api integration, especially when trying to find the specific endpoints use case or usability
 - Also to [SeekEDstroy](https://github.com/SeekEDstroy) for help with user id linking and for pointing out some bugs
 - A big thank you goes [Kaeseekuchen](https://github.com/Kaeseekuchen) for providing many feature ideas, real server data and enviorments for testing and feature improvements
 
 ## Star History
-Thank you a lot for starring this repo. It is really helpful and makes me happy to work on this project. 
+
+Thank you a lot for starring this repo. It is really helpful and makes me happy to work on this project.
 
 If you like this project, you may consider sharing it with others Either way, thank you really much
 
@@ -121,7 +137,8 @@ Made with [contrib.rocks](https://contrib.rocks).
 <div align="center">
   First release <a href="https://github.com/Vxrpenter/SCPToolsBot/releases/tag/v.0.1.0">0.1.0</a> released on 15. Oct. 2024
 
-  Repo created in 2024 ‎ ‎ ‎ ‎ This is the kotlin refactored version
+Repo created in 2024 ‎ ‎ ‎ ‎ This is the kotlin refactored version
 
-  Licenced under MIT since made public
+Licenced under MIT since made public
+
 </div>
