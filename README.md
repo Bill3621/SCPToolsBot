@@ -21,9 +21,9 @@ The following is a list of changes made in this fork that differ from upstream:
 - Per-instance API credentials for status bots (instances can override the global `api` and `account_id` with their own, supporting multi-server setups where different game servers are on different physical servers or use a different API key)
 
 <div align="left">
-  <a href="https://github.com/Vxrpenter/SCPToolsBot/releases"><img src="https://img.shields.io/github/v/release/Vxrpenter/SCPToolsBot?include_prereleases&logo=github&logoSize=amg&logoColor=a74040&labelColor=333834&sort=date&display_name=tag&style=for-the-badge&label=LATEST%20RELEASE&color=a74040" /></a>&nbsp;
-  <img src="https://img.shields.io/github/downloads/Vxrpenter/SCPToolsBot/total?style=for-the-badge&logo=gitbook&logoSize=amg&label=Downloads&labelColor=333834&logoColor=a74040&color=a74040" />&nbsp;
-  <a href="https://hub.docker.com/r/vxrpenter/scptoolsbot"><img src="https://img.shields.io/docker/pulls/vxrpenter/scptoolsbot?style=for-the-badge&logo=docker&logoSize=amg&label=Docker%20Pulls&labelColor=333834&logoColor=a74040&color=a74040" /></a>&nbsp; <a href="https://github.com/Vxrpenter/SCPToolsBot/issues"><img src="https://img.shields.io/github/issues/Vxrpenter/SCPToolsBot?style=for-the-badge&logo=git&logoSize=amg&label=Issues&labelColor=333834&logoColor=a74040&color=a74040" /></a>&nbsp;<a href="https://github.com/Vxrpenter/SCPToolsBot/pulls"><img src="https://img.shields.io/github/issues-pr-raw/Vxrpenter/SCPToolsBot?style=for-the-badge&logo=git&logoSize=amg&label=Pull%20Requests&labelColor=333834&logoColor=a74040&color=a74040" /></a>&nbsp; <a href="https://github.com/Vxrpenter/SCPToolsBot/blob/master/LICENSE"><img src="https://img.shields.io/github/license/Vxrpenter/SCPToolsBot?style=for-the-badge&logo=amazoniam&logoSize=amg&logoColor=a74040&label=Licenced%20Under&labelColor=333834&color=a74040"/></a>&nbsp;
+  <a href="https://github.com/Bill3621/SCPToolsBot/releases"><img src="https://img.shields.io/github/v/release/Bill3621/SCPToolsBot?include_prereleases&logo=github&logoSize=amg&logoColor=a74040&labelColor=333834&sort=date&display_name=tag&style=for-the-badge&label=LATEST%20RELEASE&color=a74040" /></a>&nbsp;
+  <img src="https://img.shields.io/github/downloads/Bill3621/SCPToolsBot/total?style=for-the-badge&logo=gitbook&logoSize=amg&label=Downloads&labelColor=333834&logoColor=a74040&color=a74040" />&nbsp;
+  <a href="https://github.com/Bill3621/SCPToolsBot/issues"><img src="https://img.shields.io/github/issues/Bill3621/SCPToolsBot?style=for-the-badge&logo=git&logoSize=amg&label=Issues&labelColor=333834&logoColor=a74040&color=a74040" /></a>&nbsp;<a href="https://github.com/Bill3621/SCPToolsBot/pulls"><img src="https://img.shields.io/github/issues-pr-raw/Bill3621/SCPToolsBot?style=for-the-badge&logo=git&logoSize=amg&label=Pull%20Requests&labelColor=333834&logoColor=a74040&color=a74040" /></a>&nbsp; <a href="https://github.com/Bill3621/SCPToolsBot/blob/master/LICENSE"><img src="https://img.shields.io/github/license/Bill3621/SCPToolsBot?style=for-the-badge&logo=amazoniam&logoSize=amg&logoColor=a74040&label=Licenced%20Under&labelColor=333834&color=a74040"/></a>&nbsp;
 </div>
 
 ## What is ScpToolsBot
@@ -57,18 +57,12 @@ For more indepth explanation see the [wiki](https://override.gitbook.io/scptools
 
 ### Quick Install
 
-Install the installer from the latest release or download it from the master branch:
-
-```sh
-sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/Vxrpenter/SCPToolsBot/master/installer.sh)"
-```
-
-A more detailed installation and setup guide can be found on the [wiki](https://override.gitbook.io/scptoolsbot/setup/getting-started)
+Download the latest release jar from the [releases page](https://github.com/Bill3621/SCPToolsBot/releases).
 
 ### Build from Source
 
 ```sh
-git clone https://github.com/Vxrpenter/SCPToolsBot
+git clone https://github.com/Bill3621/SCPToolsBot
 
 cd SCPToolsBot
 
@@ -79,7 +73,7 @@ chmod +x gradlew
 ## Handling Issues
 
 If you're running into any issues, please first check the [wiki](https://override.gitbook.io/scptoolsbot) for help.
-If you can't fix the issue, create an issue here so we're able to review it and find possible bugs. If you have any questions about the working or plans of development contact `@vxrpenter` on discord, or open up a [discussion](https://github.com/Vxrpenter/SCPToolsBot/discussions/new?category=questions)
+If you can't fix the issue, create an issue here so we're able to review it and find possible bugs. If you have any questions about the working or plans of development, open up a [discussion](https://github.com/Bill3621/SCPToolsBot/discussions/new?category=questions)
 
 ---
 
@@ -96,7 +90,7 @@ Releases containing the `beta` tag are mostly tested but could still be consider
 > Copyright (c) 2024 Vxrpenter and the SCPToolsBot Contributors
 >
 > Licenced under the MIT License, any non-license compliant usage of this projects file(s) content
-> is prohibited. You can find the complete license agreement [here](https://github.com/Vxrpenter/SCPToolsBot/blob/master/LICENSE)
+> is prohibited. You can find the complete license agreement [here](https://github.com/Bill3621/SCPToolsBot/blob/master/LICENSE)
 >
 > This software may be used commercially if the usage is license compliant. The software
 > is provided without any sort of WARRANTY, and the authors cannot be held liable for
@@ -117,18 +111,18 @@ Thank you a lot for starring this repo. It is really helpful and makes me happy 
 
 If you like this project, you may consider sharing it with others Either way, thank you really much
 
-<a href="https://www.star-history.com/#Vxrpenter/SCPToolsBot&Timeline">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Vxrpenter/SCPToolsBot&type=Timeline&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Vxrpenter/SCPToolsBot&type=Timeline" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Vxrpenter/SCPToolsBot&type=Timeline" />
- </picture>
+<a href="https://www.star-history.com/#Bill3621/SCPToolsBot&Timeline">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Bill3621/SCPToolsBot&type=Timeline&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Bill3621/SCPToolsBot&type=Timeline" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Bill3621/SCPToolsBot&type=Timeline" />
+  </picture>
 </a>
 
 ## Contributors
 
-<a href="https://github.com/Vxrpenter/SCPToolsBot/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Vxrpenter/SCPToolsBot" />
+<a href="https://github.com/Bill3621/SCPToolsBot/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Bill3621/SCPToolsBot" />
 </a>
 
 Made with [contrib.rocks](https://contrib.rocks).
@@ -136,9 +130,9 @@ Made with [contrib.rocks](https://contrib.rocks).
 ---
 
 <div align="center">
-  First release <a href="https://github.com/Vxrpenter/SCPToolsBot/releases/tag/v.0.1.0">0.1.0</a> released on 15. Oct. 2024
+  First release <a href="https://github.com/Bill3621/SCPToolsBot/releases/tag/v.0.1.0">0.1.0</a> released on 15. Oct. 2024
 
-Repo created in 2024 ‎ ‎ ‎ ‎ This is the kotlin refactored version
+Repo created in 2024 ‎ ‎ ‎ ‎
 
 Licenced under MIT since made public
 
