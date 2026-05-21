@@ -677,7 +677,7 @@ NOTICE_OF_DEPARTURE:
   EMBED_ENTER_FUTURE_DATE_BODY: "Du musst ein Datum angeben das in der Zukunft liegt. Stelle sicher, dass du das richtige Format verwendest: **%formatter%**"
 
   MODAL_START_DATE_TITLE: "Startdatum?"
-  MODAL_START_DATE_PLACEHOLDER: "Wann beginnt deine Abwesenheit [%formatter%, z.B. %example%] (leer lassen für heute)"
+  MODAL_START_DATE_PLACEHOLDER: "Wann beginnt deine Abwesenheit (leer lassen für heute)"
   EMBED_START_DATE_INVALID_TITLE: "Gib ein gültiges Startdatum-Format an"
   EMBED_START_DATE_INVALID_BODY: "Du musst ein gültiges Datumsformat für das Startdatum eingeben. Das akzeptierte Format ist: **%formatter%**"
   EMBED_START_DATE_PAST_TITLE: "Startdatum muss heute oder in der Zukunft liegen"

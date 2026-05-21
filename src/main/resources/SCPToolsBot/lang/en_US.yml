@@ -675,7 +675,7 @@ NOTICE_OF_DEPARTURE:
   EMBED_ENTER_FUTURE_DATE_BODY: "You need to enter a date in the future to proceed. Make sure you used the correct format: **%formatter%**"
 
   MODAL_START_DATE_TITLE: "Start date?"
-  MODAL_START_DATE_PLACEHOLDER: "When does your leave start [%formatter%, e.g. %example%] (leave empty for today)"
+  MODAL_START_DATE_PLACEHOLDER: "When does your leave start (leave empty for today)"
   EMBED_START_DATE_INVALID_TITLE: "Enter a valid start date format"
   EMBED_START_DATE_INVALID_BODY: "You need to enter a valid date format for the start date. The accepted format is: **%formatter%**"
   EMBED_START_DATE_PAST_TITLE: "Start date must be today or in the future"
