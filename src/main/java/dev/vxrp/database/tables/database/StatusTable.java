@@ -65,6 +65,17 @@ public class StatusTable {
         }
     }
 
+    public void deleteEntry(String channelId, String messageId) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "DELETE FROM playerlist WHERE channel_id = ? AND message_id = ?")) {
+            stmt.setString(1, channelId);
+            stmt.setString(2, messageId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<StatusDatabaseEntry> getAllEntries() {
         List<StatusDatabaseEntry> list = new ArrayList<>();
 

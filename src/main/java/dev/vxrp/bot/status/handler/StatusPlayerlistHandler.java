@@ -70,6 +70,7 @@ public class StatusPlayerlistHandler {
     private void updateMessage(JDA api, String instanceKey, Instance instance) {
         StatusTable statusTable = new StatusTable();
         for (StatusDatabaseEntry entry : statusTable.getAllEntries()) {
+            if (!entry.port().equals(instanceKey)) continue;
             List<MessageEmbed> embeds = new ArrayList<>();
 
             if (GlobalVariables.statusMappedServers.get(instanceKey) != null) {
@@ -87,7 +88,9 @@ public class StatusPlayerlistHandler {
                             .complete();
                 }
             } catch (ErrorResponseException e) {
-                statusTable.deleteFromDatabase(instanceKey);
+                logger.warn("Failed to update playerlist message {} in channel {} for server {}, removing entry from database",
+                        entry.messageId(), entry.channelId(), instanceKey, e);
+                statusTable.deleteEntry(entry.channelId(), entry.messageId());
             }
 
             logger.debug("Updated playerlist with message id: {} in channel {} part of server {}", entry.messageId(), entry.channelId(), instanceKey);
@@ -100,7 +103,7 @@ public class StatusPlayerlistHandler {
         if (!instance.playerlist().active()) return;
 
         PlayerlistType playerlistType = new StatusTable().getType(instanceKey);
-        if (playerlistType != PlayerlistType.PRESET) {
+        if (playerlistType == PlayerlistType.PRESET) {
             logger.debug("Skipping over preset creation for server '{}'", instance.name());
             return;
         }
