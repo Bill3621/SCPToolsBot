@@ -1,0 +1,59 @@
+plugins {
+    id("application")
+    id("java")
+    id("com.gradleup.shadow") version("9.4.1")
+}
+
+application.mainClass = "dev.vxrp.Main"
+group = "dev.vxrp"
+version = "1.1.2"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_22
+    targetCompatibility = JavaVersion.VERSION_22
+}
+
+repositories {
+    mavenCentral()
+}
+
+def jacksonVersion = "2.18.3"
+def sqliteVersion = "3.51.3.0"
+def mySqlVersion = "9.6.0"
+def postgresSqlVersion = "42.7.10"
+def mariaDBVersion = "3.5.8"
+def jdaVersion = "5.6.1"
+def secretLabKotlinVersion = "0.4.3"
+def updaterVersion = "0.1.1"
+def logbackVersion = "1.5.32"
+def gsonVersion = "2.13.2"
+
+dependencies {
+    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
+
+    implementation("org.xerial:sqlite-jdbc:$sqliteVersion")
+    implementation("com.mysql:mysql-connector-j:$mySqlVersion")
+    implementation("org.postgresql:postgresql:$postgresSqlVersion")
+    implementation("org.mariadb.jdbc:mariadb-java-client:$mariaDBVersion")
+
+    implementation("net.dv8tion:JDA:$jdaVersion") {
+        exclude(module: "opus-java")
+    }
+    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+
+    implementation("io.github.vxrpenter:updater:$updaterVersion")
+    implementation("io.github.vxrpenter:secretlab-kotlin:$secretLabKotlinVersion")
+
+    implementation("com.google.code.gson:gson:$gsonVersion")
+}
+
+def createVersionProperties = tasks.register("createVersionProperties", WriteProperties.class) {
+    destinationFile = layout.buildDirectory.file("resources/main/dev/vxrp/version.properties")
+    property("version", project.version.toString())
+}
+
+tasks.classes {
+    dependsOn(createVersionProperties)
+}

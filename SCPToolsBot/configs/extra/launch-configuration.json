@@ -1,0 +1,16 @@
+{
+  "options": {
+    "ignoreBrokenEntries": false
+  },
+
+  "order": [
+    {
+      "id": "main:BOT",
+      "engage": true
+    },
+    {
+      "id": "main:STATUS_CLUSTER",
+      "engage": true
+    }
+  ]
+}

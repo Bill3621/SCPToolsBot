@@ -1,0 +1,209 @@
+{
+  "commands": [
+    {
+      "active": true,
+      "inherit": "commands.help.default",
+      "name": "help",
+      "description": "Command annotations and explanations",
+      "defaultPermissions": ["ADMINISTRATOR"]
+    },
+    {
+      "active": true,
+      "inherit": "commands.template.default",
+      "name": "template",
+      "description": "Command for pasting certain templates",
+      "defaultPermissions": ["ADMINISTRATOR"],
+      "options": [
+        {
+          "type": "STRING",
+          "name": "template",
+          "description": "What template are you referring to",
+          "isRequired": true,
+          "choices": [
+            {
+              "name": "support",
+              "id": "support"
+            },
+            {
+              "name": "verify",
+              "id": "verify"
+            },
+            {
+              "name": "notice of departure",
+              "id": "notice_of_departure"
+            },
+            {
+              "name": "regulars",
+              "id": "regulars"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "active": true,
+      "inherit": "commands.verify.default",
+      "name": "verify",
+      "description": "Command used for member verification",
+      "defaultPermissions": []
+    },
+    {
+      "active": true,
+      "inherit": "commands.notice_of_departure.default",
+      "name": "notice_of_departure",
+      "description": "View information on notices and change data",
+      "defaultPermissions": ["ADMINISTRATOR"],
+      "subcommands": [
+        {
+          "inherit": "notice_of_departure.view.sub",
+          "name": "view",
+          "description": "View a notice of departure",
+          "options": [
+            {
+              "type": "USER",
+              "name": "user",
+              "description": "User to query from",
+              "isRequired": true
+            }
+          ]
+        },
+        {
+          "inherit": "notice_of_departure.revoke.sub",
+          "name": "revoke",
+          "description": "Revoke a notice of departure",
+          "options": [
+            {
+              "type": "USER",
+              "name": "user",
+              "description": "User to revoke from",
+              "isRequired": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "active": true,
+      "inherit": "commands.regulars.default",
+      "name": "regulars",
+      "description": "Use for configuring regulars and modifying saved information",
+      "defaultPermissions": ["ADMINISTRATOR"],
+      "subcommands": [
+        {
+          "inherit": "regulars.view.sub",
+          "name": "view",
+          "description": "View a regular user",
+          "options": [
+            {
+              "type": "USER",
+              "name": "user",
+              "description": "User to query from",
+              "isRequired": true
+            }
+          ]
+        },
+        {
+          "inherit": "regulars.remove.sub",
+          "name": "remove",
+          "description": "Remove a regular user",
+          "options": [
+            {
+              "type": "USER",
+              "name": "user",
+              "description": "User to remove from",
+              "isRequired": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "active": true,
+      "inherit": "commands.settings.default",
+      "name": "settings",
+      "description": "Bot settings/configurations",
+      "defaultPermissions": ["ADMINISTRATOR"]
+    },
+    {
+      "active": true,
+      "inherit": "commands.application.default",
+      "name": "application",
+      "description": "Command for managing applications",
+      "defaultPermissions": ["VIEW_AUDIT_LOGS"],
+      "options": [
+        {
+          "type": "STRING",
+          "name": "state",
+          "description": "Set the application state",
+          "isRequired": true,
+          "choices": [
+            {
+              "name": "active",
+              "id": "active"
+            },
+            {
+              "name": "deactivated",
+              "id": "deactivated"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "statusCommands": [
+    {
+      "active": true,
+      "inherit": "status_commands.status.default",
+      "name": "status",
+      "description": "Used for customizing status",
+      "defaultPermissions": ["ADMINISTRATOR"],
+      "options": [
+        {
+          "type": "STRING",
+          "name": "setting",
+          "description": "What do you want to do?",
+          "isRequired": true,
+          "choices": [
+            {
+              "name": "maintenance",
+              "id": "maintenance"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "name": "reason",
+          "description": "What is the reason for the maintenance",
+          "isRequired": false
+        }
+      ]
+    },
+    {
+      "active": true,
+      "inherit": "status_commands.playerlist.default",
+      "name": "playerlist",
+      "description": "Shows active player list of the selected server"
+    },
+    {
+      "active": true,
+      "inherit": "status_commands.template.default",
+      "name": "template",
+      "description": "Command for pasting certain templates",
+      "defaultPermissions": ["ADMINISTRATOR"],
+      "options": [
+        {
+          "type": "STRING",
+          "name": "template",
+          "description": "What template are you referring to",
+          "isRequired": true,
+          "choices": [
+            {
+              "name": "staticPlayerlist",
+              "id": "playerlist"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
