@@ -18,7 +18,6 @@ package dev.vxrp.database.tables.database;
 
 import dev.vxrp.database.DatabaseManager;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,9 +26,8 @@ public class ApplicationTable {
 
     public void addToDatabase(String id, String roleId, boolean state, boolean result,
                               String issuer, String handler) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO applications (id, roleId, state, result, issuer, handler) VALUES (?, ?, ?, ?, ?, ?)")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "INSERT INTO applications (id, roleId, state, result, issuer, handler) VALUES (?, ?, ?, ?, ?, ?)")) {
             stmt.setString(1, id);
             stmt.setString(2, roleId);
             stmt.setBoolean(3, state);
@@ -43,9 +41,8 @@ public class ApplicationTable {
     }
 
     public void updateTicketHandler(String id, String handler) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE applications SET handler = ? WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "UPDATE applications SET handler = ? WHERE id = ?")) {
             stmt.setString(1, handler);
             stmt.setString(2, id);
             stmt.executeUpdate();
@@ -55,9 +52,8 @@ public class ApplicationTable {
     }
 
     public void delete(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "DELETE FROM applications WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "DELETE FROM applications WHERE id = ?")) {
             stmt.setString(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -66,9 +62,8 @@ public class ApplicationTable {
     }
 
     public long retrieveSerial(String roleId) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT COUNT(*) FROM applications WHERE roleId = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT COUNT(*) FROM applications WHERE roleId = ?")) {
             stmt.setString(1, roleId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {

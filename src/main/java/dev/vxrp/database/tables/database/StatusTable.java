@@ -20,7 +20,6 @@ import dev.vxrp.bot.status.enums.PlayerlistType;
 import dev.vxrp.database.DatabaseManager;
 import dev.vxrp.database.data.StatusDatabaseEntry;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,9 +30,8 @@ public class StatusTable {
 
     public void addToDatabase(PlayerlistType type, String channelId, String messageId,
                               String port, String created, String lastUpdated) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO playerlist (type, channel_id, message_id, port, created, last_updated) VALUES (?, ?, ?, ?, ?, ?)")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "INSERT INTO playerlist (type, channel_id, message_id, port, created, last_updated) VALUES (?, ?, ?, ?, ?, ?)")) {
             stmt.setString(1, type.toString());
             stmt.setString(2, channelId);
             stmt.setString(3, messageId);
@@ -47,9 +45,8 @@ public class StatusTable {
     }
 
     public void updateLastUpdated(String port, String lastUpdated) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE playerlist SET last_updated = ? WHERE port = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "UPDATE playerlist SET last_updated = ? WHERE port = ?")) {
             stmt.setString(1, lastUpdated);
             stmt.setString(2, port);
             stmt.executeUpdate();
@@ -59,9 +56,8 @@ public class StatusTable {
     }
 
     public void deleteFromDatabase(String port) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "DELETE FROM playerlist WHERE port = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "DELETE FROM playerlist WHERE port = ?")) {
             stmt.setString(1, port);
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -72,8 +68,7 @@ public class StatusTable {
     public List<StatusDatabaseEntry> getAllEntries() {
         List<StatusDatabaseEntry> list = new ArrayList<>();
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM playerlist");
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement("SELECT * FROM playerlist");
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 list.add(new StatusDatabaseEntry(
@@ -92,9 +87,8 @@ public class StatusTable {
     }
 
     public PlayerlistType getType(String port) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT type, port FROM playerlist WHERE type = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT type, port FROM playerlist WHERE type = ?")) {
             stmt.setString(1, PlayerlistType.PRESET.toString());
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {

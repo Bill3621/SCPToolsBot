@@ -20,7 +20,6 @@ import dev.vxrp.database.DatabaseManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -45,9 +44,8 @@ public class ApplicationTypeTable {
     }
 
     public boolean exists(String roleId) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT roleId FROM application_types WHERE roleId = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT roleId FROM application_types WHERE roleId = ?")) {
             stmt.setString(1, roleId);
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
@@ -58,13 +56,12 @@ public class ApplicationTypeTable {
     }
 
     public void deleteRedundantValues(List<String> roleIds) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement selectStmt = conn.prepareStatement("SELECT roleId FROM application_types");
+        try (PreparedStatement selectStmt = DatabaseManager.getConnection().prepareStatement("SELECT roleId FROM application_types");
              ResultSet rs = selectStmt.executeQuery()) {
             while (rs.next()) {
                 String currentId = rs.getString("roleId");
                 if (!roleIds.contains(currentId)) {
-                    try (PreparedStatement deleteStmt = conn.prepareStatement(
+                    try (PreparedStatement deleteStmt = DatabaseManager.getConnection().prepareStatement(
                             "DELETE FROM application_types WHERE roleId = ?")) {
                         deleteStmt.setString(1, currentId);
                         deleteStmt.executeUpdate();
@@ -78,9 +75,8 @@ public class ApplicationTypeTable {
     }
 
     public void addToDatabase(String roleId, boolean active, Integer members, String initializer) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO application_types (roleId, active, members, initializer) VALUES (?, ?, ?, ?)")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "INSERT INTO application_types (roleId, active, members, initializer) VALUES (?, ?, ?, ?)")) {
             stmt.setString(1, roleId);
             stmt.setBoolean(2, active);
             if (members != null) {
@@ -98,8 +94,7 @@ public class ApplicationTypeTable {
     public List<ApplicationType> getAllEntries() {
         List<ApplicationType> typeList = new ArrayList<>();
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM application_types");
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement("SELECT * FROM application_types");
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 int membersVal = rs.getInt("members");
@@ -117,9 +112,8 @@ public class ApplicationTypeTable {
     }
 
     public ApplicationType query(String roleId) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT * FROM application_types WHERE roleId = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT * FROM application_types WHERE roleId = ?")) {
             stmt.setString(1, roleId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -138,9 +132,8 @@ public class ApplicationTypeTable {
     }
 
     public void changeType(String roleId, boolean active, int members, String initializer) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE application_types SET active = ?, members = ?, initializer = ? WHERE roleId = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "UPDATE application_types SET active = ?, members = ?, initializer = ? WHERE roleId = ?")) {
             stmt.setBoolean(1, active);
             stmt.setInt(2, members);
             stmt.setString(3, initializer);

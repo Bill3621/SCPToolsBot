@@ -18,7 +18,6 @@ package dev.vxrp.database.tables.database;
 
 import dev.vxrp.database.DatabaseManager;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,9 +29,8 @@ public class NoticeOfDepartureTable {
 
     public void addToDatabase(String id, boolean active, String handlerId, String channelId,
                               String messageId, String beginDate, String endDate) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO notice_of_departures (id, active, handler_id, channel_id, message_id, begin_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "INSERT INTO notice_of_departures (id, active, handler_id, channel_id, message_id, begin_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
             stmt.setString(1, id);
             stmt.setBoolean(2, active);
             stmt.setString(3, handlerId);
@@ -47,9 +45,8 @@ public class NoticeOfDepartureTable {
     }
 
     public void deleteEntry(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "DELETE FROM notice_of_departures WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "DELETE FROM notice_of_departures WHERE id = ?")) {
             stmt.setString(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -60,8 +57,7 @@ public class NoticeOfDepartureTable {
     public List<String> retrieveAllIds() {
         List<String> list = new ArrayList<>();
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT id FROM notice_of_departures");
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement("SELECT id FROM notice_of_departures");
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 list.add(rs.getString("id"));
@@ -74,9 +70,8 @@ public class NoticeOfDepartureTable {
     }
 
     public String retrieveHandler(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT handler_id FROM notice_of_departures WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT handler_id FROM notice_of_departures WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -90,9 +85,8 @@ public class NoticeOfDepartureTable {
     }
 
     public String retrieveChannel(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT channel_id FROM notice_of_departures WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT channel_id FROM notice_of_departures WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -106,9 +100,8 @@ public class NoticeOfDepartureTable {
     }
 
     public String retrieveMessage(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT message_id FROM notice_of_departures WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT message_id FROM notice_of_departures WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -122,9 +115,8 @@ public class NoticeOfDepartureTable {
     }
 
     public String retrieveBeginDate(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT begin_date FROM notice_of_departures WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT begin_date FROM notice_of_departures WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -138,9 +130,8 @@ public class NoticeOfDepartureTable {
     }
 
     public String retrieveEndDate(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT end_date FROM notice_of_departures WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT end_date FROM notice_of_departures WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -154,8 +145,7 @@ public class NoticeOfDepartureTable {
     }
 
     public long retrieveSerial() {
-        try (Connection conn = DatabaseManager.getConnection();
-             Statement stmt = conn.createStatement();
+        try (Statement stmt = DatabaseManager.getConnection().createStatement();
              ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM notice_of_departures")) {
             if (rs.next()) {
                 return rs.getLong(1);
@@ -167,9 +157,8 @@ public class NoticeOfDepartureTable {
     }
 
     public boolean exists(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT id FROM notice_of_departures WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT id FROM notice_of_departures WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();

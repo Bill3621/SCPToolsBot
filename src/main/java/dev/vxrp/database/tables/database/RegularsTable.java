@@ -19,7 +19,6 @@ package dev.vxrp.database.tables.database;
 import dev.vxrp.bot.regulars.data.RegularDatabaseEntry;
 import dev.vxrp.database.DatabaseManager;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,9 +32,8 @@ public class RegularsTable {
                               String roleId, double playtime, int level, String lastCheckedDate) {
         if (exists(id)) return;
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO regulars (id, active, \"group\", group_id, role_id, playtime, level, last_checked_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "INSERT INTO regulars (id, active, \"group\", group_id, role_id, playtime, level, last_checked_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
             stmt.setString(1, id);
             stmt.setBoolean(2, active);
             stmt.setString(3, group);
@@ -51,9 +49,8 @@ public class RegularsTable {
     }
 
     public RegularDatabaseEntry getEntry(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT * FROM regulars WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT * FROM regulars WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -76,8 +73,7 @@ public class RegularsTable {
     public List<RegularDatabaseEntry> getAllEntrys() {
         List<RegularDatabaseEntry> list = new ArrayList<>();
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM regulars");
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement("SELECT * FROM regulars");
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 list.add(new RegularDatabaseEntry(
@@ -97,9 +93,8 @@ public class RegularsTable {
     }
 
     public void setActive(String id, boolean activity) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE regulars SET active = ? WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "UPDATE regulars SET active = ? WHERE id = ?")) {
             stmt.setBoolean(1, activity);
             stmt.setString(2, id);
             stmt.executeUpdate();
@@ -109,9 +104,8 @@ public class RegularsTable {
     }
 
     public void setPlaytime(String id, double playtime) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE regulars SET playtime = ? WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "UPDATE regulars SET playtime = ? WHERE id = ?")) {
             stmt.setDouble(1, playtime);
             stmt.setString(2, id);
             stmt.executeUpdate();
@@ -121,9 +115,8 @@ public class RegularsTable {
     }
 
     public void setLevel(String id, int level) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE regulars SET level = ? WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "UPDATE regulars SET level = ? WHERE id = ?")) {
             stmt.setInt(1, level);
             stmt.setString(2, id);
             stmt.executeUpdate();
@@ -133,9 +126,8 @@ public class RegularsTable {
     }
 
     public void setLastCheckedDate(String id, String lastCheckedDate) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE regulars SET last_checked_date = ? WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "UPDATE regulars SET last_checked_date = ? WHERE id = ?")) {
             stmt.setString(1, lastCheckedDate);
             stmt.setString(2, id);
             stmt.executeUpdate();
@@ -145,9 +137,8 @@ public class RegularsTable {
     }
 
     public boolean getActive(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT active FROM regulars WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT active FROM regulars WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -161,9 +152,8 @@ public class RegularsTable {
     }
 
     public String getGroupRole(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT group_id FROM regulars WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT group_id FROM regulars WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -177,9 +167,8 @@ public class RegularsTable {
     }
 
     public String getGroup(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT \"group\" FROM regulars WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT \"group\" FROM regulars WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -193,9 +182,8 @@ public class RegularsTable {
     }
 
     public String getRole(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT role_id FROM regulars WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT role_id FROM regulars WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -209,9 +197,8 @@ public class RegularsTable {
     }
 
     public double getPlaytime(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT playtime FROM regulars WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT playtime FROM regulars WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -225,9 +212,8 @@ public class RegularsTable {
     }
 
     public int getLevel(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT level FROM regulars WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT level FROM regulars WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -241,9 +227,8 @@ public class RegularsTable {
     }
 
     public String getLastChecked(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT last_checked_date FROM regulars WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT last_checked_date FROM regulars WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -257,9 +242,8 @@ public class RegularsTable {
     }
 
     public void delete(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "DELETE FROM regulars WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "DELETE FROM regulars WHERE id = ?")) {
             stmt.setString(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -268,9 +252,8 @@ public class RegularsTable {
     }
 
     public boolean exists(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT id FROM regulars WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT id FROM regulars WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
@@ -281,8 +264,7 @@ public class RegularsTable {
     }
 
     public long retrieveSerial() {
-        try (Connection conn = DatabaseManager.getConnection();
-             Statement stmt = conn.createStatement();
+        try (Statement stmt = DatabaseManager.getConnection().createStatement();
              ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM regulars")) {
             if (rs.next()) {
                 return rs.getLong(1);

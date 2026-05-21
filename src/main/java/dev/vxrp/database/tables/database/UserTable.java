@@ -18,7 +18,6 @@ package dev.vxrp.database.tables.database;
 
 import dev.vxrp.database.DatabaseManager;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,9 +27,8 @@ public class UserTable {
     public void addToDatabase(String id, String verifyTime, String steamId) {
         if (exists(id)) return;
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO users (id, verify_time, steam_id) VALUES (?, ?, ?)")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "INSERT INTO users (id, verify_time, steam_id) VALUES (?, ?, ?)")) {
             stmt.setString(1, id);
             stmt.setString(2, verifyTime);
             stmt.setString(3, steamId);
@@ -41,9 +39,8 @@ public class UserTable {
     }
 
     public String getVerifyTime(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT verify_time FROM users WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT verify_time FROM users WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -59,9 +56,8 @@ public class UserTable {
     public String getSteamId(String id) {
         if (!exists(id)) return null;
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT steam_id FROM users WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT steam_id FROM users WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -77,9 +73,8 @@ public class UserTable {
     public void delete(String id) {
         if (!exists(id)) return;
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "DELETE FROM users WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "DELETE FROM users WHERE id = ?")) {
             stmt.setString(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -88,9 +83,8 @@ public class UserTable {
     }
 
     public boolean exists(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT id FROM users WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT id FROM users WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();

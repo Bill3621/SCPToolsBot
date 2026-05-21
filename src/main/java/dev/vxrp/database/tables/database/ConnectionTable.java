@@ -19,7 +19,6 @@ package dev.vxrp.database.tables.database;
 import dev.vxrp.database.DatabaseManager;
 import dev.vxrp.database.data.ConnectionDatabaseEntry;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,9 +28,8 @@ public class ConnectionTable {
     public void insertIfNotExists(String id, Boolean status, Boolean maintenance) {
         if (exists(id)) return;
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO connections (id, status, maintenance) VALUES (?, ?, ?)")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "INSERT INTO connections (id, status, maintenance) VALUES (?, ?, ?)")) {
             stmt.setString(1, id);
             if (status != null) {
                 stmt.setBoolean(2, status);
@@ -50,9 +48,8 @@ public class ConnectionTable {
     }
 
     public ConnectionDatabaseEntry queryFromTable(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT status, maintenance FROM connections WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT status, maintenance FROM connections WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -70,9 +67,8 @@ public class ConnectionTable {
     public void databaseNotExists(String id, boolean status) {
         if (exists(id)) return;
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO connections (id, status) VALUES (?, ?)")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "INSERT INTO connections (id, status) VALUES (?, ?)")) {
             stmt.setString(1, id);
             stmt.setBoolean(2, status);
             stmt.executeUpdate();
@@ -82,9 +78,8 @@ public class ConnectionTable {
     }
 
     public void postConnectionToDatabase(String id, boolean status) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE connections SET status = ? WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "UPDATE connections SET status = ? WHERE id = ?")) {
             stmt.setBoolean(1, status);
             stmt.setString(2, id);
             stmt.executeUpdate();
@@ -94,9 +89,8 @@ public class ConnectionTable {
     }
 
     public void setMaintenance(String id, Boolean maintenance) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE connections SET maintenance = ? WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "UPDATE connections SET maintenance = ? WHERE id = ?")) {
             if (maintenance != null) {
                 stmt.setBoolean(1, maintenance);
             } else {
@@ -110,9 +104,8 @@ public class ConnectionTable {
     }
 
     private boolean exists(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT id FROM connections WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT id FROM connections WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();

@@ -19,7 +19,6 @@ package dev.vxrp.database.tables.database;
 import dev.vxrp.bot.application.enums.MessageType;
 import dev.vxrp.database.DatabaseManager;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,9 +39,8 @@ public class MessageTable {
 
     public void insertIfNotExists(String id, MessageType type, String channelId) {
         if (!exists(id)) {
-            try (Connection conn = DatabaseManager.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(
-                         "INSERT INTO messages (id, type, channelId) VALUES (?, ?, ?)")) {
+            try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                            "INSERT INTO messages (id, type, channelId) VALUES (?, ?, ?)")) {
                 stmt.setString(1, id);
                 stmt.setString(2, type.toString());
                 stmt.setString(3, channelId);
@@ -54,9 +52,8 @@ public class MessageTable {
     }
 
     public MessageTableData queryFromTable(MessageType type) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT id, channelId FROM messages WHERE type = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT id, channelId FROM messages WHERE type = ?")) {
             stmt.setString(1, type.toString());
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -70,9 +67,8 @@ public class MessageTable {
     }
 
     public void delete(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "DELETE FROM messages WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "DELETE FROM messages WHERE id = ?")) {
             stmt.setString(1, id);
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -81,9 +77,8 @@ public class MessageTable {
     }
 
     private boolean exists(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT id FROM messages WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT id FROM messages WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();

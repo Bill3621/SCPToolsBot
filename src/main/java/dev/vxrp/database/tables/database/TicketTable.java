@@ -21,7 +21,6 @@ import dev.vxrp.bot.ticket.enums.TicketType;
 import dev.vxrp.database.DatabaseManager;
 import net.dv8tion.jda.api.entities.User;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,9 +30,8 @@ public class TicketTable {
 
     public void addToDatabase(String id, TicketType type, TicketStatus status, String creationDate,
                               String creator, User handler, String logMessage, String message, String statusMessage) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO tickets (id, type, status, creation_date, creator, handler, log_message, status_message, message) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "INSERT INTO tickets (id, type, status, creation_date, creator, handler, log_message, status_message, message) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
             stmt.setString(1, id);
             stmt.setString(2, type.toString());
             stmt.setString(3, status.toString());
@@ -50,9 +48,8 @@ public class TicketTable {
     }
 
     public TicketType determineTicketType(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT type FROM tickets WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT type FROM tickets WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -66,9 +63,8 @@ public class TicketTable {
     }
 
     public void updateTicketStatus(String id, TicketStatus ticketStatus) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE tickets SET status = ? WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "UPDATE tickets SET status = ? WHERE id = ?")) {
             stmt.setString(1, ticketStatus.toString());
             stmt.setString(2, id);
             stmt.executeUpdate();
@@ -78,9 +74,8 @@ public class TicketTable {
     }
 
     public String getTicketCreator(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT creator FROM tickets WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT creator FROM tickets WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -94,9 +89,8 @@ public class TicketTable {
     }
 
     public String getTicketHandler(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT handler FROM tickets WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT handler FROM tickets WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -110,9 +104,8 @@ public class TicketTable {
     }
 
     public String getLogMessage(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT log_message FROM tickets WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT log_message FROM tickets WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -126,9 +119,8 @@ public class TicketTable {
     }
 
     public String getMessage(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT message FROM tickets WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT message FROM tickets WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -142,9 +134,8 @@ public class TicketTable {
     }
 
     public TicketStatus getTicketStatus(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT status FROM tickets WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT status FROM tickets WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -158,9 +149,8 @@ public class TicketTable {
     }
 
     public TicketType getTicketType(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT type FROM tickets WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT type FROM tickets WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -174,9 +164,8 @@ public class TicketTable {
     }
 
     public void updateTicketHandler(String ticketId, String userId) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE tickets SET handler = ? WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "UPDATE tickets SET handler = ? WHERE id = ?")) {
             stmt.setString(1, userId);
             stmt.setString(2, ticketId);
             stmt.executeUpdate();
@@ -186,8 +175,7 @@ public class TicketTable {
     }
 
     public long retrieveSerial() {
-        try (Connection conn = DatabaseManager.getConnection();
-             Statement stmt = conn.createStatement();
+        try (Statement stmt = DatabaseManager.getConnection().createStatement();
              ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM tickets")) {
             if (rs.next()) {
                 return rs.getLong(1);
@@ -199,9 +187,8 @@ public class TicketTable {
     }
 
     public boolean determineHandler(String id) {
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT handler FROM tickets WHERE id = ?")) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                        "SELECT handler FROM tickets WHERE id = ?")) {
             stmt.setString(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
