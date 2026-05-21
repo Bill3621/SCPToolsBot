@@ -44,8 +44,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,7 +60,7 @@ public class StatusManager {
 
     private volatile int secondsWithoutNewData = 0;
     private volatile boolean nonChangedData = false;
-    private volatile Map<Integer, Server> portToServerMap = null;
+    private volatile Map<String, Server> instanceToServerMap = null;
 
     public StatusManager(JDA globalApi, Config config, Translation translation, String file) {
         this.globalApi = globalApi;
@@ -91,7 +93,8 @@ public class StatusManager {
         Map<Instance, JDA> instanceApiMapping = new HashMap<>();
 
         for (Instance instance : status.instances()) {
-            new ConnectionTable().insertIfNotExists(String.valueOf(instance.serverPort()), true, false);
+            String key = instance.instanceKey(status.api(), status.accountId());
+            new ConnectionTable().insertIfNotExists(key, true, false);
 
             try {
                 JDA newApi = JDABuilder.createLight(instance.token(), EnumSet.noneOf(GatewayIntent.class))
@@ -101,8 +104,8 @@ public class StatusManager {
 
                 logger.info("Starting up status-bot: {}", newApi.getSelfUser().getId());
 
-                GlobalVariables.statusMappedBots.put(newApi.getSelfUser().getId(), instance.serverPort());
-                GlobalVariables.statusInstances.put(instance.serverPort(), instance);
+                GlobalVariables.statusMappedBots.put(newApi.getSelfUser().getId(), key);
+                GlobalVariables.statusInstances.put(key, instance);
 
                 new StatusCommandListener(newApi, config, translation);
 
@@ -146,33 +149,56 @@ public class StatusManager {
     }
 
     private void runStatusChange(Status status, Map<Instance, JDA> instanceApiMap) {
-        List<Integer> ports = new java.util.ArrayList<>();
-        for (Instance currentInstance : status.instances()) {
-            ports.add(currentInstance.serverPort());
+        Map<String, List<Instance>> credentialGroups = new LinkedHashMap<>();
+        for (Instance instance : status.instances()) {
+            String credKey = instance.credentialKey(status.api(), status.accountId());
+            credentialGroups.computeIfAbsent(credKey, k -> new ArrayList<>()).add(instance);
         }
 
-        Map<Integer, Server> currentPortToServerMap;
+        Map<String, Server> currentInstanceToServerMap = new HashMap<>();
+        Map<String, ServerInfo> instanceKeyToInfo = new HashMap<>();
+        boolean anyDataReceived = false;
 
-        ApiFetchResult content = fetchData(status, ports);
+        for (Map.Entry<String, List<Instance>> entry : credentialGroups.entrySet()) {
+            Instance first = entry.getValue().get(0);
+            String effectiveApi = first.effectiveApi(status.api());
+            String effectiveAccountId = first.effectiveAccountId(status.accountId());
+            List<Integer> ports = entry.getValue().stream().map(Instance::serverPort).toList();
 
-        if (content == null) {
+            ApiFetchResult content = fetchData(effectiveApi, effectiveAccountId, ports);
+
+            String credKey = entry.getKey();
+            new StatusConnectionHandler(translation, config).postApiConnectionUpdate(
+                    globalApi, content != null ? content.info : null, credKey);
+
+            if (content != null) {
+                for (Instance instance : entry.getValue()) {
+                    String instKey = instance.instanceKey(status.api(), status.accountId());
+                    Server server = content.portToServerMap.get(instance.serverPort());
+                    GlobalVariables.statusMappedServers.put(instKey, server);
+                    currentInstanceToServerMap.put(instKey, server);
+                    instanceKeyToInfo.put(instKey, content.info);
+                }
+                anyDataReceived = true;
+            }
+        }
+
+        if (!anyDataReceived) {
             logger.error("Could not receive data for status-bots, skipping iteration");
             return;
         }
-        currentPortToServerMap = content.portToServerMap;
 
-        new StatusConnectionHandler(translation, config).postApiConnectionUpdate(globalApi, content.info);
-
-        if (mapsEqual(this.portToServerMap, currentPortToServerMap)) {
+        if (mapsEqual(this.instanceToServerMap, currentInstanceToServerMap)) {
             nonChangedData = true;
         } else {
             secondsWithoutNewData = 0;
-            this.portToServerMap = currentPortToServerMap;
+            this.instanceToServerMap = currentInstanceToServerMap;
             nonChangedData = false;
         }
 
         if (status.checkPlayerlist()) {
-            new StatusPlayerlistHandler(config, translation).updatePlayerLists(currentPortToServerMap, status.instances(), instanceApiMap);
+            new StatusPlayerlistHandler(config, translation).updatePlayerLists(
+                    currentInstanceToServerMap, status.instances(), instanceApiMap, status.api(), status.accountId());
         }
 
         for (Instance instance : status.instances()) {
@@ -181,14 +207,16 @@ public class StatusManager {
 
             api.getPresence().setStatus(OnlineStatus.IDLE);
 
-            Server server = currentPortToServerMap.get(instance.serverPort());
-            if (server != null) {
-                spinUpChecker(api, server, instance, content.info);
+            String instKey = instance.instanceKey(status.api(), status.accountId());
+            Server server = currentInstanceToServerMap.get(instKey);
+            ServerInfo info = instanceKeyToInfo.get(instKey);
+            if (server != null && info != null) {
+                spinUpChecker(api, server, instance, info, instKey);
             }
         }
     }
 
-    private boolean mapsEqual(Map<Integer, Server> a, Map<Integer, Server> b) {
+    private boolean mapsEqual(Map<String, Server> a, Map<String, Server> b) {
         if (a == null || b == null) return a == b;
         return a.equals(b);
     }
@@ -203,15 +231,14 @@ public class StatusManager {
         }
     }
 
-    private ApiFetchResult fetchData(Status status, List<Integer> ports) {
-        SecretLab secretLab = new SecretLab(status.api(), status.accountId(), 60, 60);
+    private ApiFetchResult fetchData(String api, String accountId, List<Integer> ports) {
+        SecretLab secretLab = new SecretLab(api, accountId, 60, 60);
 
         Map<Integer, Server> portToServerMap = new HashMap<>();
         try {
             ServerInfo info = secretLab.serverInfo(false, true, true, false, false, false, false, false, false);
             for (int port : ports) {
                 Server server = serverByPort(port, info);
-                GlobalVariables.statusMappedServers.put(port, server);
                 portToServerMap.put(port, server);
             }
             return new ApiFetchResult(info, portToServerMap);
@@ -229,8 +256,8 @@ public class StatusManager {
         return null;
     }
 
-    private void spinUpChecker(JDA api, Server server, Instance instance, ServerInfo info) {
-        new StatusActivityHandler(translation, config).updateStatus(api, server, instance);
-        new StatusConnectionHandler(translation, config).postStatusUpdate(server, api, instance, info);
+    private void spinUpChecker(JDA api, Server server, Instance instance, ServerInfo info, String instanceKey) {
+        new StatusActivityHandler(translation, config).updateStatus(api, server, instance, instanceKey);
+        new StatusConnectionHandler(translation, config).postStatusUpdate(server, api, instance, info, instanceKey);
     }
 }

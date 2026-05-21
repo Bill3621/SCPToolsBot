@@ -35,9 +35,9 @@ public class StatusActivityHandler {
         this.config = config;
     }
 
-    public void updateStatus(JDA api, Server server, Instance instance) {
+    public void updateStatus(JDA api, Server server, Instance instance, String instanceKey) {
         logger.debug("Updating status of bot: {} ({}) for server - {}", api.getSelfUser().getName(), api.getSelfUser().getId(), server.getPort());
-        boolean currentMaintenance = new ConnectionTable().queryFromTable(String.valueOf(instance.serverPort())).maintenance();
+        boolean currentMaintenance = new ConnectionTable().queryFromTable(instanceKey).maintenance();
 
         manageStatus(server, currentMaintenance, api);
         manageActivity(server, currentMaintenance, api);

@@ -57,5 +57,11 @@ instances: [
       # The channels the playerlist should be sent to and updated
       channel_ids: []
     }
+    # Optional: Override the global api key for this specific instance.
+    # If not set, the global api key above will be used.
+    # api: ""
+    # Optional: Override the global account_id for this specific instance.
+    # If not set, the global account_id above will be used.
+    # account_id: ""
   },
 ]

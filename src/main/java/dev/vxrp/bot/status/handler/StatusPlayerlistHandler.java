@@ -44,38 +44,35 @@ public class StatusPlayerlistHandler {
         this.translation = translation;
     }
 
-    public void updatePlayerLists(Map<Integer, Server> portToServerMap, List<Instance> instances, Map<Instance, JDA> instanceApiMap) {
-        for (Map.Entry<Integer, Server> server : portToServerMap.entrySet()) {
-            if (server.getValue() == null) {
-                Instance inst = GlobalVariables.statusInstances.get(server.getKey());
+    public void updatePlayerLists(Map<String, Server> instanceToServerMap, List<Instance> instances,
+                                  Map<Instance, JDA> instanceApiMap, String globalApi, String globalAccountId) {
+        for (Instance instance : instances) {
+            String instKey = instance.instanceKey(globalApi, globalAccountId);
+            Server server = instanceToServerMap.get(instKey);
+
+            if (server == null) {
                 logger.debug("No data for servers received, skipping message for server {} ({})",
-                        inst != null ? inst.name() : "unknown", server.getKey());
-                return;
+                        instance.name(), instKey);
+                continue;
             }
 
-            JDA api = null;
-            for (Instance instance : instances) {
-                if (instance.serverPort() != server.getKey()) continue;
-                api = instanceApiMap.get(instance);
-                if (api == null) {
-                    logger.error("Could not retrieve mapped bot for port: {}", server);
-                    return;
-                }
-                break;
+            JDA api = instanceApiMap.get(instance);
+            if (api == null) {
+                logger.error("Could not retrieve mapped bot for key: {}", instKey);
+                continue;
             }
-            if (api == null) continue;
 
-            createPresetMessage(api, server);
-            updateMessage(api, server);
+            createPresetMessage(api, instKey, instance);
+            updateMessage(api, instKey, instance);
         }
     }
 
-    private void updateMessage(JDA api, Map.Entry<Integer, Server> port) {
+    private void updateMessage(JDA api, String instanceKey, Instance instance) {
         StatusTable statusTable = new StatusTable();
         for (StatusDatabaseEntry entry : statusTable.getAllEntries()) {
             List<MessageEmbed> embeds = new ArrayList<>();
 
-            if (GlobalVariables.statusMappedServers.get(port.getKey()) != null) {
+            if (GlobalVariables.statusMappedServers.get(instanceKey) != null) {
                 MessageEmbed playerListEmbed = new dev.vxrp.bot.commands.handler.status.playerlist.PlayerlistMessageHandler()
                         .getEmbed(api.getSelfUser().getId(), translation);
                 if (playerListEmbed != null) {
@@ -90,48 +87,44 @@ public class StatusPlayerlistHandler {
                             .complete();
                 }
             } catch (ErrorResponseException e) {
-                statusTable.deleteFromDatabase(String.valueOf(port.getKey()));
+                statusTable.deleteFromDatabase(instanceKey);
             }
 
-            logger.debug("Updated playerlist with message id: {} in channel {} part of server {}", entry.messageId(), entry.channelId(), port.getKey());
+            logger.debug("Updated playerlist with message id: {} in channel {} part of server {}", entry.messageId(), entry.channelId(), instanceKey);
         }
 
-        statusTable.updateLastUpdated(String.valueOf(port.getKey()), String.valueOf(System.currentTimeMillis()));
+        statusTable.updateLastUpdated(instanceKey, String.valueOf(System.currentTimeMillis()));
     }
 
-    private void createPresetMessage(JDA api, Map.Entry<Integer, Server> port) {
-        for (Instance instance : config.status().instances()) {
-            if (instance.serverPort() != port.getKey()) continue;
-            if (!instance.playerlist().active()) continue;
+    private void createPresetMessage(JDA api, String instanceKey, Instance instance) {
+        if (!instance.playerlist().active()) return;
 
-            PlayerlistType playerlistType = new StatusTable().getType(String.valueOf(port.getKey()));
-            if (playerlistType != PlayerlistType.PRESET) {
-                logger.debug("Skipping over preset creation for server '{}'", instance.name());
+        PlayerlistType playerlistType = new StatusTable().getType(instanceKey);
+        if (playerlistType != PlayerlistType.PRESET) {
+            logger.debug("Skipping over preset creation for server '{}'", instance.name());
+            return;
+        }
+
+        for (String channelId : instance.playerlist().channelId()) {
+            var channel = api.getTextChannelById(channelId);
+            if (channel == null) {
+                logger.error("Could not find channel '{}' to paste preset playerlist of server '{}'", channelId, instance.name());
                 return;
             }
 
-            for (String channelId : instance.playerlist().channelId()) {
-                var channel = api.getTextChannelById(channelId);
-                if (channel == null) {
-                    logger.error("Could not find channel '{}' to paste preset playerlist of server '{}'", channelId, instance.name());
-                    return;
+            List<MessageEmbed> embeds = new ArrayList<>();
+            if (GlobalVariables.statusMappedServers.get(instanceKey) != null) {
+                MessageEmbed playerListEmbed = new dev.vxrp.bot.commands.handler.status.playerlist.PlayerlistMessageHandler()
+                        .getEmbed(api.getSelfUser().getId(), translation);
+                if (playerListEmbed != null) {
+                    embeds.add(playerListEmbed);
                 }
-
-                List<MessageEmbed> embeds = new ArrayList<>();
-                if (GlobalVariables.statusMappedServers.get(port.getKey()) != null) {
-                    MessageEmbed playerListEmbed = new dev.vxrp.bot.commands.handler.status.playerlist.PlayerlistMessageHandler()
-                            .getEmbed(api.getSelfUser().getId(), translation);
-                    if (playerListEmbed != null) {
-                        embeds.add(playerListEmbed);
-                    }
-                }
-
-                var message = channel.sendMessageEmbeds(embeds).complete();
-
-                new StatusTable().addToDatabase(PlayerlistType.PRESET, channelId, message.getId(),
-                        String.valueOf(port.getKey()), LocalDate.now().toString(), String.valueOf(System.currentTimeMillis()));
             }
-            break;
+
+            var message = channel.sendMessageEmbeds(embeds).complete();
+
+            new StatusTable().addToDatabase(PlayerlistType.PRESET, channelId, message.getId(),
+                    instanceKey, LocalDate.now().toString(), String.valueOf(System.currentTimeMillis()));
         }
     }
 }

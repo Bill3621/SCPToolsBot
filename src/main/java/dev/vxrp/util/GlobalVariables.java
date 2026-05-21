@@ -28,15 +28,15 @@ import java.util.HashSet;
 public class GlobalVariables {
     public static volatile String upstreamVersion = "";
 
-    public static volatile HashMap<String, Integer> statusMappedBots = new HashMap<>();
+    public static volatile HashMap<String, String> statusMappedBots = new HashMap<>();
 
-    public static volatile HashMap<Integer, Server> statusMappedServers = new HashMap<>();
+    public static volatile HashMap<String, Server> statusMappedServers = new HashMap<>();
 
-    public static volatile HashMap<Integer, Instance> statusInstances = new HashMap<>();
+    public static volatile HashMap<String, Instance> statusInstances = new HashMap<>();
 
-    public static volatile boolean statusApiSessionStatus = true;
+    public static volatile HashMap<String, Boolean> statusApiSessionStatus = new HashMap<>();
 
-    public static volatile HashMap<Integer, Boolean> statusServerSessionStatus = new HashMap<>();
+    public static volatile HashMap<String, Boolean> statusServerSessionStatus = new HashMap<>();
 
     public static volatile HashSet<ApplicationType> applicationTypeSet = new HashSet<>();
 

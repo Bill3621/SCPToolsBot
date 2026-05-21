@@ -34,8 +34,8 @@ public class StatusCommand {
     }
 
     public void changeMaintenanceState(SlashCommandInteractionEvent event) {
-        Integer currentPort = GlobalVariables.statusMappedBots.get(event.getJDA().getSelfUser().getId());
-        var entry = new ConnectionTable().queryFromTable(String.valueOf(currentPort));
+        String instanceKey = GlobalVariables.statusMappedBots.get(event.getJDA().getSelfUser().getId());
+        var entry = new ConnectionTable().queryFromTable(instanceKey);
         boolean currentMaintenance = entry.maintenance();
 
         if (currentMaintenance) {
@@ -44,7 +44,7 @@ public class StatusCommand {
                 reason = event.getOption("reason").getAsString();
             }
 
-            new ConnectionTable().setMaintenance(String.valueOf(currentPort), false);
+            new ConnectionTable().setMaintenance(instanceKey, false);
             var deactivatedEmbed = new EmbedBuilder()
                     .setColor(0xE74D3C)
                     .setTitle(new ColorTool().parse(translation.status().embedStatusDeactivatedTitle()))
@@ -53,7 +53,7 @@ public class StatusCommand {
 
             event.replyEmbeds(deactivatedEmbed).setEphemeral(true).queue();
 
-            var instance = GlobalVariables.statusInstances.get(currentPort);
+            var instance = GlobalVariables.statusInstances.get(instanceKey);
             String instanceName = instance != null ? instance.name() : "Unknown";
 
             var embed = new EmbedBuilder()
@@ -79,7 +79,7 @@ public class StatusCommand {
                 reason = event.getOption("reason").getAsString();
             }
 
-            new ConnectionTable().setMaintenance(String.valueOf(currentPort), true);
+            new ConnectionTable().setMaintenance(instanceKey, true);
             var activatedEmbed = new EmbedBuilder()
                     .setColor(0x2ECC70)
                     .setTitle(new ColorTool().parse(translation.status().embedStatusActivatedTitle()))
@@ -88,7 +88,7 @@ public class StatusCommand {
 
             event.replyEmbeds(activatedEmbed).setEphemeral(true).queue();
 
-            var instance = GlobalVariables.statusInstances.get(currentPort);
+            var instance = GlobalVariables.statusInstances.get(instanceKey);
             String instanceName = instance != null ? instance.name() : "Unknown";
 
             var embed = new EmbedBuilder()

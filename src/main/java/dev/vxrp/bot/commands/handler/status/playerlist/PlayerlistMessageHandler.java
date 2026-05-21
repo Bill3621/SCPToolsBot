@@ -28,8 +28,8 @@ import java.time.Instant;
 public class PlayerlistMessageHandler {
     public MessageEmbed getEmbed(String botId, Translation translation) {
         StringBuilder builder = new StringBuilder();
-        Integer currentPort = GlobalVariables.statusMappedBots.get(botId);
-        Server server = GlobalVariables.statusMappedServers.get(currentPort);
+        String instanceKey = GlobalVariables.statusMappedBots.get(botId);
+        Server server = instanceKey != null ? GlobalVariables.statusMappedServers.get(instanceKey) : null;
 
         if (server != null && server.getPlayerList() != null) {
             var list = server.getPlayerList();

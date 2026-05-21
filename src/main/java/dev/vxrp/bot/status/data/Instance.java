@@ -25,5 +25,23 @@ public record Instance(
     String name,
     @JsonProperty("server_port") int serverPort,
     int retries,
-    PlayerList playerlist
-) {}
+    PlayerList playerlist,
+    String api,
+    @JsonProperty("account_id") String accountId
+) {
+    public String effectiveApi(String globalApi) {
+        return api != null ? api : globalApi;
+    }
+
+    public String effectiveAccountId(String globalAccountId) {
+        return accountId != null ? accountId : globalAccountId;
+    }
+
+    public String credentialKey(String globalApi, String globalAccountId) {
+        return effectiveApi(globalApi) + ":" + effectiveAccountId(globalAccountId);
+    }
+
+    public String instanceKey(String globalApi, String globalAccountId) {
+        return serverPort + "_" + Integer.toUnsignedString(credentialKey(globalApi, globalAccountId).hashCode(), 16);
+    }
+}

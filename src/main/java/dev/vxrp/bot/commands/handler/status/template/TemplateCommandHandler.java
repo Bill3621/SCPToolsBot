@@ -43,14 +43,14 @@ public class TemplateCommandHandler {
         event.reply(new ColorTool().parse("%filler<1>%")).queue(hook -> hook.deleteOriginal().queue());
         String id = message.getId();
 
-        Integer currentPort = GlobalVariables.statusMappedBots.get(event.getJDA().getSelfUser().getId());
-        var server = GlobalVariables.statusMappedServers.get(currentPort);
+        String instanceKey = GlobalVariables.statusMappedBots.get(event.getJDA().getSelfUser().getId());
+        var server = instanceKey != null ? GlobalVariables.statusMappedServers.get(instanceKey) : null;
 
         new StatusTable().addToDatabase(
                 PlayerlistType.PRINTED,
                 event.getChannel().getId(),
                 id,
-                server != null ? String.valueOf(server.getPort()) : "0",
+                instanceKey != null ? instanceKey : "0",
                 LocalDate.now().toString(),
                 String.valueOf(System.currentTimeMillis())
         );
