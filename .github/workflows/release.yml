@@ -122,7 +122,6 @@ jobs:
           OLD="${{ steps.version.outputs.current }}"
 
           sed -i "s|^version = \".*\"|version = \"${NEW}\"|" build.gradle
-          sed -i "s|SCP_Tools-${OLD}-all\.jar|SCP_Tools-${NEW}-all.jar|g" Dockerfile
           sed -i "s|^export version=\".*\"|export version=\"${NEW}\"|" installer.sh
           sed -i "s|\"version\": \"[^\"]*\"|\"version\": \"${NEW}\"|" src/main/resources/SCPToolsBot/configs/extra/updates.json
 
@@ -130,7 +129,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add build.gradle Dockerfile installer.sh src/main/resources/SCPToolsBot/configs/extra/updates.json
+          git add build.gradle installer.sh src/main/resources/SCPToolsBot/configs/extra/updates.json
           git commit -m "chore: bump version to ${{ steps.version.outputs.version }}"
           git push
 
