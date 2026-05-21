@@ -28,15 +28,15 @@
     },
     {
         "changed": false,
-        "regenerate": true,
+        "regenerate": false,
         "type": "config",
         "filename": "commands.json",
         "location": "/SCPToolsBot/configs/extra/",
         "upstream": "https://github.com/Vxrpenter/SCPToolsBot/blob/master/src/main/resources/SCPToolsBot/configs/extra/commands.json"
     },
     {
-        "changed": true,
-        "regenerate": true,
+        "changed": false,
+        "regenerate": false,
         "type": "config",
         "filename": "launch-configuration.json",
         "location": "/SCPToolsBot/configs/extra/",
@@ -46,7 +46,7 @@
 
   "translationUpdates": [
     {
-      "changed": false,
+      "changed": true,
       "regenerate": true,
       "type": "translation",
       "filename": "en_US.yml",
@@ -54,7 +54,7 @@
       "upstream": "https://github.com/Vxrpenter/SCPToolsBot/blob/master/src/main/resources/SCPToolsBot/lang/en_US.yml"
     },
     {
-      "changed": false,
+      "changed": true,
       "regenerate": true,
       "type": "translation",
       "filename": "de_DE.yml",
@@ -82,5 +82,5 @@
     }
   ],
 
-  "additionalInformation": "The launch configuration has been trimmed down significantly, removing all listener and the command manager options"
+  "additionalInformation": "N/A"
 }
