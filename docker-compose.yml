@@ -1,7 +1,0 @@
-services:
-  bot:
-    image: vxrpenter/scptoolsbot:latest
-    ports:
-      - "8080:8080"
-    volumes:
-      - ${CONFIG_PATH}/SCPToolsBot/:/bot/SCPToolsBot/
