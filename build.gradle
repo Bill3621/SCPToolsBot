@@ -26,7 +26,7 @@ def jdaVersion = "5.6.1"
 def secretLabKotlinVersion = "0.4.3"
 def updaterVersion = "0.1.1"
 def logbackVersion = "1.5.32"
-def gsonVersion = "2.13.2"
+def gsonVersion = "2.14.0"
 
 dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
