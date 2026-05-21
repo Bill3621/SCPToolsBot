@@ -33,11 +33,14 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StatusPlayerlistHandler {
     private final org.slf4j.Logger logger = LoggerFactory.getLogger(StatusPlayerlistHandler.class);
     private final Config config;
     private final Translation translation;
+    private static final int MAX_CONSECUTIVE_ERRORS = 3;
+    private final Map<String, Integer> consecutiveErrors = new ConcurrentHashMap<>();
 
     public StatusPlayerlistHandler(Config config, Translation translation) {
         this.config = config;
@@ -81,16 +84,27 @@ public class StatusPlayerlistHandler {
                 }
             }
 
+            String errorKey = entry.channelId() + ":" + entry.messageId();
+
             try {
                 if (api.getTextChannelById(entry.channelId()) != null) {
                     api.getTextChannelById(entry.channelId())
                             .editMessageEmbedsById(entry.messageId(), embeds)
                             .complete();
                 }
+                consecutiveErrors.remove(errorKey);
             } catch (ErrorResponseException e) {
-                logger.warn("Failed to update playerlist message {} in channel {} for server {}, removing entry from database",
-                        entry.messageId(), entry.channelId(), instanceKey, e);
-                statusTable.deleteEntry(entry.channelId(), entry.messageId());
+                int errors = consecutiveErrors.merge(errorKey, 1, Integer::sum);
+                if (errors >= MAX_CONSECUTIVE_ERRORS) {
+                    logger.warn("Failed to update playerlist message {} in channel {} for server {} {} times consecutively, removing entry from database",
+                            entry.messageId(), entry.channelId(), instanceKey, errors, e);
+                    statusTable.deleteEntry(entry.channelId(), entry.messageId());
+                    consecutiveErrors.remove(errorKey);
+                } else {
+                    logger.warn("Failed to update playerlist message {} in channel {} for server {} (attempt {}/{})",
+                            entry.messageId(), entry.channelId(), instanceKey, errors, MAX_CONSECUTIVE_ERRORS, e);
+                }
+                continue;
             }
 
             logger.debug("Updated playerlist with message id: {} in channel {} part of server {}", entry.messageId(), entry.channelId(), instanceKey);
