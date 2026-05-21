@@ -99,7 +99,7 @@ public class NoticeOfDepartureMessageHandler {
                                     Emoji.fromFormatted("\uD83D\uDCD8")),
                     Button.danger("notice_of_departure_decision_dismiss:" + userId + ":" + startDate + ":" + endDate.format(formatter),
                             translation.buttons().textNoticeOfDepartureDismissed()).withEmoji(
-                                    Emoji.fromFormatted("\uFAF7"))))
+                                    Emoji.fromFormatted("\uD83E\uDEF7"))))
                     .queue();
         } else {
             logger.error("Could not correctly retrieve notice of departure decision channel, does it exist?");
