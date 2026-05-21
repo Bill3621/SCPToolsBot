@@ -218,8 +218,7 @@ STATUS:
                         Online Players: &bold&%player_number%&reset&\n
                         FriendlyFire: %ff%&reset&\n
                         Whitelisted: %wl%&reset&\n
-                        Modded: %modded%&reset&\n
-                        Mods: &bold&%mods%&reset&
+                        Modded: %modded%&reset&
                         ```
                         &filler&\n
                         ```ansi

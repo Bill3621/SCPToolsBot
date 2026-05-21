@@ -107,7 +107,7 @@ public class StatusManager {
                 GlobalVariables.statusMappedBots.put(newApi.getSelfUser().getId(), key);
                 GlobalVariables.statusInstances.put(key, instance);
 
-                new StatusCommandListener(newApi, config, translation);
+                newApi.addEventListener(new StatusCommandListener(newApi, config, translation));
 
                 initializeCommands(commandManager, newApi);
                 instanceApiMapping.put(instance, newApi);

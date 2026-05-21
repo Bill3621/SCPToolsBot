@@ -53,7 +53,6 @@ public class PlayerlistMessageHandler {
         String ff = server != null ? String.valueOf(server.getFf()) : "&red&&bold&Not Fetched";
         String wl = server != null ? String.valueOf(server.getWl()) : "&red&&bold&Not Fetched";
         String modded = server != null ? String.valueOf(server.getModded()) : "&red&&bold&Not Fetched";
-        String mods = server != null ? String.valueOf(server.getMods()) : "&red&&bold&Not Fetched";
 
         String description = translation.status().embedPlayerlistBody()
                 .replace("%players%", builder.toString())
@@ -62,7 +61,6 @@ public class PlayerlistMessageHandler {
                 .replace("%ff%", ff)
                 .replace("%wl%", wl)
                 .replace("%modded%", modded)
-                .replace("%mods%", mods)
                 .replace("true", "&green&&bold&true")
                 .replace("false", "&red&&bold&false");
 
