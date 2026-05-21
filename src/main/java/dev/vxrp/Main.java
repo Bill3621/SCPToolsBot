@@ -20,7 +20,6 @@ import dev.vxrp.configuration.ConfigurationManager;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.updates.UpdateManager;
-import dev.vxrp.util.launch.LaunchOptionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

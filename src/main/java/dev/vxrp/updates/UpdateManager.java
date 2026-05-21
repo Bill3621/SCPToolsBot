@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 public class UpdateManager {
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(UpdateManager.class);
-    private static final String GITHUB_API_URL = "https://api.github.com/repos/Vxrpenter/SCPToolsBot/releases/latest";
+    private static final String GITHUB_API_URL = "https://api.github.com/repos/Bill3621/SCPToolsBot/releases/latest";
 
     public void checkUpdated() {
         String dir = System.getProperty("user.dir");
@@ -70,7 +70,8 @@ public class UpdateManager {
 
     private void checkForUpdate(Config config) throws IOException, InterruptedException {
         Properties properties = new Properties();
-        try (InputStream versionPropertiesStream = UpdateManager.class.getResourceAsStream("/dev/vxrp/version.properties")) {
+        try (InputStream versionPropertiesStream = UpdateManager.class
+                .getResourceAsStream("/dev/vxrp/version.properties")) {
             Objects.requireNonNull(versionPropertiesStream, "Version properties file does not exist");
             properties.load(new InputStreamReader(versionPropertiesStream, StandardCharsets.UTF_8));
         }
@@ -88,7 +89,8 @@ public class UpdateManager {
         if (response.statusCode() == 200) {
             JsonObject release = JsonParser.parseString(response.body()).getAsJsonObject();
             String tagName = release.get("tag_name").getAsString();
-            String htmlUrl = release.has("html_url") ? release.get("html_url").getAsString() : "https://github.com/Vxrpenter/SCPToolsBot/releases/latest";
+            String htmlUrl = release.has("html_url") ? release.get("html_url").getAsString()
+                    : "https://github.com/Bill3621/SCPToolsBot/releases/latest";
 
             if (!tagName.equals("v" + currentVersion)) {
                 boolean shouldIgnore = false;
