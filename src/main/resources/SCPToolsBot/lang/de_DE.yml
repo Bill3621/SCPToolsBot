@@ -656,16 +656,17 @@ NOTICE_OF_DEPARTURE:
                         &filler&
                         **Benötigte Informationen**\n
                         Diese Informationen werden für deine Abmeldung benötigt.\n
-                        - Das Datum deiner Rückkehr. Bitte verwende dieses Format, andernfalls wird die Abmeldung nicht akzeptiert: **%formatter%**\n
-                        
-                        - Eine kurze Erklärung, warum du eine Auszeit benötigen. Gehe nicht zu sehr ins Detail, nur so viel, dass es Sinn ergibt.\n
+                         - Das Datum deiner Rückkehr. Bitte verwende dieses Format, andernfalls wird die Abmeldung nicht akzeptiert: **%formatter%** (z.B. **%example%**)\n
+                         - Das Datum, an dem deine Abwesenheit beginnt (optional, leer lassen für heute). Gleiches Format: **%formatter%** (z.B. **%example%**)\n
+                         
+                         - Eine kurze Erklärung, warum du eine Auszeit benötigen. Gehe nicht zu sehr ins Detail, nur so viel, dass es Sinn ergibt.\n
                         
                         _Alle Anträge können von höhergestellten Teammitglied abgelehnt und widerrufen werden. Dieses Formular ist keine rechtsverbindliche Regelung der Arbeitszeit, sondern lediglich eine Vereinbarung zwischen Teammitgliedern._
                         "
 
   MODAL_TITLE: "Abmeldung stellen"
   MODAL_TIME_TITLE: "Wie lange bist du weg?"
-  MODAL_TIME_PLACEHOLDER: "wie lange, immer im format [%formatter%]"
+  MODAL_TIME_PLACEHOLDER: "wie lange, immer im format [%formatter%, z.B. %example%]"
   MODAL_EXPLANATION_TITLE: "Erklärung"
   MODAL_EXPLANATION_PLACEHOLDER: "Wieso wirst du weg sein? [keine details]"
 
@@ -673,7 +674,16 @@ NOTICE_OF_DEPARTURE:
   EMBED_ENTER_VALID_DATE_BODY: "Du musst ein gültiges Datumsformat eingeben. Das akzeptierte Format ist: **%formatter%**"
 
   EMBED_ENTER_FUTURE_DATE_TITLE: "Gib ein Datum in der Zukunft an"
-  EMBED_ENTER_FUTURE_DATE_BODY: "Du musst ein Datum angeben das in der Zukunft liegt."
+  EMBED_ENTER_FUTURE_DATE_BODY: "Du musst ein Datum angeben das in der Zukunft liegt. Stelle sicher, dass du das richtige Format verwendest: **%formatter%**"
+
+  MODAL_START_DATE_TITLE: "Startdatum?"
+  MODAL_START_DATE_PLACEHOLDER: "Wann beginnt deine Abwesenheit [%formatter%, z.B. %example%] (leer lassen für heute)"
+  EMBED_START_DATE_INVALID_TITLE: "Gib ein gültiges Startdatum-Format an"
+  EMBED_START_DATE_INVALID_BODY: "Du musst ein gültiges Datumsformat für das Startdatum eingeben. Das akzeptierte Format ist: **%formatter%**"
+  EMBED_START_DATE_PAST_TITLE: "Startdatum muss heute oder in der Zukunft liegen"
+  EMBED_START_DATE_PAST_BODY: "Das Startdatum muss heute oder in der Zukunft liegen. Stelle sicher, dass du das richtige Format verwendest: **%formatter%**"
+  EMBED_START_DATE_AFTER_END_TITLE: "Startdatum muss vor dem Enddatum liegen"
+  EMBED_START_DATE_AFTER_END_BODY: "Das eingegebene Startdatum liegt nach oder ist gleich dem Enddatum."
 
   EMBED_DECISION_TITLE: "Abmeldung von %user% - #%number%"
 

@@ -19,6 +19,8 @@ The following is a list of changes made in this fork that differ from upstream:
 
 - Rewrote the entire codebase from Kotlin to Java
 - Per-instance API credentials for status bots (instances can override the global `api` and `account_id` with their own, supporting multi-server setups where different game servers are on different physical servers or use a different API key)
+- Notice of Departure: optional start date field allowing staff to schedule departures in advance
+- And probably a lot of other small changes...
 
 <div align="left">
   <a href="https://github.com/Bill3621/SCPToolsBot/releases"><img src="https://img.shields.io/github/v/release/Bill3621/SCPToolsBot?include_prereleases&logo=github&logoSize=amg&logoColor=a74040&labelColor=333834&sort=date&display_name=tag&style=for-the-badge&label=LATEST%20RELEASE&color=a74040" /></a>&nbsp;

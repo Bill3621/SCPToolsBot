@@ -25,9 +25,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-
 public class NoticeOfDepartureCommand {
     private final Config config;
     private final Translation translation;
@@ -43,8 +40,7 @@ public class NoticeOfDepartureCommand {
             return;
 
         String handler = new NoticeOfDepartureTable().retrieveHandler(user.getId());
-        String currentDate = LocalDate.now().format(DateTimeFormatter
-                .ofPattern(config.settings().noticeOfDeparture().dateFormatting()));
+        String currentDate = new NoticeOfDepartureTable().retrieveBeginDate(user.getId());
         String endDate = new NoticeOfDepartureTable().retrieveEndDate(user.getId());
 
         var embed = new EmbedBuilder()
@@ -52,7 +48,7 @@ public class NoticeOfDepartureCommand {
                         .embedNoticeViewTitle().replace("%user%", user.getName())))
                 .setDescription(new ColorTool().parse(translation.noticeOfDeparture()
                         .embedNoticeViewBody().replace("%user%", "<@" + handler + ">")
-                        .replace("%current_date%", currentDate)
+                        .replace("%current_date%", currentDate != null ? currentDate : "Unknown")
                         .replace("%end_date%", endDate != null ? endDate : "Unknown")))
                 .build();
 

@@ -24,6 +24,9 @@ import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.modals.Modal;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 public class NoticeOfDepartureTemplateModals {
     private final Config config;
     private final Translation translation;
@@ -34,11 +37,20 @@ public class NoticeOfDepartureTemplateModals {
     }
 
     public Modal generalModal() {
+        String dateFormat = config.settings().noticeOfDeparture().dateFormatting();
+        String exampleDate = LocalDate.now().plusMonths(1).format(DateTimeFormatter.ofPattern(dateFormat));
+
         Label time = Label.of(translation.noticeOfDeparture().modalTimeTitle(), TextInput
                 .create("notice_of_departure_general_time", TextInputStyle.SHORT).setRequired(true)
                 .setRequiredRange(10, 10)
                 .setPlaceholder(translation.noticeOfDeparture().modalTimePlaceHolder().replace(
-                        "%formatter%", config.settings().noticeOfDeparture().dateFormatting()))
+                        "%formatter%", dateFormat).replace("%example%", exampleDate))
+                .build());
+
+        Label startDate = Label.of(translation.noticeOfDeparture().modalStartDateTitle(), TextInput
+                .create("notice_of_departure_general_start", TextInputStyle.SHORT).setRequired(false)
+                .setPlaceholder(translation.noticeOfDeparture().modalStartDatePlaceholder().replace(
+                        "%formatter%", dateFormat).replace("%example%", exampleDate))
                 .build());
 
         Label explanation = Label.of(translation.noticeOfDeparture().modalExplanationTitle(),
@@ -51,7 +63,7 @@ public class NoticeOfDepartureTemplateModals {
 
         return Modal
                 .create("notice_of_departure_general", translation.noticeOfDeparture().modalTitle())
-                .addComponents(time, explanation).build();
+                .addComponents(time, startDate, explanation).build();
     }
 
     public Modal reasonActionModal(ActionId actionId, String userId, String endTime) {
@@ -67,6 +79,22 @@ public class NoticeOfDepartureTemplateModals {
         return Modal
                 .create("notice_of_departure_reason_action_" + actionId + ":" + userId + ":"
                         + endTime, translation.noticeOfDeparture().modalReasonActionTitle())
+                .addComponents(reason).build();
+    }
+
+    public Modal reasonActionModal(ActionId actionId, String userId, String startTime, String endTime) {
+        Label reason = Label.of(translation.noticeOfDeparture().modalReasonActionReasonTitle(),
+                TextInput
+                        .create("notice_of_departure_reason_action_reason",
+                                TextInputStyle.PARAGRAPH)
+                        .setRequired(true).setRequiredRange(4, 2000)
+                        .setPlaceholder(
+                                translation.noticeOfDeparture().modalReasonActionPlaceholder())
+                        .build());
+
+        return Modal
+                .create("notice_of_departure_reason_action_" + actionId + ":" + userId + ":"
+                        + startTime + ":" + endTime, translation.noticeOfDeparture().modalReasonActionTitle())
                 .addComponents(reason).build();
     }
 }

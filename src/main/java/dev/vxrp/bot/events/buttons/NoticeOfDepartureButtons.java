@@ -49,10 +49,11 @@ public class NoticeOfDepartureButtons {
             String[] splitId = buttonId.split(":");
 
             String userId = splitId[1];
-            String endTime = splitId[2];
+            String startTime = splitId[2];
+            String endTime = splitId[3];
 
             event.replyModal(new NoticeOfDepartureTemplateModals(config, translation)
-                    .reasonActionModal(ActionId.ACCEPTING, userId, endTime)).queue();
+                    .reasonActionModal(ActionId.ACCEPTING, userId, startTime, endTime)).queue();
         }
 
         if (buttonId.startsWith("notice_of_departure_decision_dismiss")) {
@@ -61,7 +62,7 @@ public class NoticeOfDepartureButtons {
             String[] splitId = buttonId.split(":");
 
             String userId = splitId[1];
-            String endTime = splitId[2];
+            String endTime = splitId[3];
 
             event.replyModal(new NoticeOfDepartureTemplateModals(config, translation)
                     .reasonActionModal(ActionId.DISMISSING, userId, endTime)).queue();

@@ -47,11 +47,15 @@ public class NoticeOfDepartureMessageHandler {
     }
 
     public void sendTemplate(TextChannel channel) {
+        String dateFormat = config.settings().noticeOfDeparture().dateFormatting();
+        String exampleDate = LocalDate.now().plusMonths(1).format(DateTimeFormatter.ofPattern(dateFormat));
+
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle(new ColorTool().parse(translation.noticeOfDeparture().embedTemplateTitle()));
         builder.setDescription(new ColorTool().parse(
                 translation.noticeOfDeparture().embedTemplateBody()
-                        .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting())));
+                        .replace("%formatter%", dateFormat)
+                        .replace("%example%", exampleDate)));
 
         channel.sendMessageEmbeds(builder.build()).setComponents(ActionRow.of(
                 Button.success("notice_of_departure_file", translation.buttons().textNoticeOfDepartureFile())
@@ -59,14 +63,14 @@ public class NoticeOfDepartureMessageHandler {
                 .queue();
     }
 
-    public void sendDecisionMessage(String userId, String date, String reason) {
+    public void sendDecisionMessage(String userId, String date, String reason, String startDate) {
         DateTimeFormatter formatter = DateTimeFormatter
                 .ofPattern(config.settings().noticeOfDeparture().dateFormatting());
-        LocalDate currentDate = LocalDate.now();
+        LocalDate beginDate = LocalDate.parse(startDate, formatter);
         LocalDate endDate = LocalDate.parse(date, formatter);
 
         String discordCurrentDate = TimeFormat.DATE_LONG
-                .atInstant(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
+                .atInstant(beginDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
         String discordEndDate = TimeFormat.DATE_LONG.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
                 .toString();
         String relativeTime = TimeFormat.RELATIVE.atInstant(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
@@ -90,10 +94,10 @@ public class NoticeOfDepartureMessageHandler {
         TextChannel channel = api.getTextChannelById(config.settings().noticeOfDeparture().decisionChannel());
         if (channel != null) {
             channel.sendMessageEmbeds(builder.build()).setComponents(ActionRow.of(
-                    Button.success("notice_of_departure_decision_accept:" + userId + ":" + endDate.format(formatter),
+                    Button.success("notice_of_departure_decision_accept:" + userId + ":" + startDate + ":" + endDate.format(formatter),
                             translation.buttons().textNoticeOfDepartureAccept()).withEmoji(
                                     Emoji.fromFormatted("\uD83D\uDCD8")),
-                    Button.danger("notice_of_departure_decision_dismiss:" + userId + ":" + endDate.format(formatter),
+                    Button.danger("notice_of_departure_decision_dismiss:" + userId + ":" + startDate + ":" + endDate.format(formatter),
                             translation.buttons().textNoticeOfDepartureDismissed()).withEmoji(
                                     Emoji.fromFormatted("\uFAF7"))))
                     .queue();
@@ -102,10 +106,10 @@ public class NoticeOfDepartureMessageHandler {
         }
     }
 
-    public void sendAcceptedMessage(String reason, String userId, String date) {
+    public void sendAcceptedMessage(String reason, String userId, String date, String startDate) {
         DateTimeFormatter formatter = DateTimeFormatter
                 .ofPattern(config.settings().noticeOfDeparture().dateFormatting());
-        LocalDate currentDate = LocalDate.now();
+        LocalDate currentDate = LocalDate.parse(startDate, formatter);
         LocalDate endDate = LocalDate.parse(date, formatter);
 
         String discordCurrentDate = TimeFormat.DATE_LONG
@@ -141,10 +145,10 @@ public class NoticeOfDepartureMessageHandler {
         privateChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
-    public void sendNoticeMessage(String reason, String handlerId, String userId, String date) {
+    public void sendNoticeMessage(String reason, String handlerId, String userId, String date, String startDate) {
         DateTimeFormatter formatter = DateTimeFormatter
                 .ofPattern(config.settings().noticeOfDeparture().dateFormatting());
-        LocalDate currentDate = LocalDate.now();
+        LocalDate currentDate = LocalDate.parse(startDate, formatter);
         LocalDate endDate = LocalDate.parse(date, formatter);
 
         String discordCurrentDate = TimeFormat.DATE_LONG
@@ -182,7 +186,7 @@ public class NoticeOfDepartureMessageHandler {
                 .complete();
 
         new NoticeOfDepartureTable().addToDatabase(userId, true, handlerId, channel.getId(), message.getId(),
-                currentDate.format(formatter), endDate.format(formatter));
+                startDate, endDate.format(formatter));
     }
 
     public void sendRevokedMessage(String reason, String userId, String beginDate, String endDate) {

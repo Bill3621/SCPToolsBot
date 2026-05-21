@@ -38,8 +38,8 @@ public class NoticeOfDepartureManager {
         this.translation = translation;
     }
 
-    public void createNotice(String reason, String handler, String userId, String date) {
-        new NoticeOfDepartureMessageHandler(api, config, translation).sendNoticeMessage(reason, handler, userId, date);
+    public void createNotice(String reason, String handler, String userId, String date, String startDate) {
+        new NoticeOfDepartureMessageHandler(api, config, translation).sendNoticeMessage(reason, handler, userId, date, startDate);
     }
 
     public void revokeNotice(String reason, String userId, String date) {

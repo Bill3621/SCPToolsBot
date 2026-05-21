@@ -654,16 +654,17 @@ NOTICE_OF_DEPARTURE:
                         &filler&
                         **Needed Information**\n
                         This information will be needed for your notice of departure.\n
-                        - The date you wish to come back. Please follow this format when entering or it will not be accepted: **%formatter%**\n
-                        
-                        - A short explanation on why you need some time off. Don't go into too much detail, just enough for it to make sense.\n
+                         - The date you wish to come back. Please follow this format when entering or it will not be accepted: **%formatter%** (e.g. **%example%**)\n
+                         - The date your leave starts (optional, leave empty for today). Same format: **%formatter%** (e.g. **%example%**)\n
+                         
+                         - A short explanation on why you need some time off. Don't go into too much detail, just enough for it to make sense.\n
                         
                         _All requests can be denied and revoked by higher staff. This form is not legally binding off time but just an agreement between team members._
                         "
 
   MODAL_TITLE: "File Notice of Departure"
   MODAL_TIME_TITLE: "Away time?"
-  MODAL_TIME_PLACEHOLDER: "How long will you be away [%formatter%]"
+  MODAL_TIME_PLACEHOLDER: "How long will you be away [%formatter%, e.g. %example%]"
   MODAL_EXPLANATION_TITLE: "Explanation"
   MODAL_EXPLANATION_PLACEHOLDER: "Why are you going to be away [exclude details]"
 
@@ -671,7 +672,16 @@ NOTICE_OF_DEPARTURE:
   EMBED_ENTER_VALID_DATE_BODY: "You need to enter a valid date format to proceed. The accepted format is: **%formatter%**"
 
   EMBED_ENTER_FUTURE_DATE_TITLE: "Enter a future date"
-  EMBED_ENTER_FUTURE_DATE_BODY: "You need to enter a date in the future to proceed."
+  EMBED_ENTER_FUTURE_DATE_BODY: "You need to enter a date in the future to proceed. Make sure you used the correct format: **%formatter%**"
+
+  MODAL_START_DATE_TITLE: "Start date?"
+  MODAL_START_DATE_PLACEHOLDER: "When does your leave start [%formatter%, e.g. %example%] (leave empty for today)"
+  EMBED_START_DATE_INVALID_TITLE: "Enter a valid start date format"
+  EMBED_START_DATE_INVALID_BODY: "You need to enter a valid date format for the start date. The accepted format is: **%formatter%**"
+  EMBED_START_DATE_PAST_TITLE: "Start date must be today or in the future"
+  EMBED_START_DATE_PAST_BODY: "The start date must be today or in the future. Make sure you used the correct format: **%formatter%**"
+  EMBED_START_DATE_AFTER_END_TITLE: "Start date must be before end date"
+  EMBED_START_DATE_AFTER_END_BODY: "The start date you entered is after or the same as the end date."
 
 
   EMBED_DECISION_TITLE: "Notice of departure by %user% - #%number%"
