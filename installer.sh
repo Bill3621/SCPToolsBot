@@ -222,7 +222,7 @@ function secret() {
     botSecret=$secretResponse
   else
     echo "Secrets don't match, please try entering it again"
-    token
+    secret
   fi
 }
 secret
@@ -238,7 +238,7 @@ function guild() {
     botGuildId=$guildResponse
   else
     echo "Id's don't match, please try entering it again"
-    token
+    guild
   fi
 }
 guild
@@ -339,7 +339,7 @@ function cedmod() {
   echo ""
   echo "Enter in the url of your CedMod instance, including 'https'!"
   read -rp ":: Enter Url: " url
-  cedmodInstanceÚrl=$url
+  cedmodInstanceUrl=$url
 
   # Api Key Configuration
   echo ""
