@@ -23,7 +23,7 @@
 # Installation Values
 export filename="NULL"
 export installType=""
-export repo="https://github.com/Vxrpenter/SCPToolsBot"
+export repo="https://github.com/Bill3621/SCPToolsBot"
 export version="1.1.4"
 export configPath=""
 
@@ -55,7 +55,7 @@ echo "
   \/\_____\  \ \_____\  \ \_\         \ \_\  \ \_____\  \ \_____\  \ \_____\  \/\_____\\
    \/_____/   \/_____/   \/_/          \/_/   \/_____/   \/_____/   \/_____/   \/_____/
 
-Copyright (c) 2024 Vxrpenter
+Copyright (c) 2024 Vxrpenter (fork: Bill3621)
 "
 
 
@@ -108,82 +108,8 @@ function jarInstall() {
   configPath=$(pwd)
 }
 
-function dockerInstall() {
-  echo ""
-  read -rp ":: Please enter the config bind path? Default [/var/lib/ScpTools/]: " response
-  case $response in
-    "" )
-      echo "Using default config bind path: /var/lib/ScpTools/"
-      configPath="/var/lib/ScpTools/"
-    ;;
-    * )
-      echo "Using config bind path: $response"
-      configPath=$response
-  esac
-
-  echo ""
-  echo "Cloning repository branch $version"
-  git clone --depth 1 --branch $version $repo > /dev/null 2>&1
-  cd SCPToolsBot/ || exit > /dev/null 2>&1
-
-  echo ""
-  echo "Setting config bind path in .env file"
-  env="CONFIG_PATH = ${configPath}"
-  echo "$env" > ".env"
-
-  systemctl start docker > /dev/null 2>&1
-
-  sudo docker compose up > /dev/null 2>&1 & pid=$!
-
-  # This spinner code has been mostly taken from stackoverflow - https://stackoverflow.com/a/12498305
-  spin[0]="⠁"
-  spin[1]="⠂"
-  spin[2]="⠄"
-  spin[3]="⡀"
-  spin[4]="⢀"
-  spin[5]="⠠"
-  spin[6]="⠐"
-  spin[7]="⠈"
-
-  echo ""
-  echo -en "Running docker compose up, this can take a few minutes, don't stop your machine: ${spin[0]}"
-
-  tput civis
-  while kill -0 $pid 2> /dev/null; do
-      for i in "${spin[@]}"; do
-          echo -ne "\b$i"
-
-
-          sleep 0.1
-      done
-  done
-  tput cnorm
-
-  echo "Concluded compose, shutting down..."
-  sudo docker compose down > /dev/null 2>&1
-}
-
 function chooseInstall() {
-  echo ""
-  echo "What install do you want to pursue?"
-  PS3=":: Choose install method: "
-  select installOption in Jar Docker
-  do
-    installType=$installOption
-    break
-  done
-
-  case $installType in
-    Jar )
-      jarInstall
-    ;;
-    Docker )
-      dockerInstall
-    ;;
-    * )
-      echo "This is no install method, please repeat..."
-      chooseInstall
-  esac
+  jarInstall
 }
 
 echo "Do you want to proceed with the installation?"
@@ -379,7 +305,7 @@ config="#                                                           ______     _
 #                                                          \ \___  \  \ \ \____  \ \  _-/    \/_/\ \/ \ \ \/\ \  \ \ \/\ \  \ \ \____  \ \___  \\
 #                                                           \/\_____\  \ \_____\  \ \_\         \ \_\  \ \_____\  \ \_____\  \ \_____\  \/\_____\\
 #                                                            \/_____/   \/_____/   \/_/          \/_/   \/_____/   \/_____/   \/_____/   \/_____/
-#Copyright (c) 2024 Vxrpenter
+#Copyright (c) 2024 Vxrpenter (fork: Bill3621)
 
 # The token of your bot application, create one here https://discord.com/developers/
 token: \"$botToken\"
