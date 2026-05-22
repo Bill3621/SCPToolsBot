@@ -69,7 +69,6 @@ types: [
       # ** WIP ** This feature has not been implemented yet, and it's implication is not certain for 100%
       # Should the status bar be displayed
       use_status_bar: true,
-      # ** WIP ** This feature has not been implemented yet
       # Should the ticket be locked when first created, needing a staff member to unlock it
       lock_on_default: false
     }
@@ -93,7 +92,6 @@ types: [
       # ** WIP ** This feature has not been implemented yet, and it's implication is not certain for 100%
       # Should the status bar be displayed
       use_status_bar: true,
-      # ** WIP ** This feature has not been implemented yet
       # Should the ticket be locked when first created, needing a staff member to unlock it
       lock_on_default: false
     }
@@ -117,7 +115,6 @@ types: [
       # ** WIP ** This feature has not been implemented yet, and it's implication is not certain for 100%
       # Should the status bar be displayed
       use_status_bar: true,
-      # ** WIP ** This feature has not been implemented yet
       # Should the ticket be locked when first created, needing a staff member to unlock it
       lock_on_default: false
     }
@@ -141,7 +138,6 @@ types: [
       # ** WIP ** This feature has not been implemented yet, and it's implication is not certain for 100%
       # Should the status bar be displayed
       use_status_bar: true,
-      # ** WIP ** This feature has not been implemented yet
       # Should the ticket be locked when first created, needing a staff member to unlock it
       lock_on_default: false
     }
@@ -165,7 +161,6 @@ types: [
       # ** WIP ** This feature has not been implemented yet, and it's implication is not certain for 100%
       # Should the status bar be displayed
       use_status_bar: true,
-      # ** WIP ** This feature has not been implemented yet
       # Should the ticket be locked when first created, needing a staff member to unlock it
       lock_on_default: false
     }
@@ -189,7 +184,6 @@ types: [
       # ** WIP ** This feature has not been implemented yet, and it's implication is not certain for 100%
       # Should the status bar be displayed
       use_status_bar: true,
-      # ** WIP ** This feature has not been implemented yet
       # Should the ticket be locked when first created, needing a staff member to unlock it
       lock_on_default: false
     }

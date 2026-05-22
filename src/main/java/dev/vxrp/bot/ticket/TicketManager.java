@@ -69,6 +69,12 @@ public class TicketManager {
             return null;
         }
 
+        TicketStatus effectiveStatus = settings.childRules().lockOnDefault() ? TicketStatus.PAUSED : ticketStatus;
+
+        if (settings.childRules().lockOnDefault()) {
+            child.getManager().setLocked(true).complete();
+        }
+
         if (!"anonymous".equals(ticketCreator)) {
             User creatorUser = api.retrieveUserById(ticketCreator).complete();
             child.sendMessage(creatorUser.getAsMention()).complete().delete().queue();
@@ -82,15 +88,15 @@ public class TicketManager {
             child.sendMessage(role.getAsMention()).complete().delete().queue();
         }
 
-        String logMessage = new TicketLogHandler(api, config, translation).logMessage(ticketCreator, ticketHandler, child.getId(), ticketStatus, child);
+        String logMessage = new TicketLogHandler(api, config, translation).logMessage(ticketCreator, ticketHandler, child.getId(), effectiveStatus, child);
         if (logMessage == null) {
             logger.error("Could not carry out log message correctly");
             return null;
         }
 
         var message = new TicketMessageHandler(api, config, translation).sendMessage(ticketType, child, ticketCreator, modalId, modalValue);
-        new TicketTable().addToDatabase(child.getId(), ticketType, ticketStatus, LocalDate.now().toString(), ticketCreator, ticketHandler, logMessage, message.getId(), "CURRENTLY NOT IMPLEMENTED");
-        logger.info("Created ticket: {} of type: {} by user: {} with current status {}", child.getId(), ticketType, ticketCreator, ticketStatus);
+        new TicketTable().addToDatabase(child.getId(), ticketType, effectiveStatus, LocalDate.now().toString(), ticketCreator, ticketHandler, logMessage, message.getId(), "CURRENTLY NOT IMPLEMENTED");
+        logger.info("Created ticket: {} of type: {} by user: {} with current status {}", child.getId(), ticketType, ticketCreator, effectiveStatus);
         return child;
     }
 
