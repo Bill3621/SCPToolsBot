@@ -23,9 +23,14 @@ import java.util.List;
 public record ConfigNoticeOfDeparture(
     boolean active,
     @JsonProperty("date_formatting") String dateFormatting,
-    @JsonProperty("decision_channel_id") String decisionChannel,
     @JsonProperty("notice_channel_id") String noticeChannel,
+    @JsonProperty("nickname_prefix") String nicknamePrefix,
     @JsonProperty("roles_access_notices") List<String> rolesAccess,
     @JsonProperty("check_type") String checkUnit,
     @JsonProperty("check_rate") int checkRate
-) {}
+) {
+    public ConfigNoticeOfDeparture {
+        if (nicknamePrefix == null || nicknamePrefix.isBlank()) nicknamePrefix = "[LoA] ";
+        if (nicknamePrefix.length() > 31) nicknamePrefix = nicknamePrefix.substring(0, 31);
+    }
+}

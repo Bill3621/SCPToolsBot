@@ -17,7 +17,5 @@
 package dev.vxrp.bot.noticeofdeparture.enums;
 
 public enum ActionId {
-    ACCEPTING,
-    DISMISSING,
     REVOKING
 }

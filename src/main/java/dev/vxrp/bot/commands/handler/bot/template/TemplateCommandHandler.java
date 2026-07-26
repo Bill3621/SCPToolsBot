@@ -19,6 +19,7 @@ import dev.vxrp.bot.commands.handler.bot.template.templates.NoticeOfDepartureTem
 import dev.vxrp.bot.commands.handler.bot.template.templates.RegularsTemplate;
 import dev.vxrp.bot.commands.handler.bot.template.templates.SupportTemplate;
 import dev.vxrp.bot.commands.handler.bot.template.templates.VerifyTemplate;
+import dev.vxrp.bot.noticeofdeparture.handler.NoticeOfDepartureMessageHandler;
 import dev.vxrp.bot.permissions.PermissionManager;
 import dev.vxrp.bot.permissions.enums.StatusMessageType;
 import dev.vxrp.configuration.data.Config;
@@ -65,7 +66,7 @@ public class TemplateCommandHandler {
                     config.settings().noticeOfDeparture().active()
             );
             if (embed != null) {
-                event.replyEmbeds(embed).setEphemeral(true).queue();
+                event.reply(NoticeOfDepartureMessageHandler.error(embed)).setEphemeral(true).queue();
             } else {
                 new NoticeOfDepartureTemplate(config, translation).pasteTemplate(event);
             }

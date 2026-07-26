@@ -18,7 +18,6 @@ package dev.vxrp.bot.commands.handler.bot.template.templates;
 import dev.vxrp.bot.noticeofdeparture.handler.NoticeOfDepartureMessageHandler;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
-import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 public class NoticeOfDepartureTemplate {
@@ -33,6 +32,6 @@ public class NoticeOfDepartureTemplate {
     public void pasteTemplate(SlashCommandInteractionEvent event) {
         new NoticeOfDepartureMessageHandler(event.getJDA(), config, translation).sendTemplate(event.getChannel().asTextChannel());
 
-        event.reply(new ColorTool().parse("%filler<1>%")).queue(hook -> hook.deleteOriginal().queue());
+        event.reply("Template sent.").setEphemeral(true).queue(hook -> hook.deleteOriginal().queue());
     }
 }

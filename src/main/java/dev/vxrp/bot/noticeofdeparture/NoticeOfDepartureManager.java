@@ -26,11 +26,16 @@ import dev.vxrp.util.coroutines.Timer;
 import dev.vxrp.util.duration.DurationParser;
 import dev.vxrp.util.duration.enums.DurationType;
 import net.dv8tion.jda.api.JDA;
+import org.slf4j.LoggerFactory;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class NoticeOfDepartureManager {
     private final JDA api;
     private final Config config;
     private final Translation translation;
+    private final org.slf4j.Logger logger = LoggerFactory.getLogger(NoticeOfDepartureManager.class);
 
     public NoticeOfDepartureManager(JDA api, Config config, Translation translation) {
         this.api = api;
@@ -40,11 +45,14 @@ public class NoticeOfDepartureManager {
 
     public void createNotice(String reason, String handler, String userId, String date, String startDate) {
         new NoticeOfDepartureMessageHandler(api, config, translation).sendNoticeMessage(reason, handler, userId, date, startDate);
+        var formatter = DateTimeFormatter.ofPattern(config.settings().noticeOfDeparture().dateFormatting());
+        if (!LocalDate.parse(startDate, formatter).isAfter(LocalDate.now())) updateNickname(userId, true);
     }
 
     public void revokeNotice(String reason, String userId, String date) {
         NoticeOfDepartureTable table = new NoticeOfDepartureTable();
         new NoticeOfDepartureMessageHandler(api, config, translation).sendRevokedMessage(reason, userId, table.retrieveBeginDate(userId), date);
+        updateNickname(userId, false);
 
         String channelId = table.retrieveChannel(userId);
         if (channelId != null) {
@@ -59,7 +67,7 @@ public class NoticeOfDepartureManager {
     }
 
     public void spinUpChecker() {
-        if (!config.settings().noticeOfDeparture().active() || new NoticeOfDepartureTable().retrieveSerial() == 0L) return;
+        if (!config.settings().noticeOfDeparture().active()) return;
 
         new Timer().runWithTimer(
                 new DurationParser().parse(
@@ -68,5 +76,29 @@ public class NoticeOfDepartureManager {
                 ExecutorScopes.noticeOfDepartureScope,
                 () -> new NoticeOfDepartureCheckerHandler(api, config, translation).checkerTask()
         );
+    }
+
+    public void updateNickname(String userId, boolean away) {
+        var guild = api.getGuildById(config.settings().guildId());
+        if (guild == null) {
+            logger.warn("Could not update notice of departure nickname because the configured guild was not found");
+            return;
+        }
+
+        guild.retrieveMemberById(userId).queue(member -> {
+            String prefix = config.settings().noticeOfDeparture().nicknamePrefix();
+            String name = member.getEffectiveName();
+            String nickname = name;
+            if (away && !name.startsWith(prefix)) {
+                nickname = prefix + name;
+            } else if (!away && name.startsWith(prefix)) {
+                nickname = name.substring(prefix.length());
+            }
+            if (nickname.length() > 32) nickname = nickname.substring(0, 32);
+            if (!nickname.equals(name)) {
+                guild.modifyNickname(member, nickname).queue(null,
+                        error -> logger.warn("Could not update notice of departure nickname for {}", userId, error));
+            }
+        }, error -> logger.warn("Could not retrieve member {} to update their notice of departure nickname", userId, error));
     }
 }

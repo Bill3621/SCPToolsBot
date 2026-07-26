@@ -16,6 +16,7 @@
 package dev.vxrp.bot.events;
 
 import dev.vxrp.bot.events.buttons.*;
+import dev.vxrp.bot.noticeofdeparture.handler.NoticeOfDepartureMessageHandler;
 import dev.vxrp.bot.permissions.PermissionManager;
 import dev.vxrp.bot.permissions.enums.StatusMessageType;
 import dev.vxrp.configuration.data.Config;
@@ -86,7 +87,7 @@ public class ButtonListener extends ListenerAdapter {
                     StatusMessageType.PANEL,
                     config.settings().noticeOfDeparture().active());
             if (embed != null) {
-                event.replyEmbeds(embed).setEphemeral(true).queue();
+                event.reply(NoticeOfDepartureMessageHandler.error(embed)).setEphemeral(true).queue();
             } else {
                 new NoticeOfDepartureButtons(event, config, translation).init();
             }

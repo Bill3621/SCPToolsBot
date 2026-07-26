@@ -18,6 +18,7 @@ package dev.vxrp.bot.events;
 import dev.vxrp.bot.events.modals.ApplicationModals;
 import dev.vxrp.bot.events.modals.NoticeOfDepartureModals;
 import dev.vxrp.bot.events.modals.TicketModals;
+import dev.vxrp.bot.noticeofdeparture.handler.NoticeOfDepartureMessageHandler;
 import dev.vxrp.bot.permissions.PermissionManager;
 import dev.vxrp.bot.permissions.enums.StatusMessageType;
 import dev.vxrp.configuration.data.Config;
@@ -74,7 +75,7 @@ public class ModalListener extends ListenerAdapter {
                     config.settings().noticeOfDeparture().active()
             );
             if (embed != null) {
-                event.replyEmbeds(embed).setEphemeral(true).queue();
+                event.reply(NoticeOfDepartureMessageHandler.error(embed)).setEphemeral(true).queue();
             } else {
                 new NoticeOfDepartureModals(event, config, translation).init();
             }

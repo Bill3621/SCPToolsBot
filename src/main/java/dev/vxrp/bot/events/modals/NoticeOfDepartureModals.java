@@ -19,8 +19,8 @@ import dev.vxrp.bot.noticeofdeparture.NoticeOfDepartureManager;
 import dev.vxrp.bot.noticeofdeparture.handler.NoticeOfDepartureMessageHandler;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
+import dev.vxrp.database.tables.database.NoticeOfDepartureTable;
 import dev.vxrp.util.color.ColorTool;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 
 import java.time.LocalDate;
@@ -51,25 +51,19 @@ public class NoticeOfDepartureModals {
             try {
                 parsedDate = LocalDate.parse(date, formatter);
             } catch (DateTimeParseException e) {
-                var embed = new EmbedBuilder()
-                        .setColor(0xE74D3C)
-                        .setTitle(new ColorTool().parse(translation.noticeOfDeparture().embedEnterValidDateTitle()))
-                        .setDescription(new ColorTool().parse(translation.noticeOfDeparture().embedEnterValidDateBody()
-                                .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting())))
-                        .build();
-                event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
+                reply(translation.noticeOfDeparture().embedEnterValidDateTitle(),
+                        translation.noticeOfDeparture().embedEnterValidDateBody()
+                                .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting()),
+                        0xE74D3C);
                 return;
             }
 
             var today = LocalDate.now();
             if (parsedDate.isBefore(today) || parsedDate.isEqual(today)) {
-                var embed = new EmbedBuilder()
-                        .setColor(0xE74D3C)
-                        .setTitle(new ColorTool().parse(translation.noticeOfDeparture().embedEnterFutureDateTitle()))
-                        .setDescription(new ColorTool().parse(translation.noticeOfDeparture().embedEnterFutureDateBody()
-                                .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting())))
-                        .build();
-                event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
+                reply(translation.noticeOfDeparture().embedEnterFutureDateTitle(),
+                        translation.noticeOfDeparture().embedEnterFutureDateBody()
+                                .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting()),
+                        0xE74D3C);
                 return;
             }
 
@@ -78,34 +72,24 @@ public class NoticeOfDepartureModals {
                 try {
                     parsedStartDate = LocalDate.parse(startDateStr, formatter);
                 } catch (DateTimeParseException e) {
-                    var embed = new EmbedBuilder()
-                            .setColor(0xE74D3C)
-                            .setTitle(new ColorTool().parse(translation.noticeOfDeparture().embedStartDateInvalidTitle()))
-                            .setDescription(new ColorTool().parse(translation.noticeOfDeparture().embedStartDateInvalidBody()
-                                    .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting())))
-                            .build();
-                    event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
+                    reply(translation.noticeOfDeparture().embedStartDateInvalidTitle(),
+                            translation.noticeOfDeparture().embedStartDateInvalidBody()
+                                    .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting()),
+                            0xE74D3C);
                     return;
                 }
 
                 if (parsedStartDate.isBefore(today)) {
-                    var embed = new EmbedBuilder()
-                            .setColor(0xE74D3C)
-                            .setTitle(new ColorTool().parse(translation.noticeOfDeparture().embedStartDatePastTitle()))
-                            .setDescription(new ColorTool().parse(translation.noticeOfDeparture().embedStartDatePastBody()
-                                    .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting())))
-                            .build();
-                    event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
+                    reply(translation.noticeOfDeparture().embedStartDatePastTitle(),
+                            translation.noticeOfDeparture().embedStartDatePastBody()
+                                    .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting()),
+                            0xE74D3C);
                     return;
                 }
 
                 if (!parsedStartDate.isBefore(parsedDate)) {
-                    var embed = new EmbedBuilder()
-                            .setColor(0xE74D3C)
-                            .setTitle(new ColorTool().parse(translation.noticeOfDeparture().embedStartDateAfterEndTitle()))
-                            .setDescription(new ColorTool().parse(translation.noticeOfDeparture().embedStartDateAfterEndBody()))
-                            .build();
-                    event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
+                    reply(translation.noticeOfDeparture().embedStartDateAfterEndTitle(),
+                            translation.noticeOfDeparture().embedStartDateAfterEndBody(), 0xE74D3C);
                     return;
                 }
             } else {
@@ -113,51 +97,17 @@ public class NoticeOfDepartureModals {
             }
 
             String startDateFormatted = parsedStartDate.format(formatter);
-            new NoticeOfDepartureMessageHandler(event.getJDA(), config, translation).sendDecisionMessage(event.getUser().getId(), date, reason, startDateFormatted);
+            if (new NoticeOfDepartureTable().exists(event.getUser().getId())) {
+                reply("Notice of Departure Already Filed",
+                        "You already have an active notice of departure.", 0xE74D3C);
+                return;
+            }
 
-            var embed = new EmbedBuilder()
-                    .setColor(0x2ECC70)
-                    .setTitle(new ColorTool().parse(translation.noticeOfDeparture().embedDecisionSentTitle()))
-                    .setDescription(new ColorTool().parse(translation.noticeOfDeparture().embedDecisionSentBody()))
-                    .build();
-            event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
-        }
+            new NoticeOfDepartureManager(event.getJDA(), config, translation)
+                    .createNotice(reason, event.getUser().getId(), event.getUser().getId(), date, startDateFormatted);
 
-        if (event.getModalId().startsWith("notice_of_departure_reason_action_ACCEPTING")) {
-            String[] splitId = event.getModalId().split(":");
-
-            String reason = event.getValues().get(0).getAsString();
-            String userId = splitId[1];
-            String startDate = splitId[2];
-            String date = splitId[3];
-
-            new NoticeOfDepartureMessageHandler(event.getJDA(), config, translation).sendAcceptedMessage(reason, userId, date, startDate);
-            new NoticeOfDepartureManager(event.getJDA(), config, translation).createNotice(reason, event.getUser().getId(), userId, date, startDate);
-
-            var embed = new EmbedBuilder()
-                    .setColor(0x2ECC70)
-                    .setTitle(new ColorTool().parse(translation.noticeOfDeparture().embedAcceptationSentTitle()))
-                    .setDescription(new ColorTool().parse(translation.noticeOfDeparture().embedAcceptationSentBody()))
-                    .build();
-            event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
-            if (event.getMessage() != null) event.getMessage().delete().queue();
-        }
-
-        if (event.getModalId().startsWith("notice_of_departure_reason_action_DISMISSING")) {
-            String[] splitId = event.getModalId().split(":");
-
-            String reason = event.getValues().get(0).getAsString();
-            String userId = splitId[1];
-
-            new NoticeOfDepartureMessageHandler(event.getJDA(), config, translation).sendDismissedMessage(reason, userId);
-
-            var embed = new EmbedBuilder()
-                    .setColor(0x2ECC70)
-                    .setTitle(new ColorTool().parse(translation.noticeOfDeparture().embedDismissingSentTitle()))
-                    .setDescription(new ColorTool().parse(translation.noticeOfDeparture().embedDismissingSentBody()))
-                    .build();
-            event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
-            if (event.getMessage() != null) event.getMessage().delete().queue();
+            reply(translation.noticeOfDeparture().embedDecisionSentTitle(),
+                    translation.noticeOfDeparture().embedDecisionSentBody(), 0x2ECC70);
         }
 
         if (event.getModalId().startsWith("notice_of_departure_reason_action_REVOKING")) {
@@ -169,12 +119,13 @@ public class NoticeOfDepartureModals {
 
             new NoticeOfDepartureManager(event.getJDA(), config, translation).revokeNotice(reason, userId, date);
 
-            var embed = new EmbedBuilder()
-                    .setColor(0x2ECC70)
-                    .setTitle(new ColorTool().parse(translation.noticeOfDeparture().embedRevokationSentTitle()))
-                    .setDescription(new ColorTool().parse(translation.noticeOfDeparture().embedRevokationSentBody()))
-                    .build();
-            event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
+            reply(translation.noticeOfDeparture().embedRevokationSentTitle(),
+                    translation.noticeOfDeparture().embedRevokationSentBody(), 0x2ECC70);
         }
+    }
+
+    private void reply(String title, String body, int color) {
+        event.getHook().sendMessage(NoticeOfDepartureMessageHandler.feedback(
+                new ColorTool().parse(title), new ColorTool().parse(body), color == 0x2ECC70)).setEphemeral(true).queue();
     }
 }

@@ -17,11 +17,11 @@ package dev.vxrp.bot.commands.handler.bot.noticeofdeparture;
 
 import dev.vxrp.bot.modals.NoticeOfDepartureTemplateModals;
 import dev.vxrp.bot.noticeofdeparture.enums.ActionId;
+import dev.vxrp.bot.noticeofdeparture.handler.NoticeOfDepartureMessageHandler;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.database.tables.database.NoticeOfDepartureTable;
 import dev.vxrp.util.color.ColorTool;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
@@ -43,16 +43,17 @@ public class NoticeOfDepartureCommand {
         String currentDate = new NoticeOfDepartureTable().retrieveBeginDate(user.getId());
         String endDate = new NoticeOfDepartureTable().retrieveEndDate(user.getId());
 
-        var embed = new EmbedBuilder()
-                .setTitle(new ColorTool().parse(translation.noticeOfDeparture()
-                        .embedNoticeViewTitle().replace("%user%", user.getName())))
-                .setDescription(new ColorTool().parse(translation.noticeOfDeparture()
-                        .embedNoticeViewBody().replace("%user%", "<@" + handler + ">")
-                        .replace("%current_date%", currentDate != null ? currentDate : "Unknown")
-                        .replace("%end_date%", endDate != null ? endDate : "Unknown")))
-                .build();
-
-        event.replyEmbeds(embed).setEphemeral(true).queue();
+        String title = new ColorTool().parse(translation.noticeOfDeparture()
+                .embedNoticeViewTitle().replace("%user%", user.getName()));
+        String filedBy = new ColorTool().parse(translation.noticeOfDeparture().textNoticeViewFiledBy()
+                .replace("%user%", "<@" + handler + ">"));
+        event.reply(NoticeOfDepartureMessageHandler.noticeDetails(
+                title,
+                filedBy,
+                currentDate != null ? currentDate : "Unknown",
+                endDate != null ? endDate : "Unknown",
+                new ColorTool().parse(translation.noticeOfDeparture().textNoticeViewReason())))
+                .setEphemeral(true).queue();
     }
 
     public void revoke(SlashCommandInteractionEvent event) {
@@ -67,13 +68,10 @@ public class NoticeOfDepartureCommand {
 
     private boolean checkExistence(SlashCommandInteractionEvent event, User user) {
         if (user.isBot() || !new NoticeOfDepartureTable().exists(user.getId())) {
-            var embed = new EmbedBuilder().setColor(0xE74D3C)
-                    .setTitle(new ColorTool().parse(translation.permissions().embedNotFoundTitle()))
-                    .setDescription(
-                            new ColorTool().parse(translation.permissions().embedNotFoundBody()))
-                    .build();
-
-            event.replyEmbeds(embed).setEphemeral(true).queue();
+            event.reply(NoticeOfDepartureMessageHandler.feedback(
+                    new ColorTool().parse(translation.permissions().embedNotFoundTitle()),
+                    new ColorTool().parse(translation.permissions().embedNotFoundBody()), false))
+                    .setEphemeral(true).queue();
             return false;
         }
         return true;

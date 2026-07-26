@@ -15,6 +15,7 @@
 
 package dev.vxrp.bot.noticeofdeparture.handler;
 
+import dev.vxrp.bot.noticeofdeparture.NoticeOfDepartureManager;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.database.tables.database.NoticeOfDepartureTable;
@@ -44,20 +45,26 @@ public class NoticeOfDepartureCheckerHandler {
         int redundantNotices = 0;
 
         for (String id : idList) {
-            LocalDate currentDate = LocalDate.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(config.settings().noticeOfDeparture().dateFormatting());
-            NoticeOfDepartureTable table = new NoticeOfDepartureTable();
-            LocalDate beginDate = LocalDate.parse(table.retrieveBeginDate(id), formatter);
-            LocalDate endDate = LocalDate.parse(table.retrieveEndDate(id), formatter);
+            try {
+                LocalDate currentDate = LocalDate.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(config.settings().noticeOfDeparture().dateFormatting());
+                NoticeOfDepartureTable table = new NoticeOfDepartureTable();
+                LocalDate beginDate = LocalDate.parse(table.retrieveBeginDate(id), formatter);
+                LocalDate endDate = LocalDate.parse(table.retrieveEndDate(id), formatter);
+                NoticeOfDepartureManager manager = new NoticeOfDepartureManager(api, config, translation);
 
-            long daysUntil = currentDate.until(endDate).getDays();
-
-            if (daysUntil == 0 || daysUntil < 0) {
-                redundantNotices += 1;
-                logger.info("Found redundant notice of departure, ending notice and processing database data");
-                new NoticeOfDepartureMessageHandler(api, config, translation).sendEndedMessage(id, beginDate.format(formatter), endDate.format(formatter));
-                table.deleteEntry(id);
-                logger.info("Deleted notice of departure - {} successfully", id);
+                if (!endDate.isAfter(currentDate)) {
+                    redundantNotices += 1;
+                    logger.info("Found redundant notice of departure, ending notice and processing database data");
+                    manager.updateNickname(id, false);
+                    new NoticeOfDepartureMessageHandler(api, config, translation).sendEndedMessage(id, beginDate.format(formatter), endDate.format(formatter));
+                    table.deleteEntry(id);
+                    logger.info("Deleted notice of departure - {} successfully", id);
+                } else if (!beginDate.isAfter(currentDate)) {
+                    manager.updateNickname(id, true);
+                }
+            } catch (RuntimeException error) {
+                logger.error("Could not process notice of departure for {}", id, error);
             }
         }
 

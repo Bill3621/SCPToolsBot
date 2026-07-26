@@ -113,11 +113,11 @@ notice_of_departure:
   active: false
   # The formatting that is used to format the notice of departure dates
   date_formatting: "dd.MM.yyyy"
-  # Which channel should the form be sent to, to be accepted by moderators?
-  decision_channel_id: ""
   # Which channel should the notice messages be sent to?
   notice_channel_id: ""
-  # List of role's that are able to accept/dismiss/revoke notices (INPUT ID'S ONLY)
+  # Prefix added to a member's nickname while their notice is active
+  nickname_prefix: "[LoA] "
+  # List of roles that are able to revoke notices (INPUT ID'S ONLY)
   roles_access_notices: []
   # Put the following in the type: [NANOSECONDS, MICROSECONDS, MILLISECONDS, SECONDS, MINUTES, HOURS, DAYS]
   check_type: "HOURS"

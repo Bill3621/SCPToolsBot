@@ -17,6 +17,7 @@ package dev.vxrp.bot.events.buttons;
 
 import dev.vxrp.bot.modals.NoticeOfDepartureTemplateModals;
 import dev.vxrp.bot.noticeofdeparture.enums.ActionId;
+import dev.vxrp.bot.noticeofdeparture.handler.NoticeOfDepartureMessageHandler;
 import dev.vxrp.bot.permissions.PermissionManager;
 import dev.vxrp.bot.permissions.enums.PermissionType;
 import dev.vxrp.configuration.data.Config;
@@ -43,31 +44,6 @@ public class NoticeOfDepartureButtons {
             event.replyModal(new NoticeOfDepartureTemplateModals(config, translation).generalModal()).queue();
         }
 
-        if (buttonId.startsWith("notice_of_departure_decision_accept")) {
-            if (permissionCheck(PermissionType.NOTICE_OF_DEPARTURES))
-                return;
-            String[] splitId = buttonId.split(":");
-
-            String userId = splitId[1];
-            String startTime = splitId[2];
-            String endTime = splitId[3];
-
-            event.replyModal(new NoticeOfDepartureTemplateModals(config, translation)
-                    .reasonActionModal(ActionId.ACCEPTING, userId, startTime, endTime)).queue();
-        }
-
-        if (buttonId.startsWith("notice_of_departure_decision_dismiss")) {
-            if (permissionCheck(PermissionType.NOTICE_OF_DEPARTURES))
-                return;
-            String[] splitId = buttonId.split(":");
-
-            String userId = splitId[1];
-            String endTime = splitId[3];
-
-            event.replyModal(new NoticeOfDepartureTemplateModals(config, translation)
-                    .reasonActionModal(ActionId.DISMISSING, userId, endTime)).queue();
-        }
-
         if (buttonId.startsWith("notice_of_departure_revoke")) {
             if (permissionCheck(PermissionType.NOTICE_OF_DEPARTURES))
                 return;
@@ -85,7 +61,7 @@ public class NoticeOfDepartureButtons {
         var result = new PermissionManager(config, translation).determinePermissions(event.getUser(), permissionType,
                 null);
         if (result.getEmbed() != null) {
-            event.replyEmbeds(result.getEmbed()).setEphemeral(true).queue();
+            event.reply(NoticeOfDepartureMessageHandler.error(result.getEmbed())).setEphemeral(true).queue();
         }
         return !result.isPermitted();
     }

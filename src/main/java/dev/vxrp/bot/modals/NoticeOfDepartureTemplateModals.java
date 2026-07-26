@@ -82,19 +82,4 @@ public class NoticeOfDepartureTemplateModals {
                 .addComponents(reason).build();
     }
 
-    public Modal reasonActionModal(ActionId actionId, String userId, String startTime, String endTime) {
-        Label reason = Label.of(translation.noticeOfDeparture().modalReasonActionReasonTitle(),
-                TextInput
-                        .create("notice_of_departure_reason_action_reason",
-                                TextInputStyle.PARAGRAPH)
-                        .setRequired(true).setRequiredRange(4, 2000)
-                        .setPlaceholder(
-                                translation.noticeOfDeparture().modalReasonActionPlaceholder())
-                        .build());
-
-        return Modal
-                .create("notice_of_departure_reason_action_" + actionId + ":" + userId + ":"
-                        + startTime + ":" + endTime, translation.noticeOfDeparture().modalReasonActionTitle())
-                .addComponents(reason).build();
-    }
 }

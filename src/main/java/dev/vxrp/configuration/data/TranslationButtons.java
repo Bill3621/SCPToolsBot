@@ -54,8 +54,6 @@ public record TranslationButtons(
     @JsonProperty("TEXT_VERIFY_SHOW_DATA") String textVerifyShowData,
     @JsonProperty("TEXT_VERIFY_DELETE") String textVerifyDelete,
     @JsonProperty("TEXT_NOTICE_OF_DEPARTURE_FILE") String textNoticeOfDepartureFile,
-    @JsonProperty("TEXT_NOTICE_OF_DEPARTURE_ACCEPT") String textNoticeOfDepartureAccept,
-    @JsonProperty("TEXT_NOTICE_OF_DEPARTURE_DISMISSED") String textNoticeOfDepartureDismissed,
     @JsonProperty("TEXT_NOTICE_OF_DEPARTURE_REVOKED") String textNoticeOfDepartureRevoked,
     @JsonProperty("TEXT_NOTICE_OF_DEPARTURE_DELETE") String textNoticeOfDepartureDelete,
     @JsonProperty("TEXT_REGULAR_OPEN_SETTINGS") String textRegularOpenSettings,

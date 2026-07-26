@@ -23,6 +23,7 @@ import dev.vxrp.bot.commands.handler.bot.regulars.RegularsCommand;
 import dev.vxrp.bot.commands.handler.bot.settings.SettingsCommand;
 import dev.vxrp.bot.commands.handler.bot.template.TemplateCommandHandler;
 import dev.vxrp.bot.commands.handler.bot.verify.VerifyCommand;
+import dev.vxrp.bot.noticeofdeparture.handler.NoticeOfDepartureMessageHandler;
 import dev.vxrp.bot.permissions.PermissionManager;
 import dev.vxrp.bot.permissions.enums.StatusMessageType;
 import dev.vxrp.configuration.data.Config;
@@ -124,7 +125,7 @@ public class CommandListener extends ListenerAdapter {
                         config.settings().noticeOfDeparture().active()
                 );
                 if (embed != null) {
-                    event.replyEmbeds(embed).setEphemeral(true).queue();
+                    event.reply(NoticeOfDepartureMessageHandler.error(embed)).setEphemeral(true).queue();
                 } else {
                     new NoticeOfDepartureCommand(config, translation).view(event);
                 }
@@ -136,7 +137,7 @@ public class CommandListener extends ListenerAdapter {
                         config.settings().noticeOfDeparture().active()
                 );
                 if (embed != null) {
-                    event.replyEmbeds(embed).setEphemeral(true).queue();
+                    event.reply(NoticeOfDepartureMessageHandler.error(embed)).setEphemeral(true).queue();
                 } else {
                     new NoticeOfDepartureCommand(config, translation).revoke(event);
                 }

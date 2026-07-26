@@ -83,7 +83,7 @@ public class ColorTool {
                 .replace("&bold&", bold)
                 .replace("&reset&", reset)
                 .replace("&underline&", underline)
-                .replace("&filler&", singleFiller.repeat(Math.max(0, 144)))
+                .replace("&filler&", "\n")
                 .replace("&singleFiller&", singleFiller);
     }
 }

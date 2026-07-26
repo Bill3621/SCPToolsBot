@@ -3,7 +3,7 @@
 
   "configurationUpdate": [
     {
-      "changed": false,
+      "changed": true,
       "regenerate": false,
       "type": "config",
       "filename": "config.yml",
@@ -82,5 +82,5 @@
     }
   ],
 
-  "additionalInformation": "N/A"
+  "additionalInformation": "Notices of departure are now filed immediately, use compact Components V2 messages, mark active members with a configurable nickname prefix, and announce when members return."
 }
