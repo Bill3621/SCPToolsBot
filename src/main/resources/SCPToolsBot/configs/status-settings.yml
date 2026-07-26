@@ -18,6 +18,13 @@ account_id: ""
 # Turn this of if you don't want playerlists to be periodically updated
 check_playerlist: true
 
+# Optional Components V2 player list containing all instances in one message.
+# When active, this replaces the per-instance player lists below and is sent by the main bot.
+global_playerlist: {
+  active: false,
+  channel_ids: []
+}
+
 # Should the server status be posted to a specified channel?
 post_server_status: false
 # The channel that the server status is going to be posted to

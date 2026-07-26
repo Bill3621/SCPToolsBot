@@ -28,6 +28,7 @@ public record Status(
     @JsonProperty("post_channel") String postChannel,
     @JsonProperty("page_url") String pageUrl,
     @JsonProperty("check_playerlist") boolean checkPlayerlist,
+    @JsonProperty("global_playerlist") PlayerList globalPlayerlist,
     @JsonProperty("check_rate") int checkRate,
     @JsonProperty("retry_to_fetch_data") int retryToFetchData,
     @JsonProperty("suspect_rate_limit_until") int suspectRateLimitUntil,

@@ -11,7 +11,7 @@
       "upstream": "https://github.com/Vxrpenter/SCPToolsBot/blob/master/src/main/resources/SCPToolsBot/configs/config.yml"
     },
     {
-      "changed": false,
+      "changed": true,
       "regenerate": false,
       "type": "config",
       "filename": "status-settings.yml",

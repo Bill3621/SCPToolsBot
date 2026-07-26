@@ -82,13 +82,15 @@ public class StatusManager {
     }
 
     public void initialize(CommandManager commandManager) {
-        if (!config.status().active()) return;
+        if (!config.status().active())
+            return;
 
         ExecutorScopes.defaultStatusScope.submit(() -> initializeBots(config.status(), commandManager));
     }
 
     private void initializeBots(Status status, CommandManager commandManager) {
-        if (status.instances().isEmpty()) return;
+        if (status.instances().isEmpty())
+            return;
 
         Map<Instance, JDA> instanceApiMapping = new HashMap<>();
 
@@ -97,10 +99,7 @@ public class StatusManager {
             new ConnectionTable().insertIfNotExists(key, true, false);
 
             try {
-                JDA newApi = JDABuilder.createLight(instance.token(), EnumSet.noneOf(GatewayIntent.class))
-                        .setActivity(Activity.playing("pending..."))
-                        .build()
-                        .awaitReady();
+                JDA newApi = JDABuilder.createLight(instance.token(), EnumSet.noneOf(GatewayIntent.class)).setActivity(Activity.playing("pending...")).build().awaitReady();
 
                 logger.info("Starting up status-bot: {}", newApi.getSelfUser().getId());
 
@@ -168,8 +167,7 @@ public class StatusManager {
             ApiFetchResult content = fetchData(effectiveApi, effectiveAccountId, ports);
 
             String credKey = entry.getKey();
-            new StatusConnectionHandler(translation, config).postApiConnectionUpdate(
-                    globalApi, content != null ? content.info : null, credKey);
+            new StatusConnectionHandler(translation, config).postApiConnectionUpdate(globalApi, content != null ? content.info : null, credKey);
 
             if (content != null) {
                 for (Instance instance : entry.getValue()) {
@@ -197,13 +195,14 @@ public class StatusManager {
         }
 
         if (status.checkPlayerlist()) {
-            new StatusPlayerlistHandler(config, translation).updatePlayerLists(
-                    currentInstanceToServerMap, status.instances(), instanceApiMap, status.api(), status.accountId());
+            new StatusPlayerlistHandler(config, translation).updatePlayerLists(currentInstanceToServerMap, status.instances(), instanceApiMap, globalApi, status.api(),
+                    status.accountId());
         }
 
         for (Instance instance : status.instances()) {
             JDA api = instanceApiMap.get(instance);
-            if (api == null) continue;
+            if (api == null)
+                continue;
 
             api.getPresence().setStatus(OnlineStatus.IDLE);
 
@@ -217,7 +216,8 @@ public class StatusManager {
     }
 
     private boolean mapsEqual(Map<String, Server> a, Map<String, Server> b) {
-        if (a == null || b == null) return a == b;
+        if (a == null || b == null)
+            return a == b;
         return a.equals(b);
     }
 
@@ -249,9 +249,11 @@ public class StatusManager {
     }
 
     private Server serverByPort(int port, ServerInfo info) {
-        if (info == null || info.getServers() == null) return null;
+        if (info == null || info.getServers() == null)
+            return null;
         for (Server server : info.getServers()) {
-            if (server.getPort() == port) return server;
+            if (server.getPort() == port)
+                return server;
         }
         return null;
     }
