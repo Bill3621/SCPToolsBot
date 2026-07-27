@@ -136,7 +136,7 @@ public class StatusPlayerlistHandler {
     }
 
     static List<MessageTopLevelComponent> globalPlayerListComponents(Map<String, Server> servers, List<Instance> instances, String globalApi, String globalAccountId) {
-        String header = "## Server Network\nLive population overview · Updated <t:" + Instant.now().getEpochSecond() + ":R>";
+        String header = "## Server Network\nUpdated <t:" + Instant.now().getEpochSecond() + ":R>";
         List<ContainerChildComponent> content = new ArrayList<>();
         content.add(TextDisplay.of(header));
 
