@@ -26,6 +26,7 @@ public record Translation(
     @JsonProperty("PLAYER") TranslationPlayer player,
     @JsonProperty("SUPPORT") TranslationSupport support,
     @JsonProperty("APPLICATION") TranslationApplication application,
+    @JsonProperty("APPLICATION_REVIEW") TranslationApplicationReview applicationReview,
     @JsonProperty("VERIFY") TranslationVerify verify,
     @JsonProperty("NOTICE_OF_DEPARTURE") TranslationNoticeOfDeparture noticeOfDeparture,
     @JsonProperty("REGULARS") TranslationRegulars regulars,

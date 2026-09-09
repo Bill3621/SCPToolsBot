@@ -15,6 +15,7 @@
 
 package dev.vxrp.bot.events;
 
+import dev.vxrp.bot.application.review.ApplicationReviewInteractions;
 import dev.vxrp.bot.events.stringSelectMenus.ApplicationStringSelectMenus;
 import dev.vxrp.bot.events.stringSelectMenus.RegularsStringSelectMenus;
 import dev.vxrp.bot.events.stringSelectMenus.TicketStringSelectMenus;
@@ -44,6 +45,10 @@ public class StringSelectListener extends ListenerAdapter {
         String menuId = event.getComponent().getCustomId();
         if (menuId == null)
             return;
+
+        if (new ApplicationReviewInteractions(config, translation).handleSelect(event)) {
+            return;
+        }
 
         if (menuId.startsWith("ticket")) {
             MessageEmbed embed = new PermissionManager(config, translation).checkStatus(

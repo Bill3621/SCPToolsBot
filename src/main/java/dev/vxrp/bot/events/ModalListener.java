@@ -15,6 +15,7 @@
 
 package dev.vxrp.bot.events;
 
+import dev.vxrp.bot.application.review.ApplicationReviewInteractions;
 import dev.vxrp.bot.events.modals.ApplicationModals;
 import dev.vxrp.bot.events.modals.NoticeOfDepartureModals;
 import dev.vxrp.bot.events.modals.TicketModals;
@@ -45,6 +46,10 @@ public class ModalListener extends ListenerAdapter {
 
     @Override
     public void onModalInteraction(@NotNull ModalInteractionEvent event) {
+        if (new ApplicationReviewInteractions(config, translation).handleModal(event)) {
+            return;
+        }
+
         if (event.getModalId().startsWith("ticket")) {
             MessageEmbed embed = new PermissionManager(config, translation).checkStatus(
                     StatusMessageType.PANEL,

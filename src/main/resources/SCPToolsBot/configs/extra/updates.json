@@ -19,7 +19,7 @@
       "upstream": "https://github.com/Vxrpenter/SCPToolsBot/blob/master/src/main/resources/SCPToolsBot/configs/status-settings.yml"
     },
     {
-      "changed": false,
+      "changed": true,
       "regenerate": false,
       "type": "config",
       "filename": "ticket-settings.yml",
@@ -27,7 +27,7 @@
       "upstream": "https://github.com/Vxrpenter/SCPToolsBot/blob/master/src/main/resources/SCPToolsBot/configs/ticket-settings.yml"
     },
     {
-        "changed": false,
+        "changed": true,
         "regenerate": false,
         "type": "config",
         "filename": "commands.json",
@@ -82,5 +82,5 @@
     }
   ],
 
-  "additionalInformation": "Notices of departure are now filed immediately, use compact Components V2 messages, mark active members with a configurable nickname prefix, and announce when members return."
+  "additionalInformation": "Application voting now includes a review queue, configurable quorum and senior closer roles, vote history, applicant decisions, and compact Components V2 messages. Notices of departure are now filed immediately, mark active members with a configurable nickname prefix, and announce when members return."
 }

@@ -49,6 +49,10 @@ public class TicketSettingsHandler {
     }
 
     public void claimTicket(User user, ThreadChannel ticketChannel, String id, String userId) {
+        if (rejectApplicationLifecycle(ticketChannel, id)) {
+            return;
+        }
+
         ColorTool colorTool = new ColorTool();
         var embed = new EmbedBuilder()
                 .setAuthor(user.getGlobalName(), null, user.getAvatarUrl())
@@ -62,12 +66,13 @@ public class TicketSettingsHandler {
         ticketChannel.sendMessageEmbeds(embed).queue();
 
         User handlerUser = api.retrieveUserById(userId).complete();
+        TicketType ticketType = new TicketTable().getTicketType(id);
 
         new TicketTable().updateTicketHandler(id, userId);
         new TicketMessageHandler(api, config, translation).editMessage(id, ticketChannel, null);
         new TicketLogHandler(api, config, translation).editMessage(id, null, handlerUser, null);
 
-        if (new TicketTable().getTicketType(id) == TicketType.APPLICATION) {
+        if (ticketType == TicketType.APPLICATION) {
             new ApplicationTable().updateTicketHandler(id, handlerUser.getId());
         }
 
@@ -75,6 +80,10 @@ public class TicketSettingsHandler {
     }
 
     public void openTicket(User user, ThreadChannel ticketChannel, String id) {
+        if (rejectApplicationLifecycle(ticketChannel, id)) {
+            return;
+        }
+
         ColorTool colorTool = new ColorTool();
         var embed = new EmbedBuilder()
                 .setAuthor(user.getGlobalName(), null, user.getAvatarUrl())
@@ -97,6 +106,10 @@ public class TicketSettingsHandler {
     }
 
     public void pauseTicket(User user, ThreadChannel ticketChannel, String id) {
+        if (rejectApplicationLifecycle(ticketChannel, id)) {
+            return;
+        }
+
         ColorTool colorTool = new ColorTool();
         var embed = new EmbedBuilder()
                 .setAuthor(user.getGlobalName(), null, user.getAvatarUrl())
@@ -119,6 +132,10 @@ public class TicketSettingsHandler {
     }
 
     public void suspendTicket(User user, ThreadChannel ticketChannel, String id) {
+        if (rejectApplicationLifecycle(ticketChannel, id)) {
+            return;
+        }
+
         ColorTool colorTool = new ColorTool();
         var embed = new EmbedBuilder()
                 .setAuthor(user.getGlobalName(), null, user.getAvatarUrl())
@@ -141,6 +158,11 @@ public class TicketSettingsHandler {
     }
 
     public void archiveTicket(User user, ThreadChannel ticketChannel, String id, String reason) {
+        if (rejectApplicationLifecycle(ticketChannel, id)) {
+            logger.info("Ignored generic archive request for application ticket {}", id);
+            return;
+        }
+
         ColorTool colorTool = new ColorTool();
         var embed = new EmbedBuilder()
                 .setAuthor(user.getGlobalName(), null, user.getAvatarUrl())
@@ -166,11 +188,16 @@ public class TicketSettingsHandler {
             child.getManager().setArchived(true).queue();
         }
 
-        if (new TicketTable().getTicketType(id) == TicketType.APPLICATION) {
-            new ApplicationTable().delete(id);
-        }
-
         logger.info("Ticket {} archived by user: {}", id, user.getId());
+    }
+
+    private boolean rejectApplicationLifecycle(ThreadChannel ticketChannel, String id) {
+        if (new TicketTable().getTicketType(id) != TicketType.APPLICATION) {
+            return false;
+        }
+        ticketChannel.sendMessage("Application state and final decisions are controlled from the staff review message.")
+                .queue();
+        return true;
     }
 
     public ActionRow settingsActionRow(TicketStatus status) {

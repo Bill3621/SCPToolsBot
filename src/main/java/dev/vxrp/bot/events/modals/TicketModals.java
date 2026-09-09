@@ -15,14 +15,13 @@
 
 package dev.vxrp.bot.events.modals;
 
+import dev.vxrp.bot.application.ApplicationSubmissionService;
 import dev.vxrp.bot.ticket.TicketManager;
 import dev.vxrp.bot.ticket.enums.TicketStatus;
 import dev.vxrp.bot.ticket.enums.TicketType;
 import dev.vxrp.bot.ticket.handler.TicketSettingsHandler;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
-import dev.vxrp.database.tables.database.ApplicationTable;
-import dev.vxrp.database.tables.database.ApplicationTypeTable;
 import dev.vxrp.database.tables.database.TicketTable;
 import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -86,37 +85,13 @@ public class TicketModals {
             respond(child, event);
         }
 
-        if (event.getModalId().startsWith("ticket_application")) {
-            String roleId = event.getModalId().split(":")[1];
-
-            if (new ApplicationTable().retrieveSerial(roleId) >= new ApplicationTypeTable().query(roleId).members) {
-                var embed = new EmbedBuilder()
-                        .setColor(0xE74D3C)
-                        .setTitle(new ColorTool().parse(translation.support().embedNoMoreApplicationsTitle()))
-                        .setDescription(new ColorTool().parse(translation.support().embedNoMoreApplicationsBody()
-                                .replace("%members%", String.valueOf(new ApplicationTypeTable().query(roleId).members))))
-                        .build();
-                event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
+        if (event.getModalId().startsWith("ticket_application:")) {
+            String[] parts = event.getModalId().split(":", 2);
+            if (parts.length != 2 || parts[1].isBlank()) {
+                event.getHook().sendMessage("Invalid application position.").setEphemeral(true).queue();
                 return;
             }
-
-            String ageStr = event.getValues().get(1).getAsString();
-            try {
-                Integer.parseInt(ageStr);
-            } catch (NumberFormatException e) {
-                var embed = new EmbedBuilder()
-                        .setColor(0xE74D3C)
-                        .setTitle(new ColorTool().parse(translation.support().embedApplicationAgeNumericTitle()))
-                        .setDescription(new ColorTool().parse(translation.support().embedApplicationAgeNumericBody()))
-                        .build();
-                event.getHook().sendMessageEmbeds(embed).setEphemeral(true).queue();
-                return;
-            }
-
-            var handler = new TicketManager(api, config, translation);
-            var child = handler.createTicket(TicketType.APPLICATION, TicketStatus.OPEN, event.getUser().getId(), null, event.getModalId(), event.getValues());
-            new ApplicationTable().addToDatabase(child != null ? child.getId() : "", roleId, false, false, event.getUser().getId(), null);
-            respond(child, event);
+            new ApplicationSubmissionService(config, translation).submit(event, parts[1]);
         }
 
         if (event.getModalId().startsWith("ticket_close")) {

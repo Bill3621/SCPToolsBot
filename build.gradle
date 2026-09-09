@@ -28,6 +28,7 @@ def secretLabKotlinVersion = "0.4.3"
 def updaterVersion = "0.1.1"
 def logbackVersion = "1.5.34"
 def gsonVersion = "2.14.0"
+def junitVersion = "5.13.4"
 
 dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
@@ -48,6 +49,14 @@ dependencies {
     implementation("io.github.vxrpenter:secretlab-kotlin:$secretLabKotlinVersion")
 
     implementation("com.google.code.gson:gson:$gsonVersion")
+
+    testImplementation(platform("org.junit:junit-bom:$junitVersion"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 def createVersionProperties = tasks.register("createVersionProperties", WriteProperties.class) {

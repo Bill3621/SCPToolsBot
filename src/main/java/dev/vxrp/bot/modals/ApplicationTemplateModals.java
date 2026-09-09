@@ -29,6 +29,19 @@ public class ApplicationTemplateModals {
         this.translation = translation;
     }
 
+    public Modal closeReasonModal(String applicationId, String decision) {
+        Label reason = Label.of(translation.applicationReview().textCloseReasonTitle(),
+                TextInput.create("application_review_close_reason", TextInputStyle.PARAGRAPH)
+                        .setRequired(true)
+                        .setRequiredRange(1, 1000)
+                        .setPlaceholder(translation.applicationReview().textCloseReasonPlaceholder())
+                        .build());
+        return Modal.create("application_review_close_reason:" + applicationId + ":" + decision,
+                translation.applicationReview().textCloseReasonTitle())
+                .addComponents(reason)
+                .build();
+    }
+
     public Modal chooseCountModal(String roleId, String modalId) {
         Label number = Label.of(translation.application().modalChooseCountNumberTitle(),
                 TextInput.create("application_choose_count_number",

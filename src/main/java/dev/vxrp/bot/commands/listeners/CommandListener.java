@@ -63,7 +63,7 @@ public class CommandListener extends ListenerAdapter {
         var commandList = config.extra().commands().commands();
 
         for (var command : commandList) {
-            if (!event.getFullCommandName().contains(command.name())) continue;
+            if (!event.getName().equals(command.name())) continue;
 
             checkInheritance(command.inherit(), event);
 
@@ -101,6 +101,9 @@ public class CommandListener extends ListenerAdapter {
             }
             case "commands.settings.default":
                 settingsCommand(event);
+                return;
+            case "commands.applications.default":
+                new ApplicationCommand(config, translation).sendQueue(event);
                 return;
             case "commands.application.default": {
                 MessageEmbed embed = new PermissionManager(config, translation).checkStatus(

@@ -19,12 +19,13 @@ package dev.vxrp.database;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Settings;
 import dev.vxrp.database.enums.DatabaseType;
+import dev.vxrp.database.migrations.ApplicationMigrationRunner;
+import dev.vxrp.database.tables.database.ApplicationTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -33,6 +34,12 @@ import java.sql.Statement;
 
 public class DatabaseManager {
     private static Connection connection;
+
+    @FunctionalInterface
+    public interface Transaction<T> {
+        T execute(Connection connection) throws SQLException;
+    }
+
     private final String dir = System.getProperty("user.dir");
     private final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
     private final Config config;
@@ -53,11 +60,39 @@ public class DatabaseManager {
             }
 
             createTables();
+            runMigrations();
         }
     }
 
     public static Connection getConnection() {
         return connection;
+    }
+
+    public static synchronized <T> T transaction(Transaction<T> transaction) {
+        if (connection == null) {
+            throw new IllegalStateException("Database connection is not available");
+        }
+
+        try {
+            boolean autoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            try {
+                T result = transaction.execute(connection);
+                connection.commit();
+                return result;
+            } catch (SQLException | RuntimeException e) {
+                try {
+                    connection.rollback();
+                } catch (SQLException rollbackException) {
+                    e.addSuppressed(rollbackException);
+                }
+                throw e;
+            } finally {
+                connection.setAutoCommit(autoCommit);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Database transaction failed", e);
+        }
     }
 
     private void connectToXPDatabase() {
@@ -137,6 +172,15 @@ public class DatabaseManager {
         } catch (ClassNotFoundException e) {
             logger.error("Driver not found for {} database", type.name().toLowerCase());
             return false;
+        }
+    }
+
+    private void runMigrations() {
+        try {
+            ApplicationMigrationRunner.run(connection);
+            new ApplicationTable().markStaleProvisioningFailed();
+        } catch (SQLException e) {
+            logger.error("Failed to run database migrations", e);
         }
     }
 

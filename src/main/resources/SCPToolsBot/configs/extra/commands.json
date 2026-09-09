@@ -126,6 +126,13 @@
     },
     {
       "active": true,
+      "inherit": "commands.applications.default",
+      "name": "applications",
+      "description": "Review and vote on staff applications",
+      "defaultPermissions": ["VIEW_AUDIT_LOGS"]
+    },
+    {
+      "active": true,
       "inherit": "commands.application.default",
       "name": "application",
       "description": "Command for managing applications",

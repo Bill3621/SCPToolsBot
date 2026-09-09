@@ -20,5 +20,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record TicketSettings(
     @JsonProperty("ticket_log_channel") String ticketLogChannel,
-    @JsonProperty("application_message_channel") String applicationMessageChannel
-) {}
+    @JsonProperty("application_message_channel") String applicationMessageChannel,
+    @JsonProperty("application_voting") ApplicationVotingSettings applicationVoting
+) {
+    public TicketSettings {
+        applicationVoting = applicationVoting == null ? new ApplicationVotingSettings() : applicationVoting;
+    }
+
+    public TicketSettings(String ticketLogChannel, String applicationMessageChannel) {
+        this(ticketLogChannel, applicationMessageChannel, new ApplicationVotingSettings());
+    }
+}

@@ -15,6 +15,7 @@
 
 package dev.vxrp.bot.events;
 
+import dev.vxrp.bot.application.review.ApplicationReviewInteractions;
 import dev.vxrp.bot.events.buttons.*;
 import dev.vxrp.bot.noticeofdeparture.handler.NoticeOfDepartureMessageHandler;
 import dev.vxrp.bot.permissions.PermissionManager;
@@ -43,6 +44,10 @@ public class ButtonListener extends ListenerAdapter {
         String buttonId = event.getButton().getCustomId();
         if (buttonId == null)
             return;
+
+        if (new ApplicationReviewInteractions(config, translation).handleButton(event)) {
+            return;
+        }
 
         if (buttonId.startsWith("help")) {
             new HelpButtons(event, config, translation).init();

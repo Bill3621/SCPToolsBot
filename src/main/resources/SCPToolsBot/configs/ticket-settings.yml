@@ -11,6 +11,12 @@ settings:
   ticket_log_channel: ""
   # The channel where the application message (active/not active) will be sent to
   application_message_channel: ""
+  # Voting settings for application reviews
+  application_voting:
+    # Number of approve or deny votes required before a decision can be closed
+    quorum: 3
+    # Roles allowed to close application votes. Voters use the Application ticket permissions below.
+    senior_closer_roles: [ ]
 
 # The types of roles that can be applied for. Duplicate one of the roles that already exist
 # to create a new one, you can add as many as you like
