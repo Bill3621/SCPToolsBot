@@ -18,7 +18,9 @@ package dev.vxrp.bot.ticket.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public record Ticket(
     TicketSettings settings,
@@ -48,5 +50,12 @@ public record Ticket(
                 .filter(type -> type.roleID().equals(roleId))
                 .map(type -> type.questions() == null ? applicationQuestions : type.questions())
                 .findFirst().orElse(null);
+    }
+
+    public Set<String> applicationVoterRoleIds() {
+        var roles = new HashSet<>(settings.applicationVoting().seniorCloserRoles());
+        types.stream().filter(type -> "support::APPLICATION".equals(type.type()))
+                .findFirst().ifPresent(type -> roles.addAll(type.logPermissionRoles()));
+        return roles;
     }
 }

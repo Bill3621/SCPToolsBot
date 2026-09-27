@@ -48,10 +48,8 @@ import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /** Routes staff application review interactions and revalidates authorization on every action. */
 public final class ApplicationReviewInteractions {
@@ -192,11 +190,7 @@ public final class ApplicationReviewInteractions {
         if (member == null) {
             return false;
         }
-        Set<String> allowed = new HashSet<>(config.ticket().settings().applicationVoting().seniorCloserRoles());
-        config.ticket().types().stream()
-                .filter(type -> "support::APPLICATION".equals(type.type()))
-                .findFirst()
-                .ifPresent(type -> allowed.addAll(type.logPermissionRoles()));
+        var allowed = config.ticket().applicationVoterRoleIds();
         return member.getRoles().stream().anyMatch(role -> allowed.contains(role.getId()));
     }
 

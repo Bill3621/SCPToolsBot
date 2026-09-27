@@ -157,32 +157,65 @@ public final class ApplicationSubmissionService {
                     .replace("%members%", String.valueOf(applicationType.members)));
             return;
         }
+        var inviteRoles = Set.copyOf(settings.roles());
+        if (inviteRoles.contains(event.getGuild().getPublicRole().getId())) {
+            fail(event, "The @everyone role cannot be invited to a private application thread.");
+            return;
+        }
+        var voting = config.ticket().settings().applicationVoting();
+        var voterRoles = voting.quorumPercent() == null ? Set.<String>of() : config.ticket().applicationVoterRoleIds();
+        var relevantRoles = new HashSet<>(inviteRoles);
+        relevantRoles.addAll(voterRoles);
+        if (relevantRoles.isEmpty()) {
+            create(event, roleId, roleName(roleId), settings, parent, reviewChannel, answers, voting.quorum(), List.of());
+            return;
+        }
+
+        // Light JDA sessions do not retain the full member list; reuse this lookup for quorum and invitations.
+        event.getGuild().findMembers(member -> hasAnyRole(member, relevantRoles))
+                .onSuccess(members -> {
+                    var staffIds = members.stream().filter(member -> hasAnyRole(member, inviteRoles))
+                            .map(Member::getId).toList();
+                    int eligibleVoters = (int) members.stream()
+                            .filter(member -> !member.getUser().isBot() && hasAnyRole(member, voterRoles)).count();
+                    create(event, roleId, roleName(roleId), settings, parent, reviewChannel, answers,
+                            voting.requiredVotes(eligibleVoters), staffIds);
+                })
+                .onError(exception -> {
+                    logger.error("Could not load application staff for role {}", roleId, exception);
+                    fail(event, "Your application could not be created. Please try again later.");
+                });
+    }
+
+    private static boolean hasAnyRole(Member member, Set<String> roleIds) {
+        return member.getRoles().stream().anyMatch(role -> roleIds.contains(role.getId()));
+    }
+
+    private void create(ModalInteractionEvent event, String roleId, String roleName, TicketTypes settings,
+                        TextChannel parent, TextChannel reviewChannel, List<ApplicationAnswer> answers,
+                        int quorumRequired, List<String> staffIds) {
         try {
-            create(event, roleId, roleName(roleId), settings, parent, reviewChannel, answers);
+            String threadName = settings.childRules().parentName()
+                    .replace("%r%", String.valueOf(new TicketTable().retrieveSerial()));
+            parent.createThreadChannel(threadName, true).queue(thread -> provision(event, roleId, roleName, settings,
+                            reviewChannel, answers, quorumRequired, staffIds, thread),
+                    exception -> {
+                        logger.error("Could not create application thread for role {}", roleId, exception);
+                        fail(event, "Your application could not be created. Please try again later.");
+                    });
         } catch (RuntimeException exception) {
             logger.error("Could not start application submission for role {}", roleId, exception);
             fail(event, "Your application could not be created. Please try again later.");
         }
     }
 
-    private void create(ModalInteractionEvent event, String roleId, String roleName, TicketTypes settings,
-                        TextChannel parent, TextChannel reviewChannel, List<ApplicationAnswer> answers) {
-        String threadName = settings.childRules().parentName()
-                .replace("%r%", String.valueOf(new TicketTable().retrieveSerial()));
-        parent.createThreadChannel(threadName, true).queue(thread -> provision(event, roleId, roleName, settings,
-                        reviewChannel, answers, thread),
-                exception -> {
-                    logger.error("Could not create application thread for role {}", roleId, exception);
-                    fail(event, "Your application could not be created. Please try again later.");
-                });
-    }
-
     private void provision(ModalInteractionEvent event, String roleId, String roleName, TicketTypes settings,
-                           TextChannel reviewChannel, List<ApplicationAnswer> answers, ThreadChannel thread) {
+                           TextChannel reviewChannel, List<ApplicationAnswer> answers, int quorumRequired,
+                           List<String> staffIds, ThreadChannel thread) {
         String applicationId = thread.getId();
         try {
             new ApplicationTable().createProvisioning(applicationId, roleId, event.getUser().getId(), null,
-                    config.ticket().settings().applicationVoting().quorum(), answers);
+                    quorumRequired, answers);
         } catch (RuntimeException exception) {
             logger.error("Could not provision application {}", applicationId, exception);
             cleanup(applicationId, thread, null);
@@ -190,36 +223,15 @@ public final class ApplicationSubmissionService {
             return;
         }
 
-        inviteParticipants(event, roleId, roleName, settings, reviewChannel, answers, thread);
-    }
-
-    private void inviteParticipants(ModalInteractionEvent event, String roleId, String roleName, TicketTypes settings,
-                                    TextChannel reviewChannel, List<ApplicationAnswer> answers, ThreadChannel thread) {
-        Set<String> roleIds = Set.copyOf(settings.roles());
-        if (roleIds.contains(event.getGuild().getPublicRole().getId())) {
-            submissionFailed(event, roleId, thread.getId(), thread, null,
-                    new IllegalArgumentException("The @everyone role cannot be invited to a private application thread"));
-            return;
-        }
-        if (roleIds.isEmpty()) {
-            addParticipants(event, roleId, roleName, settings, reviewChannel, answers, thread, List.of());
-            return;
-        }
-        event.getGuild().findMembers(member -> member.getRoles().stream()
-                        .anyMatch(role -> roleIds.contains(role.getId())))
-                .onSuccess(members -> addParticipants(event, roleId, roleName, settings, reviewChannel, answers,
-                        thread, members))
-                .onError(exception -> submissionFailed(event, roleId, thread.getId(), thread, null, exception));
+        addParticipants(event, roleId, roleName, settings, reviewChannel, answers, thread, staffIds);
     }
 
     private void addParticipants(ModalInteractionEvent event, String roleId, String roleName, TicketTypes settings,
                                  TextChannel reviewChannel, List<ApplicationAnswer> answers, ThreadChannel thread,
-                                 List<Member> staff) {
+                                 List<String> staffIds) {
         var ids = new LinkedHashSet<String>();
         ids.add(event.getUser().getId());
-        for (Member member : staff) {
-            ids.add(member.getId());
-        }
+        ids.addAll(staffIds);
         try {
             RestAction.allOf(ids.stream().map(thread::addThreadMemberById).toList())
                     .queue(ignored -> prepareThread(event, roleId, roleName, settings, reviewChannel, answers, thread),
@@ -240,7 +252,7 @@ public final class ApplicationSubmissionService {
 
     private void sendThreadRoot(ModalInteractionEvent event, String roleId, String roleName, TicketTypes settings,
                                 TextChannel reviewChannel, List<ApplicationAnswer> answers, ThreadChannel thread) {
-        notifyParticipants(event, settings, thread);
+        notifyApplicant(event, thread);
         var messages = new ApplicationMessageHandler(config, translation);
         thread.sendMessage(messages.applicationThreadRoot(
                 translation.support().embedTicketApplicationTitle().replace("%name%", thread.getName()),
@@ -301,14 +313,8 @@ public final class ApplicationSubmissionService {
         }
     }
 
-    private void notifyParticipants(ModalInteractionEvent event, TicketTypes settings, ThreadChannel thread) {
+    private void notifyApplicant(ModalInteractionEvent event, ThreadChannel thread) {
         thread.sendMessage(event.getUser().getAsMention()).queue(message -> message.delete().queue());
-        for (String staffRoleId : settings.roles()) {
-            var role = event.getJDA().getRoleById(staffRoleId);
-            if (role != null) {
-                thread.sendMessage(role.getAsMention()).queue(message -> message.delete().queue());
-            }
-        }
     }
 
     private void submissionFailed(ModalInteractionEvent event, String roleId, String applicationId,

@@ -22,14 +22,23 @@ import java.util.List;
 
 public record ApplicationVotingSettings(
     int quorum,
+    @JsonProperty("quorum_percent") Integer quorumPercent,
     @JsonProperty("senior_closer_roles") List<String> seniorCloserRoles
 ) {
     public ApplicationVotingSettings {
         quorum = quorum < 1 ? 3 : quorum;
+        if (quorumPercent != null && (quorumPercent < 1 || quorumPercent > 100)) {
+            throw new IllegalArgumentException("application_voting.quorum_percent must be between 1 and 100");
+        }
         seniorCloserRoles = seniorCloserRoles == null ? List.of() : List.copyOf(seniorCloserRoles);
     }
 
     public ApplicationVotingSettings() {
-        this(3, List.of());
+        this(3, null, List.of());
+    }
+
+    /** Resolve the quorum once per application so later staff changes do not shift its threshold. */
+    public int requiredVotes(int eligibleVoters) {
+        return quorumPercent == null ? quorum : Math.max(1, (int) (((long) eligibleVoters * quorumPercent + 99) / 100));
     }
 }

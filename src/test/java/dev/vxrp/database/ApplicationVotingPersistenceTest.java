@@ -19,8 +19,10 @@ package dev.vxrp.database;
 import dev.vxrp.bot.application.data.ApplicationAnswer;
 import dev.vxrp.bot.application.enums.ApplicationDecision;
 import dev.vxrp.bot.application.enums.ApplicationLifecycle;
+import dev.vxrp.bot.application.enums.ApplicationQueueFilter;
 import dev.vxrp.bot.application.enums.ApplicationVoteAction;
 import dev.vxrp.bot.application.enums.ApplicationVoteChoice;
+import dev.vxrp.bot.ticket.data.ApplicationVotingSettings;
 import dev.vxrp.database.migrations.ApplicationMigrationRunner;
 import dev.vxrp.database.tables.database.ApplicationAnswerTable;
 import dev.vxrp.database.tables.database.ApplicationTable;
@@ -95,6 +97,23 @@ class ApplicationVotingPersistenceTest {
         assertEquals("senior-1", closed.closedBy());
         assertEquals("Not ready", closed.closeReason());
         assertEquals("discussion-thread", closed.reviewThreadId());
+    }
+
+    @Test
+    void percentageThresholdRemainsFixedForAnApplication() {
+        var applications = new ApplicationTable();
+        var votes = new ApplicationVoteTable();
+        var voting = new ApplicationVotingSettings(4, 50, List.of());
+        applications.createProvisioning("percentage", "role-1", "applicant-1", null, voting.requiredVotes(5), List.of());
+        applications.markOpen("percentage", "review-channel", "review-message");
+
+        votes.set("percentage", "staff-1", ApplicationVoteChoice.APPROVE);
+        votes.set("percentage", "staff-2", ApplicationVoteChoice.DENY);
+        assertEquals(3, applications.retrieveById("percentage").orElseThrow().quorumRequired());
+        assertTrue(applications.filter(ApplicationQueueFilter.READY).isEmpty());
+
+        votes.set("percentage", "staff-3", ApplicationVoteChoice.APPROVE);
+        assertEquals(1, applications.count(ApplicationQueueFilter.READY));
     }
 
     @Test

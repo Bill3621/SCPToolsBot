@@ -15,7 +15,10 @@ settings:
   application_voting:
     # Number of approve or deny votes required before a decision can be closed
     quorum: 3
-    # Roles allowed to close application votes. Voters use the Application ticket permissions below.
+    # Optional alternative to quorum: percentage (1-100) of members with Application log_permissions_roles
+    # or senior_closer_roles, rounded up (minimum 1). Counted when each application is submitted.
+    # quorum_percent: 60
+    # Roles allowed to close application votes. These roles can also vote.
     senior_closer_roles: [ ]
 
 # Shared questions used unless an application type defines its own questions list.
