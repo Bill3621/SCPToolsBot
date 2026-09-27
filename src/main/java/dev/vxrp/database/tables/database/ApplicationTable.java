@@ -108,6 +108,20 @@ public class ApplicationTable {
         });
     }
 
+    public boolean setReviewThreadId(String id, String reviewMessageId, String threadId) {
+        try (PreparedStatement statement = DatabaseManager.getConnection().prepareStatement(
+                "UPDATE applications SET review_thread_id = ? WHERE id = ? AND review_message_id = ? " +
+                        "AND (review_thread_id IS NULL OR review_thread_id = ?)")) {
+            statement.setString(1, threadId);
+            statement.setString(2, id);
+            statement.setString(3, reviewMessageId);
+            statement.setString(4, threadId);
+            return statement.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void markFailed(String id) {
         DatabaseManager.transaction(connection -> {
             markFailed(connection, id);
@@ -290,8 +304,8 @@ public class ApplicationTable {
 
     private static String applicationQuery() {
         return "SELECT a.id, a.roleId, a.issuer, a.handler, a.lifecycle_status, a.decision, a.created_at, " +
-                "a.closed_at, a.closed_by, a.close_reason, a.review_channel_id, a.review_message_id, a.quorum_required, " +
-                "a.state, a.result FROM applications a";
+                "a.closed_at, a.closed_by, a.close_reason, a.review_channel_id, a.review_message_id, " +
+                "a.review_thread_id, a.quorum_required, a.state, a.result FROM applications a";
     }
 
     private static String openCountQuery() {
@@ -320,7 +334,8 @@ public class ApplicationTable {
                 results.getString("handler"), lifecycle, parseDecision(decisionValue),
                 parseInstant(results.getString("created_at")), parseInstant(results.getString("closed_at")),
                 results.getString("closed_by"), results.getString("close_reason"),
-                results.getString("review_channel_id"), results.getString("review_message_id"), quorum);
+                results.getString("review_channel_id"), results.getString("review_message_id"),
+                results.getString("review_thread_id"), quorum);
     }
 
     private static ApplicationLifecycle legacyLifecycle(Connection connection, String id) throws SQLException {

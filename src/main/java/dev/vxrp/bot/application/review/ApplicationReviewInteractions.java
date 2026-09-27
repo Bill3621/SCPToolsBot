@@ -41,7 +41,11 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.List;
@@ -51,6 +55,7 @@ import java.util.Set;
 /** Routes staff application review interactions and revalidates authorization on every action. */
 public final class ApplicationReviewInteractions {
     private static final int HISTORY_PAGE_SIZE = 8;
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationReviewInteractions.class);
 
     private final Config config;
     private final Translation translation;
@@ -71,6 +76,10 @@ public final class ApplicationReviewInteractions {
         }
         if (id.startsWith("application_review_history:")) {
             showHistory(event, id);
+            return true;
+        }
+        if (id.startsWith("application_review_discussion:")) {
+            startDiscussion(event, id.substring("application_review_discussion:".length()));
             return true;
         }
         if (id.startsWith("application_review_close_prompt:")) {
@@ -153,7 +162,7 @@ public final class ApplicationReviewInteractions {
         }
 
         ApplicationRecord locked = applications.retrieveById(applicationId).orElseThrow();
-        refreshCanonical(event.getJDA(), locked);
+        refreshCanonical(event.getJDA(), locked.id());
         new ApplicationMessageHandler(config, translation).refreshPublicPanel(event.getJDA());
         var thread = event.getJDA().getThreadChannelById(applicationId);
         if (thread != null) {
@@ -199,13 +208,15 @@ public final class ApplicationReviewInteractions {
         String ticketUrl = ApplicationView.ticketUrl(config.settings().guildId(), application.id());
         if (application.lifecycle() == ApplicationLifecycle.CLOSED) {
             event.reply(handler.lockedReview(application, roleName(application.roleId()), answers.list(applicationId),
-                    votes.tally(applicationId, application.quorumRequired()), votes.history(applicationId), ticketUrl))
+                    votes.tally(applicationId, application.quorumRequired()), votes.history(applicationId), ticketUrl,
+                    ApplicationReviewView.discussionUrl(config.settings().guildId(), application)))
                     .setEphemeral(true).queue();
             return;
         }
         event.reply(handler.personalReview(application, roleName(application.roleId()), answers.list(applicationId),
                 votes.tally(applicationId, application.quorumRequired()), votes.getCurrent(applicationId,
-                        event.getUser().getId()), ticketUrl)).setEphemeral(true).queue();
+                        event.getUser().getId()), ticketUrl,
+                ApplicationReviewView.discussionUrl(config.settings().guildId(), application))).setEphemeral(true).queue();
     }
 
     private void updateVote(StringSelectInteractionEvent event, String applicationId) {
@@ -238,13 +249,14 @@ public final class ApplicationReviewInteractions {
                     previous != null && previous.choice() != choice);
         }
 
-        refreshCanonical(event.getJDA(), application);
+        refreshCanonical(event.getJDA(), application.id());
         if (event.getMessage().isEphemeral()) {
             var payload = new ApplicationMessageHandler(config, translation).personalReview(application,
                     roleName(application.roleId()), answers.list(applicationId),
                     votes.tally(applicationId, application.quorumRequired()),
                     votes.getCurrent(applicationId, event.getUser().getId()),
-                    ApplicationView.ticketUrl(config.settings().guildId(), application.id()));
+                    ApplicationView.ticketUrl(config.settings().guildId(), application.id()),
+                    ApplicationReviewView.discussionUrl(config.settings().guildId(), application));
             event.editMessage(MessageEditBuilder.fromCreateData(payload).build()).queue();
         } else {
             event.reply(feedback(true, confirmation)).setEphemeral(true).queue();
@@ -267,6 +279,68 @@ public final class ApplicationReviewInteractions {
             label = decision.name().toLowerCase(Locale.ROOT);
         }
         return review.textCloseSuccess().replace("%decision%", label);
+    }
+
+    private void startDiscussion(ButtonInteractionEvent event, String applicationId) {
+        if (!canReview(event.getMember())) {
+            event.reply(feedback(false, translation.applicationReview().textVoteNotAllowed())).setEphemeral(true).queue();
+            return;
+        }
+        ApplicationRecord application = applications.retrieveById(applicationId).orElse(null);
+        if (application == null || application.reviewChannelId() == null || application.reviewMessageId() == null) {
+            event.reply(feedback(false, "This review message is no longer available.")).setEphemeral(true).queue();
+            return;
+        }
+        if (application.reviewThreadId() != null) {
+            event.reply("Staff discussion: " + ApplicationReviewView.discussionUrl(config.settings().guildId(), application))
+                    .setEphemeral(true).queue();
+            return;
+        }
+        TextChannel channel = event.getJDA().getTextChannelById(application.reviewChannelId());
+        if (channel == null) {
+            event.reply(feedback(false, "The review channel is no longer available.")).setEphemeral(true).queue();
+            return;
+        }
+        event.deferReply(true).queue(hook -> channel.retrieveMessageById(application.reviewMessageId()).queue(message -> {
+            if (message.getStartedThread() != null) {
+                finishDiscussion(event, application, message.getStartedThread().getId());
+                return;
+            }
+            try {
+                message.createThreadChannel("Application " + application.id() + " staff discussion")
+                        .queue(thread -> finishDiscussion(event, application, thread.getId()), exception -> {
+                            if (exception instanceof ErrorResponseException response
+                                    && response.getErrorResponse() == ErrorResponse.THREAD_WITH_THIS_MESSAGE_ALREADY_EXISTS) {
+                                // Discord uses the starter message ID as the public thread ID.
+                                finishDiscussion(event, application, message.getId());
+                            } else {
+                                logger.error("Could not create discussion thread for application {}", application.id(), exception);
+                                hook.sendMessage(feedback(false, "Could not start a discussion in the review channel.")).queue();
+                            }
+                        });
+            } catch (RuntimeException exception) {
+                logger.error("Could not start discussion thread for application {}", application.id(), exception);
+                hook.sendMessage(feedback(false, "Could not start a discussion in the review channel.")).queue();
+            }
+        }, exception -> {
+            logger.error("Could not retrieve review message for application {}", application.id(), exception);
+            hook.sendMessage(feedback(false, "This review message is no longer available.")).queue();
+        }));
+    }
+
+    private void finishDiscussion(ButtonInteractionEvent event, ApplicationRecord application, String threadId) {
+        try {
+            if (!applications.setReviewThreadId(application.id(), application.reviewMessageId(), threadId)) {
+                event.getHook().sendMessage(feedback(false, "Could not link this discussion to the review.")).queue();
+                return;
+            }
+            refreshCanonical(event.getJDA(), application.id());
+            event.getHook().sendMessage("Staff discussion: "
+                    + ApplicationView.ticketUrl(config.settings().guildId(), threadId)).queue();
+        } catch (RuntimeException exception) {
+            logger.error("Could not save discussion thread for application {}", application.id(), exception);
+            event.getHook().sendMessage(feedback(false, "Could not link this discussion to the review.")).queue();
+        }
     }
 
     private void showHistory(ButtonInteractionEvent event, String id) {
@@ -364,15 +438,19 @@ public final class ApplicationReviewInteractions {
         }
     }
 
-    private void refreshCanonical(net.dv8tion.jda.api.JDA api, ApplicationRecord application) {
-        ApplicationRecord current = applications.retrieveById(application.id()).orElse(application);
+    public void refreshCanonical(net.dv8tion.jda.api.JDA api, String applicationId) {
+        ApplicationRecord current = applications.retrieveById(applicationId).orElse(null);
+        if (current == null) {
+            return;
+        }
         TextChannel channel = current.reviewChannelId() == null ? null : api.getTextChannelById(current.reviewChannelId());
         if (channel == null || current.reviewMessageId() == null) {
             return;
         }
         new ApplicationMessageHandler(config, translation).editReviewMessage(channel, current.reviewMessageId(), current,
                 roleName(current.roleId()), answers.list(current.id()), votes.tally(current.id(), current.quorumRequired()),
-                votes.history(current.id()), ApplicationView.ticketUrl(config.settings().guildId(), current.id()));
+                votes.history(current.id()), ApplicationView.ticketUrl(config.settings().guildId(), current.id()),
+                ApplicationReviewView.discussionUrl(config.settings().guildId(), current));
     }
 
     private void notifyApplicant(ModalInteractionEvent event, ApplicationRecord application) {

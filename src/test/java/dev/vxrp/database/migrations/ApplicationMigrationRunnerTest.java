@@ -40,9 +40,10 @@ class ApplicationMigrationRunnerTest {
                 assertTrue(migrations.next());
                 assertEquals(1, migrations.getInt(1));
             }
-            try (var applications = statement.executeQuery("SELECT lifecycle_status FROM applications WHERE id = 'legacy'")) {
+            try (var applications = statement.executeQuery("SELECT lifecycle_status, review_thread_id FROM applications WHERE id = 'legacy'")) {
                 assertTrue(applications.next());
                 assertEquals(null, applications.getString(1));
+                assertEquals(null, applications.getString(2));
             }
             try (var tables = statement.executeQuery("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' "
                     + "AND name IN ('application_answers', 'application_votes', 'application_vote_events')")) {

@@ -7,7 +7,7 @@
 
 
 settings:
-  # The channel all new ticket creation will be sent to
+  # Ticket log and application review discussions. Keep this channel staff-only: threads on review messages inherit its access.
   ticket_log_channel: ""
   # The channel where the application message (active/not active) will be sent to
   application_message_channel: ""

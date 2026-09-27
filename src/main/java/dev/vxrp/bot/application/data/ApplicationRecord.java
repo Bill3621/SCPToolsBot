@@ -34,4 +34,5 @@ public record ApplicationRecord(
         String closeReason,
         String reviewChannelId,
         String reviewMessageId,
+        String reviewThreadId,
         int quorumRequired) {}

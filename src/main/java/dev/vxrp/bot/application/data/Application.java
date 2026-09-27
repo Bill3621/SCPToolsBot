@@ -34,15 +34,16 @@ public record Application(
         String closeReason,
         String reviewChannelId,
         String reviewMessageId,
+        String reviewThreadId,
         int quorumRequired) {
     public ApplicationRecord toRecord() {
         return new ApplicationRecord(id, roleId, issuer, handler, lifecycle, decision, createdAt, closedAt,
-                closedBy, closeReason, reviewChannelId, reviewMessageId, quorumRequired);
+                closedBy, closeReason, reviewChannelId, reviewMessageId, reviewThreadId, quorumRequired);
     }
 
     public static Application fromRecord(ApplicationRecord record) {
         return new Application(record.id(), record.roleId(), record.issuer(), record.handler(), record.lifecycle(),
                 record.decision(), record.createdAt(), record.closedAt(), record.closedBy(), record.closeReason(),
-                record.reviewChannelId(), record.reviewMessageId(), record.quorumRequired());
+                record.reviewChannelId(), record.reviewMessageId(), record.reviewThreadId(), record.quorumRequired());
     }
 }

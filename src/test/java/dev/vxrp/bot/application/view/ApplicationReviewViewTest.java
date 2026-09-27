@@ -22,6 +22,8 @@ import dev.vxrp.bot.application.data.ApplicationVote;
 import dev.vxrp.bot.application.enums.ApplicationVoteChoice;
 import dev.vxrp.bot.application.enums.ApplicationLifecycle;
 import dev.vxrp.bot.application.enums.ApplicationQueueFilter;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -41,7 +43,7 @@ class ApplicationReviewViewTest {
     void openReviewUsesComponentsV2WithoutLegacyContent() {
         var application = application("review-1");
         var message = ApplicationReviewView.openReview(application, "Supporter", List.of(),
-                new ApplicationTally(1, 0, 0, 3), "https://discord.com/channels/1/2");
+                new ApplicationTally(1, 0, 0, 3), "https://discord.com/channels/1/2", null);
 
         assertTrue(message.isUsingComponentsV2());
         assertEquals("", message.getContent());
@@ -53,11 +55,11 @@ class ApplicationReviewViewTest {
     void onlyPersonalReviewDisplaysTheCurrentVoter() {
         var application = application("review-1");
         var tally = new ApplicationTally(1, 0, 0, 3);
-        var publicReview = ApplicationReviewView.openReview(application, "Supporter", List.of(), tally, null);
+        var publicReview = ApplicationReviewView.openReview(application, "Supporter", List.of(), tally, null, null);
         var personalReview = ApplicationReviewView.personalReview(application, "Supporter", List.of(), tally,
-                new ApplicationVote(application.id(), "42", ApplicationVoteChoice.APPROVE, Instant.parse("2026-08-12T10:00:00Z")), null);
-        var notVotedReview = ApplicationReviewView.personalReview(application, "Supporter", List.of(), tally, null, null);
-        var lockedReview = ApplicationReviewView.lockedReview(application, "Supporter", List.of(), tally, List.of(), null);
+                new ApplicationVote(application.id(), "42", ApplicationVoteChoice.APPROVE, Instant.parse("2026-08-12T10:00:00Z")), null, null);
+        var notVotedReview = ApplicationReviewView.personalReview(application, "Supporter", List.of(), tally, null, null, null);
+        var lockedReview = ApplicationReviewView.lockedReview(application, "Supporter", List.of(), tally, List.of(), null, null);
         var closeConfirmation = ApplicationReviewView.closeConfirmation(application, tally, null);
 
         assertFalse(text(publicReview).contains("your vote"));
@@ -65,6 +67,31 @@ class ApplicationReviewViewTest {
         assertFalse(text(closeConfirmation).contains("your vote"));
         assertTrue(text(personalReview).contains("your vote: **APPROVE**"));
         assertTrue(text(notVotedReview).contains("your vote: **not cast**"));
+    }
+
+    @Test
+    void reviewShowsDiscussionLinkOnceThreadExists() {
+        var application = application("review-1");
+        var tally = new ApplicationTally(0, 0, 0, 3);
+        var pending = ApplicationReviewView.openReview(application, "Supporter", List.of(), tally, null, null);
+        assertEquals("application_review_discussion:review-1", buttons(pending).stream()
+                .filter(button -> "Start discussion".equals(button.getLabel())).findFirst().orElseThrow().getCustomId());
+
+        String discussionUrl = "https://discord.com/channels/1/30";
+        var canonical = ApplicationReviewView.openReview(application, "Supporter", List.of(), tally, null, discussionUrl);
+        var command = ApplicationReviewView.personalReview(application, "Supporter", List.of(), tally, null, null, discussionUrl);
+        var closed = ApplicationReviewView.lockedReview(application, "Supporter", List.of(), tally, List.of(), null, discussionUrl);
+        for (var message : List.of(canonical, command, closed)) {
+            assertEquals(discussionUrl, buttons(message).stream()
+                    .filter(button -> "Staff discussion".equals(button.getLabel())).findFirst().orElseThrow().getUrl());
+            assertFalse(buttons(message).stream().anyMatch(button -> "Start discussion".equals(button.getLabel())));
+        }
+        var withoutReviewMessage = new ApplicationRecord(application.id(), application.roleId(), application.issuer(),
+                application.handler(), application.lifecycle(), application.decision(), application.createdAt(),
+                application.closedAt(), application.closedBy(), application.closeReason(), application.reviewChannelId(),
+                null, null, application.quorumRequired());
+        assertFalse(buttons(ApplicationReviewView.openReview(withoutReviewMessage, "Supporter", List.of(), tally, null, null))
+                .stream().anyMatch(button -> "Start discussion".equals(button.getLabel())));
     }
 
     @Test
@@ -114,6 +141,15 @@ class ApplicationReviewViewTest {
         assertEquals("application_review_history:abc:3", ApplicationReviewView.historyId("abc", 3));
     }
 
+    private static List<Button> buttons(MessageCreateData message) {
+        return message.getComponents().getFirst().asContainer().getComponents().stream()
+                .filter(component -> component instanceof ActionRow)
+                .flatMap(component -> ((ActionRow) component).getComponents().stream())
+                .filter(component -> component instanceof Button)
+                .map(component -> (Button) component)
+                .toList();
+    }
+
     private static String text(MessageCreateData message) {
         return message.getComponents().getFirst().asContainer().getComponents().stream()
                 .filter(component -> component instanceof TextDisplay)
@@ -123,6 +159,6 @@ class ApplicationReviewViewTest {
 
     private static ApplicationRecord application(String id) {
         return new ApplicationRecord(id, "123", "456", null, ApplicationLifecycle.OPEN, null,
-                Instant.parse("2026-08-12T10:00:00Z"), null, null, null, "10", "20", 3);
+                Instant.parse("2026-08-12T10:00:00Z"), null, null, null, "10", "20", null, 3);
     }
 }

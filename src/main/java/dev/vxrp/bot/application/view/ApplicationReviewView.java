@@ -68,20 +68,18 @@ public final class ApplicationReviewView {
     }
 
     public static MessageCreateData openReview(ApplicationRecord application, String roleName,
-                                               List<ApplicationAnswer> answers, ApplicationTally tally, String ticketUrl) {
-        return createOpenReview(application, roleName, answers, tally, null, ticketUrl);
+                                               List<ApplicationAnswer> answers, ApplicationTally tally, String ticketUrl, String discussionUrl) {
+        return createOpenReview(application, roleName, answers, tally, null, ticketUrl, discussionUrl);
     }
 
-    public static MessageCreateData personalReview(ApplicationRecord application, String roleName,
-                                                   List<ApplicationAnswer> answers, ApplicationTally tally,
-                                                   ApplicationVote currentVote, String ticketUrl) {
+    public static MessageCreateData personalReview(ApplicationRecord application, String roleName, List<ApplicationAnswer> answers,
+                                                   ApplicationTally tally, ApplicationVote currentVote, String ticketUrl, String discussionUrl) {
         String vote = currentVote == null ? "not cast" : currentVote.choice().name();
-        return createOpenReview(application, roleName, answers, tally, vote, ticketUrl);
+        return createOpenReview(application, roleName, answers, tally, vote, ticketUrl, discussionUrl);
     }
 
-    private static MessageCreateData createOpenReview(ApplicationRecord application, String roleName,
-                                                      List<ApplicationAnswer> answers, ApplicationTally tally,
-                                                      String personalVote, String ticketUrl) {
+    private static MessageCreateData createOpenReview(ApplicationRecord application, String roleName, List<ApplicationAnswer> answers,
+                                                      ApplicationTally tally, String personalVote, String ticketUrl, String discussionUrl) {
         requireApplication(application);
         ApplicationTally effectiveTally = effectiveTally(application, tally);
         List<ContainerChildComponent> content = reviewHeader(application, roleName, "Open review");
@@ -91,23 +89,22 @@ public final class ApplicationReviewView {
         content.add(TextDisplay.of(tallyText(effectiveTally)
                 + (personalVote == null ? "" : " · your vote: **" + personalVote + "**")));
         content.add(ActionRow.of(voteMenu(application.id())));
-        content.add(ActionRow.of(openActions(application.id(), ticketUrl)));
+        content.add(ActionRow.of(openActions(application, ticketUrl, discussionUrl)));
         return ApplicationView.message(content, null);
     }
 
     public static MessageCreateData renderOpenReview(ApplicationRecord application, String roleName,
-                                                      List<ApplicationAnswer> answers, ApplicationTally tally, String ticketUrl) {
-        return openReview(application, roleName, answers, tally, ticketUrl);
+                                                      List<ApplicationAnswer> answers, ApplicationTally tally, String ticketUrl, String discussionUrl) {
+        return openReview(application, roleName, answers, tally, ticketUrl, discussionUrl);
     }
 
     public static MessageEditData editOpenReview(ApplicationRecord application, String roleName,
-                                                 List<ApplicationAnswer> answers, ApplicationTally tally, String ticketUrl) {
-        return MessageEditBuilder.fromCreateData(openReview(application, roleName, answers, tally, ticketUrl)).build();
+                                                 List<ApplicationAnswer> answers, ApplicationTally tally, String ticketUrl, String discussionUrl) {
+        return MessageEditBuilder.fromCreateData(openReview(application, roleName, answers, tally, ticketUrl, discussionUrl)).build();
     }
 
-    public static MessageCreateData lockedReview(ApplicationRecord application, String roleName,
-                                                  List<ApplicationAnswer> answers, ApplicationTally tally,
-                                                  List<ApplicationVoteEvent> history, String ticketUrl) {
+    public static MessageCreateData lockedReview(ApplicationRecord application, String roleName, List<ApplicationAnswer> answers,
+                                                  ApplicationTally tally, List<ApplicationVoteEvent> history, String ticketUrl, String discussionUrl) {
         requireApplication(application);
         ApplicationTally effectiveTally = effectiveTally(application, tally);
         List<ContainerChildComponent> content = reviewHeader(application, roleName, "Locked review");
@@ -121,20 +118,18 @@ public final class ApplicationReviewView {
         content.add(TextDisplay.of("**Close reason**\n" + ApplicationView.quote(application.closeReason())));
         content.add(Separator.createDivider(Separator.Spacing.SMALL));
         content.add(TextDisplay.of(historySummary(history)));
-        content.add(ActionRow.of(lockedActions(application.id(), ticketUrl)));
+        content.add(ActionRow.of(lockedActions(application, ticketUrl, discussionUrl)));
         return ApplicationView.message(content, application.decision() == ApplicationDecision.DENIED ? 0xE74D3C : null);
     }
 
-    public static MessageCreateData renderLockedReview(ApplicationRecord application, String roleName,
-                                                        List<ApplicationAnswer> answers, ApplicationTally tally,
-                                                        List<ApplicationVoteEvent> history, String ticketUrl) {
-        return lockedReview(application, roleName, answers, tally, history, ticketUrl);
+    public static MessageCreateData renderLockedReview(ApplicationRecord application, String roleName, List<ApplicationAnswer> answers,
+                                                        ApplicationTally tally, List<ApplicationVoteEvent> history, String ticketUrl, String discussionUrl) {
+        return lockedReview(application, roleName, answers, tally, history, ticketUrl, discussionUrl);
     }
 
-    public static MessageEditData editLockedReview(ApplicationRecord application, String roleName,
-                                                    List<ApplicationAnswer> answers, ApplicationTally tally,
-                                                    List<ApplicationVoteEvent> history, String ticketUrl) {
-        return MessageEditBuilder.fromCreateData(lockedReview(application, roleName, answers, tally, history, ticketUrl)).build();
+    public static MessageEditData editLockedReview(ApplicationRecord application, String roleName, List<ApplicationAnswer> answers,
+                                                    ApplicationTally tally, List<ApplicationVoteEvent> history, String ticketUrl, String discussionUrl) {
+        return MessageEditBuilder.fromCreateData(lockedReview(application, roleName, answers, tally, history, ticketUrl, discussionUrl)).build();
     }
 
     public static MessageCreateData queue(String requesterId, ApplicationQueueFilter filter, int page,
@@ -280,6 +275,10 @@ public final class ApplicationReviewView {
                 + effectiveFilter(filter) + ":" + Math.max(0, page);
     }
 
+    public static String discussionUrl(String guildId, ApplicationRecord application) {
+        return ApplicationView.ticketUrl(guildId, application.reviewThreadId());
+    }
+
     public static String voteId(String applicationId) {
         return "application_review_vote:" + ApplicationView.text(applicationId, "unknown");
     }
@@ -400,25 +399,37 @@ public final class ApplicationReviewView {
         return buttons.toArray(Button[]::new);
     }
 
-    private static List<net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent> openActions(String id,
-                                                                                                      String ticketUrl) {
+    private static List<net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent> openActions(ApplicationRecord application,
+                                                                                                      String ticketUrl, String discussionUrl) {
         List<net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent> actions = new ArrayList<>();
         if (ticketUrl != null && ticketUrl.startsWith("http")) {
             actions.add(Button.link(ticketUrl, "Open ticket"));
         }
-        actions.add(Button.danger(closeId(id), "Close review"));
-        actions.add(Button.secondary(historyId(id, 0), "Vote history"));
+        addDiscussionAction(actions, application, discussionUrl);
+        actions.add(Button.danger(closeId(application.id()), "Close review"));
+        actions.add(Button.secondary(historyId(application.id(), 0), "Vote history"));
         return actions;
     }
 
-    private static List<net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent> lockedActions(String id,
-                                                                                                        String ticketUrl) {
+    private static List<net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent> lockedActions(ApplicationRecord application,
+                                                                                                        String ticketUrl, String discussionUrl) {
         List<net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent> actions = new ArrayList<>();
         if (ticketUrl != null && ticketUrl.startsWith("http")) {
             actions.add(Button.link(ticketUrl, "Open ticket"));
         }
-        actions.add(Button.secondary(historyId(id, 0), "Vote history"));
+        addDiscussionAction(actions, application, discussionUrl);
+        actions.add(Button.secondary(historyId(application.id(), 0), "Vote history"));
         return actions;
+    }
+
+    private static void addDiscussionAction(List<net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent> actions,
+                                            ApplicationRecord application, String discussionUrl) {
+        if (discussionUrl != null) {
+            actions.add(Button.link(discussionUrl, "Staff discussion"));
+        } else if (application.reviewThreadId() == null && application.reviewChannelId() != null
+                && application.reviewMessageId() != null) {
+            actions.add(Button.secondary("application_review_discussion:" + application.id(), "Start discussion"));
+        }
     }
 
     private static StringSelectMenu voteMenu(String id) {

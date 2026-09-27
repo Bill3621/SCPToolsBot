@@ -20,6 +20,7 @@ import dev.vxrp.bot.application.data.ApplicationAnswer;
 import dev.vxrp.bot.application.data.ApplicationRecord;
 import dev.vxrp.bot.application.enums.ApplicationLifecycle;
 import dev.vxrp.bot.application.handler.ApplicationMessageHandler;
+import dev.vxrp.bot.application.review.ApplicationReviewInteractions;
 import dev.vxrp.bot.application.view.ApplicationView;
 import dev.vxrp.bot.modals.TicketTemplateModals;
 import dev.vxrp.bot.ticket.data.ApplicationQuestion;
@@ -253,10 +254,10 @@ public final class ApplicationSubmissionService {
             var openApplication = new ApplicationRecord(application.id(), application.roleId(), application.issuer(),
                     application.handler(), ApplicationLifecycle.OPEN, application.decision(), application.createdAt(),
                     application.closedAt(), application.closedBy(), application.closeReason(), reviewChannel.getId(),
-                    null, application.quorumRequired());
+                    null, null, application.quorumRequired());
             reviewChannel.sendMessage(messages.openReview(openApplication, roleName, answers,
                     new ApplicationVoteTable().tally(application.id(), application.quorumRequired()),
-                    ApplicationView.ticketUrl(config.settings().guildId(), application.id())))
+                    ApplicationView.ticketUrl(config.settings().guildId(), application.id()), null))
                     .queue(reviewMessage -> finish(event, roleId, thread, rootMessage, reviewMessage),
                             exception -> submissionFailed(event, roleId, thread.getId(), thread, null, exception));
         }, exception -> submissionFailed(event, roleId, thread.getId(), thread, null, exception));
@@ -283,6 +284,26 @@ public final class ApplicationSubmissionService {
                 "Your application was created in " + thread.getAsMention() + ".", true))
                 .setEphemeral(true).queue();
         logger.info("Created application {} for role {} by user {}", thread.getId(), roleId, event.getUser().getId());
+        try {
+            reviewMessage.createThreadChannel("Application " + thread.getId() + " staff discussion")
+                    .queue(discussion -> {
+                        try {
+                            if (!new ApplicationTable().setReviewThreadId(thread.getId(), reviewMessage.getId(), discussion.getId())) {
+                                logger.warn("Could not associate discussion thread with application {}", thread.getId());
+                                return;
+                            }
+                            new ApplicationReviewInteractions(config, translation).refreshCanonical(event.getJDA(), thread.getId());
+                        } catch (RuntimeException exception) {
+                            logger.error("Could not save discussion thread for application {}", thread.getId(), exception);
+                        }
+                    }, exception -> {
+                        logger.error("Could not create discussion thread for application {}", thread.getId(), exception);
+                        new ApplicationReviewInteractions(config, translation).refreshCanonical(event.getJDA(), thread.getId());
+                    });
+        } catch (RuntimeException exception) {
+            logger.error("Could not start discussion thread for application {}", thread.getId(), exception);
+            new ApplicationReviewInteractions(config, translation).refreshCanonical(event.getJDA(), thread.getId());
+        }
     }
 
     private void notifyParticipants(ModalInteractionEvent event, TicketTypes settings, ThreadChannel thread) {

@@ -53,6 +53,7 @@ public final class ApplicationMigrationRunner {
         addColumnIfAbsent(connection, "applications", "close_reason", "TEXT");
         addColumnIfAbsent(connection, "applications", "review_channel_id", "VARCHAR(255)");
         addColumnIfAbsent(connection, "applications", "review_message_id", "VARCHAR(255)");
+        addColumnIfAbsent(connection, "applications", "review_thread_id", "VARCHAR(255)");
         addColumnIfAbsent(connection, "applications", "quorum_required", "INTEGER");
     }
 

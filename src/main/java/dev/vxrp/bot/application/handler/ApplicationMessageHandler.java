@@ -207,30 +207,30 @@ public class ApplicationMessageHandler {
     }
 
     public MessageCreateData openReview(ApplicationRecord application, String roleName, List<ApplicationAnswer> answers,
-                                        ApplicationTally tally, String ticketUrl) {
-        return ApplicationReviewView.openReview(application, roleName, answers, tally, ticketUrl);
+                                        ApplicationTally tally, String ticketUrl, String discussionUrl) {
+        return ApplicationReviewView.openReview(application, roleName, answers, tally, ticketUrl, discussionUrl);
     }
 
     public MessageCreateData personalReview(ApplicationRecord application, String roleName, List<ApplicationAnswer> answers,
-                                            ApplicationTally tally, ApplicationVote currentVote, String ticketUrl) {
-        return ApplicationReviewView.personalReview(application, roleName, answers, tally, currentVote, ticketUrl);
+                                            ApplicationTally tally, ApplicationVote currentVote, String ticketUrl, String discussionUrl) {
+        return ApplicationReviewView.personalReview(application, roleName, answers, tally, currentVote, ticketUrl, discussionUrl);
     }
 
     public MessageCreateData lockedReview(ApplicationRecord application, String roleName, List<ApplicationAnswer> answers,
-                                           ApplicationTally tally, List<ApplicationVoteEvent> history, String ticketUrl) {
-        return ApplicationReviewView.lockedReview(application, roleName, answers, tally, history, ticketUrl);
+                                          ApplicationTally tally, List<ApplicationVoteEvent> history, String ticketUrl, String discussionUrl) {
+        return ApplicationReviewView.lockedReview(application, roleName, answers, tally, history, ticketUrl, discussionUrl);
     }
 
     public void editReviewMessage(TextChannel channel, String messageId, ApplicationRecord application,
                                   String roleName, List<ApplicationAnswer> answers, ApplicationTally tally,
-                                  List<ApplicationVoteEvent> history, String ticketUrl) {
+                                  List<ApplicationVoteEvent> history, String ticketUrl, String discussionUrl) {
         if (application.lifecycle() == dev.vxrp.bot.application.enums.ApplicationLifecycle.CLOSED) {
             channel.editMessageById(messageId, ApplicationReviewView.editLockedReview(application, roleName, answers,
-                    tally, history, ticketUrl)).queue();
+                    tally, history, ticketUrl, discussionUrl)).queue();
             return;
         }
         channel.editMessageById(messageId, ApplicationReviewView.editOpenReview(application, roleName, answers,
-                tally, ticketUrl)).queue();
+                tally, ticketUrl, discussionUrl)).queue();
     }
 
     public MessageCreateData applicationQueue(String requesterId, ApplicationQueueFilter filter, int page, int pageSize,

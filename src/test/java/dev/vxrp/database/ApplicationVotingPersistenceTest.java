@@ -69,6 +69,8 @@ class ApplicationVotingPersistenceTest {
 
         applications.createProvisioning("application-1", "role-1", "applicant-1", null, 3, answers);
         applications.markOpen("application-1", "review-channel", "review-message");
+        assertTrue(applications.setReviewThreadId("application-1", "review-message", "discussion-thread"));
+        assertFalse(applications.setReviewThreadId("application-1", "other-message", "other-thread"));
 
         votes.set("application-1", "staff-1", ApplicationVoteChoice.APPROVE);
         votes.set("application-1", "staff-1", ApplicationVoteChoice.DENY);
@@ -92,6 +94,7 @@ class ApplicationVotingPersistenceTest {
         assertEquals(ApplicationDecision.DENIED, closed.decision());
         assertEquals("senior-1", closed.closedBy());
         assertEquals("Not ready", closed.closeReason());
+        assertEquals("discussion-thread", closed.reviewThreadId());
     }
 
     @Test
