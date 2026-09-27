@@ -19,16 +19,24 @@ package dev.vxrp.bot.application.review;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import dev.vxrp.bot.application.data.ApplicationRecord;
 import dev.vxrp.bot.application.enums.ApplicationDecision;
+import dev.vxrp.bot.application.enums.ApplicationLifecycle;
 import dev.vxrp.bot.application.enums.ApplicationVoteChoice;
 import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.configuration.data.TranslationApplicationReview;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
+import net.dv8tion.jda.api.managers.channel.concrete.ThreadChannelManager;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Proxy;
+import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ApplicationReviewInteractionsTest {
     @Test
@@ -77,6 +85,50 @@ class ApplicationReviewInteractionsTest {
 
         assertEquals("Application closed as approved.",
                 ApplicationReviewInteractions.closeSuccess(review, ApplicationDecision.APPROVED));
+    }
+
+    @Test
+    void closingApplicationLocksAndArchivesTicketAndStaffDiscussion() {
+        var states = new HashMap<String, ThreadState>();
+        states.put("ticket", new ThreadState());
+        states.put("discussion", new ThreadState());
+        var api = (JDA) Proxy.newProxyInstance(JDA.class.getClassLoader(), new Class<?>[]{JDA.class},
+                (proxy, method, args) -> "getThreadChannelById".equals(method.getName())
+                        ? thread(states.get(args[0])) : null);
+        var application = new ApplicationRecord("ticket", "role", "applicant", null, ApplicationLifecycle.CLOSED,
+                ApplicationDecision.APPROVED, null, null, null, null, null, null, "discussion", 1);
+
+        ApplicationReviewInteractions.archiveThreads(api, application);
+
+        for (var entry : states.entrySet()) {
+            assertTrue(entry.getValue().locked, entry.getKey() + " should be locked");
+            assertTrue(entry.getValue().archived, entry.getKey() + " should be archived");
+            assertTrue(entry.getValue().queued, entry.getKey() + " should be queued");
+        }
+    }
+
+    private static ThreadChannel thread(ThreadState state) {
+        if (state == null) {
+            return null;
+        }
+        var manager = (ThreadChannelManager) Proxy.newProxyInstance(ThreadChannelManager.class.getClassLoader(),
+                new Class<?>[]{ThreadChannelManager.class}, (proxy, method, args) -> {
+                    switch (method.getName()) {
+                        case "setLocked" -> state.locked = (boolean) args[0];
+                        case "setArchived" -> state.archived = (boolean) args[0];
+                        case "queue" -> state.queued = true;
+                    }
+                    return method.getReturnType() == void.class ? null : proxy;
+                });
+        return (ThreadChannel) Proxy.newProxyInstance(ThreadChannel.class.getClassLoader(),
+                new Class<?>[]{ThreadChannel.class}, (proxy, method, args) ->
+                        "getManager".equals(method.getName()) ? manager : null);
+    }
+
+    private static final class ThreadState {
+        boolean locked;
+        boolean archived;
+        boolean queued;
     }
 
     private static TranslationApplicationReview reviewTranslation(String locale) throws IOException {

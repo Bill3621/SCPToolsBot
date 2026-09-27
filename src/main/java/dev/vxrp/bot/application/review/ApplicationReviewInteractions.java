@@ -36,6 +36,7 @@ import dev.vxrp.database.tables.database.ApplicationTable;
 import dev.vxrp.database.tables.database.ApplicationTypeTable;
 import dev.vxrp.database.tables.database.ApplicationVoteTable;
 import dev.vxrp.database.tables.database.TicketTable;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -176,14 +177,25 @@ public final class ApplicationReviewInteractions {
         ApplicationRecord locked = applications.retrieveById(applicationId).orElseThrow();
         refreshCanonical(event.getJDA(), locked.id());
         new ApplicationMessageHandler(config, translation).refreshPublicPanel(event.getJDA());
-        var thread = event.getJDA().getThreadChannelById(applicationId);
-        if (thread != null) {
-            thread.getManager().setLocked(true).setArchived(true).queue();
-        }
+        archiveThreads(event.getJDA(), locked);
         notifyApplicant(event, locked);
         event.reply(feedback(true, closeSuccess(translation.applicationReview(), locked.decision())))
                 .setEphemeral(true).queue();
         return true;
+    }
+
+    static void archiveThreads(JDA api, ApplicationRecord application) {
+        archiveThread(api, application.id());
+        if (application.reviewThreadId() != null) {
+            archiveThread(api, application.reviewThreadId());
+        }
+    }
+
+    private static void archiveThread(JDA api, String id) {
+        var thread = api.getThreadChannelById(id);
+        if (thread != null) {
+            thread.getManager().setLocked(true).setArchived(true).queue();
+        }
     }
 
     public boolean canReview(Member member) {
