@@ -66,28 +66,30 @@ public final class ApplicationView {
         return message(content, 0xE74D3C);
     }
 
-    public static MessageCreateData publicPanel(String title, String body, Collection<ApplicationType> types,
-                                                Map<String, Long> candidateCounts, boolean active, Translation translation) {
+    public static MessageCreateData publicPanel(String title, String body, Collection<ApplicationType> types, Map<String, Long> openCounts,
+                                                Map<String, Long> approvedCounts, boolean active, Translation translation) {
         List<ContainerChildComponent> content = new ArrayList<>();
         content.add(TextDisplay.of("## " + text(title, "Applications") + "\n" + text(body, "Choose a position to apply.")));
         List<ApplicationType> positions = types == null ? List.of() : types.stream()
                 .filter(type -> type != null && type.roleId() != null && !type.roleId().isBlank())
                 .sorted(Comparator.comparingInt(ApplicationType::pos)).toList();
-        Map<String, Long> counts = candidateCounts == null ? Map.of() : candidateCounts;
+        Map<String, Long> pending = openCounts == null ? Map.of() : openCounts;
+        Map<String, Long> accepted = approvedCounts == null ? Map.of() : approvedCounts;
         if (positions.isEmpty()) {
             content.add(TextDisplay.of("No positions configured."));
         } else if (positions.size() > 12) {
             StringBuilder summary = new StringBuilder("### Positions");
             for (ApplicationType type : positions) {
-                long count = Math.max(0, counts.getOrDefault(type.roleId(), 0L));
-                summary.append("\n").append(isOpen(type, count, active) ? "🟢 " : "⚫ ")
+                long acceptedCount = count(accepted, type.roleId());
+                long candidateCount = count(pending, type.roleId()) + acceptedCount;
+                summary.append("\n").append(isOpen(type, acceptedCount, active) ? "🟢 " : "⚫ ")
                         .append("**").append(text(type.name(), type.roleId())).append("** · ")
-                        .append(candidateText(count, translation));
+                        .append(candidateText(candidateCount, translation));
             }
             content.add(Separator.createDivider(Separator.Spacing.SMALL));
             content.add(TextDisplay.of(summary.toString()));
             if (active && positions.stream().anyMatch(type -> isOpen(type,
-                    Math.max(0, counts.getOrDefault(type.roleId(), 0L)), active))) {
+                    count(accepted, type.roleId()), active))) {
                 content.add(ActionRow.of(Button.success("application_open",
                         text(translation.buttons().textApplicationOpenTickets(), "Open application"))));
             }
@@ -99,11 +101,11 @@ public final class ApplicationView {
                 if (positions.size() <= 9) {
                     content.add(Separator.createDivider(Separator.Spacing.SMALL));
                 }
-                long count = Math.max(0, counts.getOrDefault(type.roleId(), 0L));
-                boolean open = isOpen(type, count, active);
+                long acceptedCount = count(accepted, type.roleId());
+                boolean open = isOpen(type, acceptedCount, active);
                 String description = text(type.description(), "Application position").replace("\n", "\n> ");
                 String summary = "**" + (open ? "🟢 " : "⚫ ") + text(type.name(), type.roleId())
-                        + "**\n> " + description + "\n" + candidateText(count, translation);
+                        + "**\n> " + description + "\n" + candidateText(count(pending, type.roleId()) + acceptedCount, translation);
                 Button button = Button.success("application_apply:" + type.roleId(),
                         text(translation.application().textApply(), "Apply"));
                 if (!open) {
@@ -248,8 +250,13 @@ public final class ApplicationView {
         return List.of(add, remove, complete);
     }
 
-    private static boolean isOpen(ApplicationType type, long count, boolean active) {
-        return active && type.state() && count < type.member();
+    private static long count(Map<String, Long> counts, String roleId) {
+        return Math.max(0, counts.getOrDefault(roleId, 0L));
+    }
+
+    /** Pending applications count as candidates, but only accepted ones fill a position. */
+    private static boolean isOpen(ApplicationType type, long acceptedCount, boolean active) {
+        return active && type.state() && acceptedCount < type.member();
     }
 
     private static String candidateText(long count, Translation translation) {

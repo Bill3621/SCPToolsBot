@@ -165,7 +165,7 @@ public class ApplicationMessageHandler {
         var questions = config.ticket().questionsForRole(roleId);
         var type = new ApplicationTypeTable().query(roleId);
         if (questions == null || type == null || !type.active
-                || type.members != null && new ApplicationTable().retrieveOpenCount(roleId) >= type.members) {
+                || type.members != null && new ApplicationTable().retrieveApprovedCount(roleId) >= type.members) {
             return null;
         }
         return new TicketTemplateModals(translation).supportApplicationModal(roleId, questions);
@@ -263,20 +263,22 @@ public class ApplicationMessageHandler {
     }
 
     private MessageCreateData publicPanelPayload(boolean active, Collection<ApplicationType> types) {
-        Map<String, Long> counts = new HashMap<>();
+        Map<String, Long> openCounts = new HashMap<>();
+        Map<String, Long> approvedCounts = new HashMap<>();
         var applications = new ApplicationTable();
         for (ApplicationType type : types) {
             if (type.roleId() != null && !type.roleId().isBlank()) {
-                counts.put(type.roleId(), applications.retrieveOpenCount(type.roleId()));
+                openCounts.put(type.roleId(), applications.retrieveOpenCount(type.roleId()));
+                approvedCounts.put(type.roleId(), applications.retrieveApprovedCount(type.roleId()));
             }
         }
         boolean hasOpenPosition = active && types.stream().anyMatch(type -> type.state()
-                && counts.getOrDefault(type.roleId(), 0L) < type.member());
+                && approvedCounts.getOrDefault(type.roleId(), 0L) < type.member());
         String body = hasOpenPosition ? translation.application().embedApplicationMessageBody()
                 : translation.application().textNoOpenPositions();
         return ApplicationView.publicPanel(
                 parse(translation.application().embedApplicationMessageTitle()),
-                parse(body), types, counts, active, translation);
+                parse(body), types, openCounts, approvedCounts, active, translation);
     }
 
     private void createRoleString(boolean useBaseValue) {

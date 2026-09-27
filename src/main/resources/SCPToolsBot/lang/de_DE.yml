@@ -674,6 +674,7 @@ APPLICATION_REVIEW:
   TEXT_DECISION_APPROVED: "angenommen"
   TEXT_DECISION_DENIED: "abgelehnt"
   TEXT_CLOSE_ALREADY_CLOSED: "Diese Bewerbung ist bereits geschlossen."
+  TEXT_CLOSE_LIMIT_REACHED: "Das Limit für angenommene Bewerbungen dieser Position ist erreicht."
 
   TEXT_HISTORY_TITLE: "Abstimmungsverlauf"
   TEXT_HISTORY_EMPTY: "Kein Abstimmungsverlauf verfügbar."

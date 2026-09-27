@@ -673,6 +673,7 @@ APPLICATION_REVIEW:
   TEXT_DECISION_APPROVED: "approved"
   TEXT_DECISION_DENIED: "denied"
   TEXT_CLOSE_ALREADY_CLOSED: "This application is already closed."
+  TEXT_CLOSE_LIMIT_REACHED: "This position has reached its accepted candidate limit."
 
   TEXT_HISTORY_TITLE: "Vote history"
   TEXT_HISTORY_EMPTY: "No vote history is available."

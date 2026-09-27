@@ -112,6 +112,44 @@ class ApplicationVotingPersistenceTest {
     }
 
     @Test
+    void approvedCountIgnoresPendingAndDeniedApplications() {
+        var applications = new ApplicationTable();
+        applications.createProvisioning("pending", "role-1", "applicant-1", null, 3, List.of());
+        applications.createProvisioning("denied", "role-1", "applicant-2", null, 3, List.of());
+        applications.markOpen("pending", "review-channel", "review-message-1");
+        applications.markOpen("denied", "review-channel", "review-message-2");
+        assertEquals(0, applications.retrieveApprovedCount("role-1"));
+
+        applications.closeIfOpen("denied", ApplicationDecision.DENIED, "senior-1", "Not ready");
+        assertEquals(0, applications.retrieveApprovedCount("role-1"));
+        applications.closeIfOpen("pending", ApplicationDecision.APPROVED, "senior-1", "Ready");
+        assertEquals(1, applications.retrieveApprovedCount("role-1"));
+        assertEquals(0, applications.retrieveApprovedCount("role-2"));
+    }
+
+    @Test
+    void approvalCannotExceedAcceptedCandidateLimit() {
+        var applications = new ApplicationTable();
+        applications.createProvisioning("first", "role-1", "applicant-1", null, 3, List.of());
+        applications.createProvisioning("second", "role-1", "applicant-2", null, 3, List.of());
+        applications.markOpen("first", "review-channel", "review-message-1");
+        applications.markOpen("second", "review-channel", "review-message-2");
+
+        var first = applications.retrieveById("first").orElseThrow();
+        var second = applications.retrieveById("second").orElseThrow();
+        assertEquals(ApplicationTable.CloseOutcome.CLOSED, DatabaseManager.transaction(connection ->
+                applications.closeWithinLimit(connection, first, 1, ApplicationDecision.APPROVED, "senior-1", "Ready")));
+        assertEquals(ApplicationTable.CloseOutcome.LIMIT_REACHED, DatabaseManager.transaction(connection ->
+                applications.closeWithinLimit(connection, second, 1, ApplicationDecision.APPROVED, "senior-1", "Ready")));
+        assertEquals(ApplicationTable.CloseOutcome.ALREADY_CLOSED, DatabaseManager.transaction(connection ->
+                applications.closeWithinLimit(connection, first, 1, ApplicationDecision.APPROVED, "senior-1", "Again")));
+        assertEquals(ApplicationLifecycle.OPEN, applications.retrieveById("second").orElseThrow().lifecycle());
+        assertEquals(ApplicationTable.CloseOutcome.CLOSED, DatabaseManager.transaction(connection ->
+                applications.closeWithinLimit(connection, second, 1, ApplicationDecision.DENIED, "senior-1", "Not selected")));
+        assertEquals(1, applications.retrieveApprovedCount("role-1"));
+    }
+
+    @Test
     void legacyOpenApplicationsCanCloseButClosedTicketsCannot() throws Exception {
         try (var statement = connection.createStatement()) {
             statement.executeUpdate("INSERT INTO applications (id, roleId, state, result, issuer) VALUES "
@@ -124,6 +162,15 @@ class ApplicationVotingPersistenceTest {
         assertEquals(ApplicationLifecycle.CLOSED, applications.retrieveById("legacy-open").orElseThrow().lifecycle());
         assertFalse(applications.closeIfOpen("legacy-open", ApplicationDecision.DENIED, "senior-2", "Duplicate"));
         assertFalse(applications.closeIfOpen("legacy-closed", ApplicationDecision.APPROVED, "senior-1", "Already closed"));
+    }
+
+    @Test
+    void approvedCountIncludesLegacyAcceptedApplications() throws Exception {
+        try (var statement = connection.createStatement()) {
+            statement.executeUpdate("INSERT INTO applications (id, roleId, state, result, issuer) "
+                    + "VALUES ('legacy-approved', 'role-1', 0, 1, 'user-1')");
+        }
+        assertEquals(1, new ApplicationTable().retrieveApprovedCount("role-1"));
     }
 
     @Test

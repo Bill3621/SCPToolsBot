@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class ApplicationTable {
+    public enum CloseOutcome { CLOSED, ALREADY_CLOSED, LIMIT_REACHED }
+
     private static final int DEFAULT_QUORUM = 3;
     private static final Duration DEFAULT_PROVISIONING_TIMEOUT = Duration.ofMinutes(30);
 
@@ -220,6 +222,26 @@ public class ApplicationTable {
         }
     }
 
+    public long retrieveApprovedCount(String roleId) {
+        try {
+            return retrieveApprovedCount(DatabaseManager.getConnection(), roleId);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private long retrieveApprovedCount(Connection connection, String roleId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT COUNT(*) FROM applications WHERE roleId = ? AND (decision = ? OR (decision IS NULL AND result = ?))")) {
+            statement.setString(1, roleId);
+            statement.setString(2, ApplicationDecision.APPROVED.name());
+            statement.setBoolean(3, true);
+            try (ResultSet results = statement.executeQuery()) {
+                return results.next() ? results.getLong(1) : 0L;
+            }
+        }
+    }
+
     public long retrieveSerial(String roleId) {
         return retrieveOpenCount(roleId);
     }
@@ -242,6 +264,18 @@ public class ApplicationTable {
             statement.setString(2, id);
             statement.executeUpdate();
         }
+    }
+
+    /** Call within DatabaseManager.transaction to keep approval and the capacity check together. */
+    public CloseOutcome closeWithinLimit(Connection connection, ApplicationRecord application, Integer limit,
+                                        ApplicationDecision decision, String closedBy, String reason) throws SQLException {
+        if (decision == ApplicationDecision.APPROVED && limit != null
+                && retrieveApprovedCount(connection, application.roleId()) >= limit) {
+            return retrieveById(application.id()).filter(record -> record.lifecycle() == ApplicationLifecycle.OPEN).isPresent()
+                    ? CloseOutcome.LIMIT_REACHED : CloseOutcome.ALREADY_CLOSED;
+        }
+        return closeIfOpen(connection, application.id(), decision, closedBy, reason, Instant.now())
+                ? CloseOutcome.CLOSED : CloseOutcome.ALREADY_CLOSED;
     }
 
     public boolean closeIfOpen(String id, ApplicationDecision decision, String closedBy, String reason) {

@@ -16,6 +16,7 @@
 
 package dev.vxrp.bot;
 
+import dev.vxrp.bot.application.handler.ApplicationMessageHandler;
 import dev.vxrp.bot.commands.CommandManager;
 import dev.vxrp.bot.commands.listeners.CommandListener;
 import dev.vxrp.bot.events.ButtonListener;
@@ -32,6 +33,8 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Activity.ActivityType;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
@@ -56,9 +59,15 @@ public class BotManager {
         ActivityType activityType = resolveActivityType(config.settings().activityType());
         Activity activity = Activity.of(activityType, config.settings().activityContent());
 
+        EventListener refreshApplicationPanel = event -> {
+            if (event instanceof ReadyEvent ready) {
+                new ApplicationMessageHandler(config, translation).refreshPublicPanel(ready.getJDA());
+            }
+        };
         JDA api = JDABuilder.createLight(config.settings().token(), intents)
                 .disableCache(CacheFlag.VOICE_STATE, CacheFlag.EMOJI, CacheFlag.STICKER, CacheFlag.SCHEDULED_EVENTS)
                 .setActivity(activity)
+                .addEventListeners(refreshApplicationPanel)
                 .build();
 
         api.addEventListener(new CommandListener(api, config, translation));

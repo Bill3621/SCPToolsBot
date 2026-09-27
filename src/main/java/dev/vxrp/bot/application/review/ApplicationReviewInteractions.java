@@ -33,6 +33,7 @@ import dev.vxrp.configuration.data.TranslationApplicationReview;
 import dev.vxrp.database.DatabaseManager;
 import dev.vxrp.database.tables.database.ApplicationAnswerTable;
 import dev.vxrp.database.tables.database.ApplicationTable;
+import dev.vxrp.database.tables.database.ApplicationTypeTable;
 import dev.vxrp.database.tables.database.ApplicationVoteTable;
 import dev.vxrp.database.tables.database.TicketTable;
 import net.dv8tion.jda.api.entities.Member;
@@ -148,16 +149,29 @@ public final class ApplicationReviewInteractions {
             return true;
         }
 
-        boolean closed = DatabaseManager.transaction(connection -> {
-            boolean updated = applications.closeIfOpen(connection, applicationId, decision,
-                    event.getUser().getId(), reason, java.time.Instant.now());
-            if (updated) {
+        var outcome = DatabaseManager.transaction(connection -> {
+            Integer limit = null;
+            if (decision == ApplicationDecision.APPROVED) {
+                var type = new ApplicationTypeTable().query(application.roleId());
+                limit = type != null && type.active ? type.members : null;
+            }
+            var result = applications.closeWithinLimit(connection, application, limit, decision,
+                    event.getUser().getId(), reason);
+            if (result == ApplicationTable.CloseOutcome.CLOSED) {
                 new TicketTable().updateTicketStatus(connection, applicationId, TicketStatus.CLOSED);
             }
-            return updated;
+            return result;
         });
-        if (!closed) {
-            event.reply(feedback(false, translation.applicationReview().textCloseAlreadyClosed())).setEphemeral(true).queue();
+        if (outcome != ApplicationTable.CloseOutcome.CLOSED) {
+            String body = outcome == ApplicationTable.CloseOutcome.LIMIT_REACHED
+                    ? translation.applicationReview().textCloseLimitReached()
+                    : translation.applicationReview().textCloseAlreadyClosed();
+            if (body == null || body.isBlank()) {
+                body = outcome == ApplicationTable.CloseOutcome.LIMIT_REACHED
+                        ? "This position has reached its accepted candidate limit."
+                        : "This application is already closed.";
+            }
+            event.reply(feedback(false, body)).setEphemeral(true).queue();
             return true;
         }
 

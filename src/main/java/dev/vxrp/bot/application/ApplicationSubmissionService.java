@@ -57,7 +57,6 @@ import java.util.Set;
 
 /** Creates application tickets and their durable canonical review records. */
 public final class ApplicationSubmissionService {
-    private static final ApplicationSubmissionReservations RESERVATIONS = new ApplicationSubmissionReservations();
     private static final ApplicationDrafts DRAFTS = new ApplicationDrafts();
 
     private final Logger logger = LoggerFactory.getLogger(ApplicationSubmissionService.class);
@@ -152,7 +151,8 @@ public final class ApplicationSubmissionService {
             return;
         }
 
-        if (!RESERVATIONS.reserve(roleId, applicationType.members, () -> new ApplicationTable().retrieveOpenCount(roleId))) {
+        if (applicationType.members != null
+                && new ApplicationTable().retrieveApprovedCount(roleId) >= applicationType.members) {
             fail(event, translation.support().embedNoMoreApplicationsBody()
                     .replace("%members%", String.valueOf(applicationType.members)));
             return;
@@ -160,7 +160,6 @@ public final class ApplicationSubmissionService {
         try {
             create(event, roleId, roleName(roleId), settings, parent, reviewChannel, answers);
         } catch (RuntimeException exception) {
-            RESERVATIONS.release(roleId);
             logger.error("Could not start application submission for role {}", roleId, exception);
             fail(event, "Your application could not be created. Please try again later.");
         }
@@ -173,7 +172,6 @@ public final class ApplicationSubmissionService {
         parent.createThreadChannel(threadName, true).queue(thread -> provision(event, roleId, roleName, settings,
                         reviewChannel, answers, thread),
                 exception -> {
-                    RESERVATIONS.release(roleId);
                     logger.error("Could not create application thread for role {}", roleId, exception);
                     fail(event, "Your application could not be created. Please try again later.");
                 });
@@ -190,9 +188,6 @@ public final class ApplicationSubmissionService {
             cleanup(applicationId, thread, null);
             fail(event, "Your application could not be created. Please try again later.");
             return;
-        } finally {
-            // The database count takes over once the provisioning record exists.
-            RESERVATIONS.release(roleId);
         }
 
         inviteParticipants(event, roleId, roleName, settings, reviewChannel, answers, thread);

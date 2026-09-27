@@ -25,7 +25,7 @@ class ApplicationViewTest {
         var message = ApplicationView.publicPanel("Applications", "Choose a position to apply.", List.of(
                 type(2, "3", "Event Host", false, 0),
                 type(0, "1", "SL Staff", true, 3),
-                type(1, "2", "Discord Staff", false, 0)), Map.of("1", 1L, "2", 0L, "3", 0L), true, translation());
+                type(1, "2", "Discord Staff", false, 0)), Map.of("1", 1L), Map.of(), true, translation());
         var components = message.getComponents().getFirst().asContainer().getComponents();
         var sections = components.stream().filter(component -> component instanceof Section)
                 .map(component -> (Section) component).toList();
@@ -49,16 +49,26 @@ class ApplicationViewTest {
     }
 
     @Test
+    void pendingApplicationDoesNotCloseThePosition() throws IOException {
+        var message = ApplicationView.publicPanel("Applications", "Choose a position to apply.",
+                List.of(type(0, "1", "SL Staff", true, 1)), Map.of("1", 1L), Map.of(), true, translation());
+
+        assertFalse(section(message).getAccessory().asButton().isDisabled());
+        assertTrue(section(message).getContentComponents().getFirst().asTextDisplay().getContent().contains("1 candidate"));
+    }
+
+    @Test
     void filledPositionAndDeactivatedPhaseHaveNoApplyActions() throws IOException {
         var type = type(0, "1", "SL Staff", true, 1);
         var filled = ApplicationView.publicPanel("Applications", "Choose a position to apply.",
-                List.of(type), Map.of("1", 1L), true, translation());
+                List.of(type), Map.of(), Map.of("1", 1L), true, translation());
         var deactivated = ApplicationView.publicPanel("Applications", "Choose a position to apply.",
-                List.of(type), Map.of("1", 0L), false, translation());
+                List.of(type), Map.of(), Map.of(), false, translation());
 
         assertTrue(section(filled).getAccessory().asButton().isDisabled());
         assertTrue(section(deactivated).getAccessory().asButton().isDisabled());
         assertEquals("Closed", section(filled).getAccessory().asButton().getLabel());
+        assertTrue(section(filled).getContentComponents().getFirst().asTextDisplay().getContent().contains("1 candidate"));
     }
 
     @Test
@@ -66,7 +76,7 @@ class ApplicationViewTest {
         var types = IntStream.range(0, 12)
                 .mapToObj(index -> type(index, String.valueOf(index + 1), "Role " + index, true, 2)).toList();
         var message = ApplicationView.publicPanel("Applications", "Choose a position to apply.",
-                types, Map.of(), true, translation());
+                types, Map.of(), Map.of(), true, translation());
 
         assertEquals(12, message.getComponents().getFirst().asContainer().getComponents().stream()
                 .filter(component -> component.getType() == Component.Type.SECTION).count());
@@ -77,7 +87,7 @@ class ApplicationViewTest {
         var types = IntStream.range(0, 13)
                 .mapToObj(index -> type(index, String.valueOf(index + 1), "Role " + index, true, 2)).toList();
         var message = ApplicationView.publicPanel("Applications", "Choose a position to apply.",
-                types, Map.of(), true, translation());
+                types, Map.of(), Map.of(), true, translation());
         var components = message.getComponents().getFirst().asContainer().getComponents();
 
         assertTrue(components.stream().noneMatch(component -> component.getType() == Component.Type.SECTION));
