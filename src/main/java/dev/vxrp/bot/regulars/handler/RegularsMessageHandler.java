@@ -132,7 +132,7 @@ public class RegularsMessageHandler {
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setThumbnail(user.getAvatarUrl());
-        builder.setTitle(new ColorTool().parse(embedTitle));
+        builder.setTitle(new ColorTool().parse(embedTitle.replace("%user%", user.getName())));
         builder.setDescription(new ColorTool().parse(embedDescription));
 
         String groupRoleDisplay = groupRole.replace("<@&>", "None");

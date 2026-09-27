@@ -27,8 +27,10 @@ import dev.vxrp.bot.application.enums.ApplicationDecision;
 import dev.vxrp.bot.application.enums.ApplicationQueueFilter;
 import dev.vxrp.bot.application.view.ApplicationReviewView;
 import dev.vxrp.bot.application.view.ApplicationView;
+import dev.vxrp.bot.modals.TicketTemplateModals;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
+import dev.vxrp.database.tables.database.ApplicationTable;
 import dev.vxrp.database.tables.database.ApplicationTypeTable;
 import dev.vxrp.database.tables.database.MessageTable;
 import dev.vxrp.bot.application.enums.MessageType;
@@ -38,6 +40,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import org.slf4j.Logger;
@@ -45,8 +48,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 public class ApplicationMessageHandler {
     private final Config config;
@@ -63,10 +68,6 @@ public class ApplicationMessageHandler {
         return activationPayload(userId);
     }
 
-    public MessageCreateData getCurrentActivationMenu(String userId) {
-        return activationPayload(userId);
-    }
-
     public MessageCreateData getDeactivationMenu() {
         return ApplicationView.deactivationMenu(
                 parse(translation.application().embedDeactivationMenuTitle()),
@@ -74,14 +75,10 @@ public class ApplicationMessageHandler {
                 translation);
     }
 
-    public void editActivationMessage(String userId, String roleId, TextChannel channel,
-                                      String messageId, String name, String description, String emoji, Boolean state,
-                                      String initializer, Integer member) {
-        new ApplicationManager(config, translation).changeApplicationType(roleId, name, description,
-                emoji, state, initializer, member);
-
-        MessageCreateData payload = activationPayload(userId);
-        channel.editMessageById(messageId, MessageEditBuilder.fromCreateData(payload).build()).queue();
+    public MessageCreateData updateActivationMenu(String userId, String roleId, boolean active, Integer members) {
+        new ApplicationManager(config, translation).changeApplicationType(roleId, null, null,
+                null, active, userId, members);
+        return activationPayload(userId);
     }
 
     public void sendApplicationMessage(JDA api, TextChannel channel, boolean state) {
@@ -115,6 +112,36 @@ public class ApplicationMessageHandler {
         messageTable.insertIfNotExists(message.getId(), MessageType.APPLICATION, message.getChannelId());
     }
 
+    /** Update the public count and availability after an application opens or closes. */
+    public void refreshPublicPanel(JDA api) {
+        try {
+            var panel = new MessageTable().queryFromTable(MessageType.APPLICATION);
+            if (panel == null) {
+                return;
+            }
+            TextChannel channel = api.getTextChannelById(panel.channelId);
+            if (channel == null) {
+                return;
+            }
+
+            Map<String, ApplicationTypeTable.ApplicationType> stored = new HashMap<>();
+            for (var type : new ApplicationTypeTable().getAllEntries()) {
+                stored.put(type.roleId, type);
+            }
+            List<ApplicationType> types = new ArrayList<>();
+            for (var configured : config.ticket().applicationTypes()) {
+                var type = stored.get(configured.roleID());
+                int limit = type == null ? 0 : type.members == null ? Integer.MAX_VALUE : type.members;
+                types.add(new ApplicationType(types.size(), configured.roleID(), configured.name(), configured.description(),
+                        configured.emoji(), type != null && type.active, type == null ? null : type.initializer, limit));
+            }
+            channel.editMessageById(panel.id, MessageEditBuilder.fromCreateData(publicPanelPayload(true, types)).build())
+                    .queue(null, error -> logger.warn("Could not update application panel {}", panel.id, error));
+        } catch (RuntimeException exception) {
+            logger.warn("Could not refresh the public application panel after a candidate count changed", exception);
+        }
+    }
+
     public List<ApplicationType> configuredApplicationTypes() {
         List<ApplicationType> types = new ArrayList<>();
         int position = 0;
@@ -132,6 +159,16 @@ public class ApplicationMessageHandler {
                 "application_position",
                 "Choose an application position",
                 configuredApplicationTypes());
+    }
+
+    public Modal applicationModal(String roleId) {
+        var questions = config.ticket().questionsForRole(roleId);
+        var type = new ApplicationTypeTable().query(roleId);
+        if (questions == null || type == null || !type.active
+                || type.members != null && new ApplicationTable().retrieveOpenCount(roleId) >= type.members) {
+            return null;
+        }
+        return new TicketTemplateModals(translation).supportApplicationModal(roleId, questions);
     }
 
     public MessageCreateData activationSelectionPrompt(String menuId) {
@@ -170,8 +207,13 @@ public class ApplicationMessageHandler {
     }
 
     public MessageCreateData openReview(ApplicationRecord application, String roleName, List<ApplicationAnswer> answers,
-                                        ApplicationTally tally, ApplicationVote currentVote, String ticketUrl) {
-        return ApplicationReviewView.openReview(application, roleName, answers, tally, currentVote, ticketUrl);
+                                        ApplicationTally tally, String ticketUrl) {
+        return ApplicationReviewView.openReview(application, roleName, answers, tally, ticketUrl);
+    }
+
+    public MessageCreateData personalReview(ApplicationRecord application, String roleName, List<ApplicationAnswer> answers,
+                                            ApplicationTally tally, ApplicationVote currentVote, String ticketUrl) {
+        return ApplicationReviewView.personalReview(application, roleName, answers, tally, currentVote, ticketUrl);
     }
 
     public MessageCreateData lockedReview(ApplicationRecord application, String roleName, List<ApplicationAnswer> answers,
@@ -181,14 +223,14 @@ public class ApplicationMessageHandler {
 
     public void editReviewMessage(TextChannel channel, String messageId, ApplicationRecord application,
                                   String roleName, List<ApplicationAnswer> answers, ApplicationTally tally,
-                                  ApplicationVote currentVote, List<ApplicationVoteEvent> history, String ticketUrl) {
+                                  List<ApplicationVoteEvent> history, String ticketUrl) {
         if (application.lifecycle() == dev.vxrp.bot.application.enums.ApplicationLifecycle.CLOSED) {
             channel.editMessageById(messageId, ApplicationReviewView.editLockedReview(application, roleName, answers,
                     tally, history, ticketUrl)).queue();
             return;
         }
         channel.editMessageById(messageId, ApplicationReviewView.editOpenReview(application, roleName, answers,
-                tally, currentVote, ticketUrl)).queue();
+                tally, ticketUrl)).queue();
     }
 
     public MessageCreateData applicationQueue(String requesterId, ApplicationQueueFilter filter, int page, int pageSize,
@@ -217,15 +259,24 @@ public class ApplicationMessageHandler {
     }
 
     private MessageCreateData publicPanelPayload(boolean active) {
-        String status = active ? translation.application().textStatusActive()
-                : translation.application().textStatusDeactivated();
+        return publicPanelPayload(active, GlobalVariables.applicationTypeSet);
+    }
+
+    private MessageCreateData publicPanelPayload(boolean active, Collection<ApplicationType> types) {
+        Map<String, Long> counts = new HashMap<>();
+        var applications = new ApplicationTable();
+        for (ApplicationType type : types) {
+            if (type.roleId() != null && !type.roleId().isBlank()) {
+                counts.put(type.roleId(), applications.retrieveOpenCount(type.roleId()));
+            }
+        }
+        boolean hasOpenPosition = active && types.stream().anyMatch(type -> type.state()
+                && counts.getOrDefault(type.roleId(), 0L) < type.member());
+        String body = hasOpenPosition ? translation.application().embedApplicationMessageBody()
+                : translation.application().textNoOpenPositions();
         return ApplicationView.publicPanel(
                 parse(translation.application().embedApplicationMessageTitle()),
-                parse(translation.application().embedApplicationMessageBody()),
-                parse(status),
-                GlobalVariables.applicationTypeSet,
-                active,
-                translation);
+                parse(body), types, counts, active, translation);
     }
 
     private void createRoleString(boolean useBaseValue) {

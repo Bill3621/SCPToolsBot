@@ -18,10 +18,8 @@ package dev.vxrp.bot.events.stringSelectMenus;
 
 import dev.vxrp.bot.application.handler.ApplicationMessageHandler;
 import dev.vxrp.bot.modals.ApplicationTemplateModals;
-import dev.vxrp.bot.modals.TicketTemplateModals;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
-import dev.vxrp.database.tables.database.ApplicationTypeTable;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 
@@ -44,27 +42,22 @@ public class ApplicationStringSelectMenus {
 
         ApplicationMessageHandler handler = new ApplicationMessageHandler(config, translation);
         if (menuId.startsWith("application_activation_add")) {
-            String[] parts = menuId.split(":");
             event.replyModal(new ApplicationTemplateModals(translation)
-                    .chooseCountModal(event.getSelectedOptions().get(0).getValue(), parts[2])).queue();
+                    .chooseCountModal(event.getSelectedOptions().get(0).getValue())).queue();
         }
 
         if (menuId.startsWith("application_activation_remove")) {
             String roleId = event.getSelectedOptions().get(0).getValue();
-            String messageId = menuId.split(":")[2];
-            event.editMessage(MessageEditBuilder.fromCreateData(handler.getCurrentActivationMenu(event.getUser().getId())).build()).queue();
-            handler.editActivationMessage(event.getUser().getId(), roleId,
-                    event.getChannel().asTextChannel(), messageId, null, null, null, false,
-                    event.getUser().getId(), 0);
+            event.editMessage(MessageEditBuilder.fromCreateData(handler.updateActivationMenu(
+                    event.getUser().getId(), roleId, false, 0)).build()).queue();
         }
 
         if (menuId.startsWith("application_position")) {
-            var typeEntry = new ApplicationTypeTable().query(event.getSelectedOptions().get(0).getValue());
-            if (typeEntry != null && !typeEntry.active) {
+            var modal = handler.applicationModal(event.getSelectedOptions().get(0).getValue());
+            if (modal == null) {
                 event.reply(handler.positionNotActiveFeedback()).setEphemeral(true).queue();
             } else {
-                event.replyModal(new TicketTemplateModals(translation)
-                        .supportApplicationModal(event.getSelectedOptions().get(0).getValue())).queue();
+                event.replyModal(modal).queue();
             }
         }
     }

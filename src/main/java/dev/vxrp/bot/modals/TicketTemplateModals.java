@@ -16,11 +16,14 @@
 
 package dev.vxrp.bot.modals;
 
+import dev.vxrp.bot.ticket.data.ApplicationQuestion;
 import dev.vxrp.configuration.data.Translation;
 import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.modals.Modal;
+
+import java.util.List;
 
 public class TicketTemplateModals {
     private final Translation translation;
@@ -143,44 +146,25 @@ public class TicketTemplateModals {
                 .build();
     }
 
-    public Modal supportApplicationModal(String roleId) {
-        Label name = Label.of(translation.support().modalApplicationNameTitle(),
-                TextInput.create("application_name", TextInputStyle.SHORT)
-                        .setRequired(true)
-                        .setRequiredRange(4, 100)
-                        .setPlaceholder(translation.support().modalApplicationNamePlaceholder())
-                        .build());
+    public Modal supportApplicationModal(String roleId, List<ApplicationQuestion> questions) {
+        return applicationModal("ticket_application:" + roleId, questions, 0);
+    }
 
-        Label age = Label.of(translation.support().modalApplicationAgeTitle(),
-                TextInput.create("application_age", TextInputStyle.SHORT)
-                        .setRequired(true)
-                        .setRequiredRange(2, 3)
-                        .setPlaceholder(translation.support().modalApplicationAgePlaceholder())
-                        .build());
+    public Modal applicationContinuationModal(String token, List<ApplicationQuestion> questions) {
+        return applicationModal("ticket_application_final:" + token, questions, Modal.MAX_COMPONENTS);
+    }
 
-        Label playtime = Label.of(translation.support().modalApplicationPlaytimeTitle(),
-                TextInput.create("application_playtime", TextInputStyle.SHORT)
-                        .setRequired(true)
-                        .setRequiredRange(4, 100)
-                        .setPlaceholder(translation.support().modalApplicationPlaytimePlaceholder())
-                        .build());
-
-        Label reasonOfApplication = Label.of(translation.support().modalApplicationReasonsOfApplicationTitle(),
-                TextInput.create("application_reason_of_application", TextInputStyle.PARAGRAPH)
-                        .setRequired(true)
-                        .setRequiredRange(4, 1000)
-                        .setPlaceholder(translation.support().modalApplicationReasonsOfApplicationPlaceholder())
-                        .build());
-
-        Label skills = Label.of(translation.support().modalApplicationSkillsTitle(),
-                TextInput.create("application_skills", TextInputStyle.PARAGRAPH)
-                        .setRequired(true)
-                        .setRequiredRange(4, 1000)
-                        .setPlaceholder(translation.support().modalApplicationSkillsPlaceholder())
-                        .build());
-
-        return Modal.create("ticket_application:" + roleId, translation.support().modalApplicationTitle())
-                .addComponents(name, age, playtime, reasonOfApplication, skills)
-                .build();
+    private Modal applicationModal(String id, List<ApplicationQuestion> questions, int offset) {
+        var modal = Modal.create(id, translation.support().modalApplicationTitle());
+        for (int index = offset; index < Math.min(offset + Modal.MAX_COMPONENTS, questions.size()); index++) {
+            ApplicationQuestion question = questions.get(index);
+            modal.addComponents(Label.of(question.label(),
+                    TextInput.create("application_question_" + index, question.style())
+                            .setRequired(true)
+                            .setRequiredRange(question.minLength(), question.maxLength())
+                            .setPlaceholder(question.placeholder())
+                            .build()));
+        }
+        return modal.build();
     }
 }

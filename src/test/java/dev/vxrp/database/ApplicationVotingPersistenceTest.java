@@ -95,6 +95,35 @@ class ApplicationVotingPersistenceTest {
     }
 
     @Test
+    void openCountTracksApplicationsUntilTheyClose() {
+        var applications = new ApplicationTable();
+        applications.createProvisioning("candidate-1", "role-1", "applicant-1", null, 3, List.of());
+        applications.createProvisioning("candidate-2", "role-2", "applicant-2", null, 3, List.of());
+        assertEquals(1, applications.retrieveOpenCount("role-1"));
+
+        applications.markOpen("candidate-1", "review-channel", "review-message");
+        assertEquals(1, applications.retrieveOpenCount("role-1"));
+        applications.closeIfOpen("candidate-1", ApplicationDecision.DENIED, "senior-1", "Not ready");
+        assertEquals(0, applications.retrieveOpenCount("role-1"));
+        assertEquals(1, applications.retrieveOpenCount("role-2"));
+    }
+
+    @Test
+    void legacyOpenApplicationsCanCloseButClosedTicketsCannot() throws Exception {
+        try (var statement = connection.createStatement()) {
+            statement.executeUpdate("INSERT INTO applications (id, roleId, state, result, issuer) VALUES "
+                    + "('legacy-open', 'role-1', 0, 0, 'user-1'), ('legacy-closed', 'role-1', 0, 0, 'user-2')");
+            statement.executeUpdate("INSERT INTO tickets (id, status) VALUES ('legacy-open', 'OPEN'), ('legacy-closed', 'CLOSED')");
+        }
+        var applications = new ApplicationTable();
+        assertEquals(ApplicationLifecycle.OPEN, applications.retrieveById("legacy-open").orElseThrow().lifecycle());
+        assertTrue(applications.closeIfOpen("legacy-open", ApplicationDecision.APPROVED, "senior-1", "Ready"));
+        assertEquals(ApplicationLifecycle.CLOSED, applications.retrieveById("legacy-open").orElseThrow().lifecycle());
+        assertFalse(applications.closeIfOpen("legacy-open", ApplicationDecision.DENIED, "senior-2", "Duplicate"));
+        assertFalse(applications.closeIfOpen("legacy-closed", ApplicationDecision.APPROVED, "senior-1", "Already closed"));
+    }
+
+    @Test
     void removingVoteLeavesAppendOnlyHistory() {
         var applications = new ApplicationTable();
         var votes = new ApplicationVoteTable();

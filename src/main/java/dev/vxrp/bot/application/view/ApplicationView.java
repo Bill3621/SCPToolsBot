@@ -17,11 +17,8 @@
 package dev.vxrp.bot.application.view;
 
 import dev.vxrp.bot.application.data.ApplicationAnswer;
-import dev.vxrp.bot.application.data.ApplicationRecord;
 import dev.vxrp.bot.application.data.ApplicationType;
-import dev.vxrp.bot.application.enums.ApplicationLifecycle;
 import dev.vxrp.configuration.data.Translation;
-import net.dv8tion.jda.api.components.MessageTopLevelComponent;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent;
 import net.dv8tion.jda.api.components.buttons.Button;
@@ -29,8 +26,8 @@ import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.separator.Separator;
+import net.dv8tion.jda.api.components.section.Section;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -38,7 +35,9 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 /** Shared Components V2 builders for the application workflow. */
 public final class ApplicationView {
@@ -67,22 +66,54 @@ public final class ApplicationView {
         return message(content, 0xE74D3C);
     }
 
-    public static MessageCreateData publicPanel(String title, String body, String status,
-                                                 Collection<ApplicationType> types, boolean active,
-                                                 Translation translation) {
+    public static MessageCreateData publicPanel(String title, String body, Collection<ApplicationType> types,
+                                                Map<String, Long> candidateCounts, boolean active, Translation translation) {
         List<ContainerChildComponent> content = new ArrayList<>();
-        content.add(TextDisplay.of("## " + text(title, "Applications") + "\n" + text(body, "Apply for an available position.")));
-        content.add(Separator.createDivider(Separator.Spacing.SMALL));
-        content.add(TextDisplay.of("**Current status**\n" + text(status, active ? "Active" : "Deactivated")));
-        content.add(TextDisplay.of("### Positions\n" + roleStatusText(types)));
-        if (active) {
+        content.add(TextDisplay.of("## " + text(title, "Applications") + "\n" + text(body, "Choose a position to apply.")));
+        List<ApplicationType> positions = types == null ? List.of() : types.stream()
+                .filter(type -> type != null && type.roleId() != null && !type.roleId().isBlank())
+                .sorted(Comparator.comparingInt(ApplicationType::pos)).toList();
+        Map<String, Long> counts = candidateCounts == null ? Map.of() : candidateCounts;
+        if (positions.isEmpty()) {
+            content.add(TextDisplay.of("No positions configured."));
+        } else if (positions.size() > 12) {
+            StringBuilder summary = new StringBuilder("### Positions");
+            for (ApplicationType type : positions) {
+                long count = Math.max(0, counts.getOrDefault(type.roleId(), 0L));
+                summary.append("\n").append(isOpen(type, count, active) ? "🟢 " : "⚫ ")
+                        .append("**").append(text(type.name(), type.roleId())).append("** · ")
+                        .append(candidateText(count, translation));
+            }
             content.add(Separator.createDivider(Separator.Spacing.SMALL));
-            content.add(TextDisplay.of("Choose an open position to start an application."));
-            content.add(ActionRow.of(Button.success("application_open",
-                    text(translation.buttons().textApplicationOpenTickets(), "Open application"))
-                    .withEmoji(Emoji.fromFormatted("📖"))));
+            content.add(TextDisplay.of(summary.toString()));
+            if (active && positions.stream().anyMatch(type -> isOpen(type,
+                    Math.max(0, counts.getOrDefault(type.roleId(), 0L)), active))) {
+                content.add(ActionRow.of(Button.success("application_open",
+                        text(translation.buttons().textApplicationOpenTickets(), "Open application"))));
+            }
+        } else {
+            if (positions.size() > 9) {
+                content.add(Separator.createDivider(Separator.Spacing.SMALL));
+            }
+            for (ApplicationType type : positions) {
+                if (positions.size() <= 9) {
+                    content.add(Separator.createDivider(Separator.Spacing.SMALL));
+                }
+                long count = Math.max(0, counts.getOrDefault(type.roleId(), 0L));
+                boolean open = isOpen(type, count, active);
+                String description = text(type.description(), "Application position").replace("\n", "\n> ");
+                String summary = "**" + (open ? "🟢 " : "⚫ ") + text(type.name(), type.roleId())
+                        + "**\n> " + description + "\n" + candidateText(count, translation);
+                Button button = Button.success("application_apply:" + type.roleId(),
+                        text(translation.application().textApply(), "Apply"));
+                if (!open) {
+                    button = Button.secondary("application_apply:" + type.roleId(),
+                            text(translation.application().textClosed(), "Closed")).asDisabled();
+                }
+                content.add(Section.of(button, TextDisplay.of(summary)));
+            }
         }
-        return message(content, active ? null : 0xE74D3C);
+        return message(content, null);
     }
 
     public static MessageCreateData selectionPrompt(String title, String body, String menuId,
@@ -217,6 +248,18 @@ public final class ApplicationView {
         return List.of(add, remove, complete);
     }
 
+    private static boolean isOpen(ApplicationType type, long count, boolean active) {
+        return active && type.state() && count < type.member();
+    }
+
+    private static String candidateText(long count, Translation translation) {
+        if (count == 0) {
+            return text(translation.application().textNoCandidates(), "No candidates");
+        }
+        return count + " " + text(count == 1 ? translation.application().textCandidate()
+                : translation.application().textCandidates(), count == 1 ? "candidate" : "candidates");
+    }
+
     private static String roleStatusText(Collection<ApplicationType> types) {
         if (types == null || types.isEmpty()) {
             return "No positions configured.";
@@ -232,7 +275,7 @@ public final class ApplicationView {
             String name = text(type.name(), type.roleId());
             String status = type.state() ? "Active" : "Inactive";
             result.append("**").append(name).append("** · ").append(status)
-                    .append(" · ").append(Math.max(0, type.member())).append(" candidates");
+                    .append(" · candidate limit: ").append(Math.max(0, type.member()));
         }
         return result.isEmpty() ? "No positions configured." : result.toString();
     }

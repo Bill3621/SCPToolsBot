@@ -26,6 +26,7 @@ import dev.vxrp.util.coroutines.Timer;
 import dev.vxrp.util.duration.DurationParser;
 import dev.vxrp.util.duration.enums.DurationType;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.exceptions.HierarchyException;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
@@ -95,9 +96,13 @@ public class NoticeOfDepartureManager {
                 nickname = name.substring(prefix.length());
             }
             if (nickname.length() > 32) nickname = nickname.substring(0, 32);
-            if (!nickname.equals(name)) {
-                guild.modifyNickname(member, nickname).queue(null,
-                        error -> logger.warn("Could not update notice of departure nickname for {}", userId, error));
+            if (!nickname.equals(name) && guild.getSelfMember().canInteract(member)) {
+                try {
+                    guild.modifyNickname(member, nickname).queue(null,
+                            error -> logger.warn("Could not update notice of departure nickname for {}", userId, error));
+                } catch (HierarchyException error) {
+                    logger.warn("Could not update notice of departure nickname for {} because the member's role is too high", userId, error);
+                }
             }
         }, error -> logger.warn("Could not retrieve member {} to update their notice of departure nickname", userId, error));
     }

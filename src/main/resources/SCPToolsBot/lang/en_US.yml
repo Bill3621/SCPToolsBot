@@ -571,14 +571,8 @@ SUPPORT:
 
 APPLICATION:
   EMBED_ACTIVATION_MENU_TITLE: "Active Application Settings"
-  EMBED_ACTIVATION_MENU_BODY: "
-                        Current Status: %status%\n
-                        Active Roles:\n
-                        %active_roles%
-                        _This message will be updated when adding positions for application status_\n
-                        
-                        _When you are done with setup, click the complete setup button down below to proceed with activation._
-                        "
+  EMBED_ACTIVATION_MENU_BODY: "Choose which positions should accept applications."
+
 
   EMBED_DEACTIVATION_MENU_TITLE: "Deactivate Applications?"
   EMBED_DEACTIVATION_MENU_BODY: "
@@ -587,13 +581,14 @@ APPLICATION:
                         and cannot be retrieved.
                         "
 
-  EMBED_APPLICATION_MESSAGE_TITLE: "Active Applicationphase"
-  EMBED_APPLICATION_MESSAGE_BODY: "
-                        Current Status: %status%\n
-                        Active Roles:\n
-                        %active_roles%
-                        _Creation of tickets can be done from the button below or the ticket support_
-                        "
+  EMBED_APPLICATION_MESSAGE_TITLE: "Applications"
+  EMBED_APPLICATION_MESSAGE_BODY: "Choose a position to apply."
+  TEXT_APPLY: "Apply"
+  TEXT_CLOSED: "Closed"
+  TEXT_NO_CANDIDATES: "No candidates"
+  TEXT_CANDIDATE: "candidate"
+  TEXT_CANDIDATES: "candidates"
+  TEXT_NO_OPEN_POSITIONS: "No positions are open right now."
 
   TEXT_ROLE_STATUS_TEMPLATE: "
                           > <@&%roleId%>\n
@@ -675,6 +670,8 @@ APPLICATION_REVIEW:
   TEXT_CLOSE_CONFIG: "Application voting is not configured."
   TEXT_CLOSE_ERROR: "The application could not be closed. Try again."
   TEXT_CLOSE_SUCCESS: "Application closed as %decision%."
+  TEXT_DECISION_APPROVED: "approved"
+  TEXT_DECISION_DENIED: "denied"
   TEXT_CLOSE_ALREADY_CLOSED: "This application is already closed."
 
   TEXT_HISTORY_TITLE: "Vote history"

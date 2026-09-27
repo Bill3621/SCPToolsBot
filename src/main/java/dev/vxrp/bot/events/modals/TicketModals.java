@@ -85,6 +85,11 @@ public class TicketModals {
             respond(child, event);
         }
 
+        if (event.getModalId().startsWith("ticket_application_final:")) {
+            new ApplicationSubmissionService(config, translation).finishDraft(event,
+                    event.getModalId().substring("ticket_application_final:".length()));
+        }
+
         if (event.getModalId().startsWith("ticket_application:")) {
             String[] parts = event.getModalId().split(":", 2);
             if (parts.length != 2 || parts[1].isBlank()) {

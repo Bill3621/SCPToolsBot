@@ -18,8 +18,21 @@ settings:
     # Roles allowed to close application votes. Voters use the Application ticket permissions below.
     senior_closer_roles: [ ]
 
+# Shared questions used unless an application type defines its own questions list.
+# Configure 1 to 10 questions per application type. For 6 to 10, applicants complete
+# the first five, click Continue application, and answer the rest in a second modal.
+# Labels are stored with answers, so use unique labels. Styles: SHORT or PARAGRAPH.
+# Set numeric: true to require a whole number (for example, age).
+application_questions:
+  - { label: "Name", placeholder: "How would you like to be called?", style: SHORT, min_length: 4, max_length: 100 }
+  - { label: "Age", placeholder: "How old are you?", style: SHORT, min_length: 2, max_length: 3, numeric: true }
+  - { label: "Playtime", placeholder: "How long have you been playing SCP:SL?", style: SHORT, min_length: 4, max_length: 100 }
+  - { label: "Reason of Application", placeholder: "Why did you apply for this position?", style: PARAGRAPH, min_length: 4, max_length: 1000 }
+  - { label: "Skills", placeholder: "What are you skilled at, have you ever done this task on another server?", style: PARAGRAPH, min_length: 4, max_length: 1000 }
+
 # The types of roles that can be applied for. Duplicate one of the roles that already exist
-# to create a new one, you can add as many as you like
+# to create a new one, you can add as many as you like.
+# Add a questions list to a role to replace the shared application_questions for that role.
 application_types: [
   {
     # The name of the role

@@ -237,7 +237,8 @@ public class ApplicationTable {
     public boolean closeIfOpen(Connection connection, String id, ApplicationDecision decision, String closedBy,
                                String reason, Instant closedAt) throws SQLException {
         String sql = "UPDATE applications SET lifecycle_status = ?, decision = ?, state = ?, result = ?, " +
-                "closed_at = ?, closed_by = ?, close_reason = ? WHERE id = ? AND lifecycle_status = 'OPEN'";
+                "closed_at = ?, closed_by = ?, close_reason = ? WHERE id = ? AND (lifecycle_status = 'OPEN' OR " +
+                "(lifecycle_status IS NULL AND NOT EXISTS (SELECT 1 FROM tickets t WHERE t.id = applications.id AND UPPER(t.status) = 'CLOSED')))";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, ApplicationLifecycle.CLOSED.name());
             statement.setString(2, decision.name());

@@ -37,6 +37,8 @@ public class StatusCommand {
         String instanceKey = GlobalVariables.statusMappedBots.get(event.getJDA().getSelfUser().getId());
         var entry = new ConnectionTable().queryFromTable(instanceKey);
         boolean currentMaintenance = entry.maintenance();
+        var instance = GlobalVariables.statusInstances.get(instanceKey);
+        String instanceName = instance != null ? instance.name() : "Unknown";
 
         if (currentMaintenance) {
             String reason = translation.status().embedMaintenanceOffReasonFieldValue();
@@ -48,13 +50,10 @@ public class StatusCommand {
             var deactivatedEmbed = new EmbedBuilder()
                     .setColor(0xE74D3C)
                     .setTitle(new ColorTool().parse(translation.status().embedStatusDeactivatedTitle()))
-                    .setDescription(new ColorTool().parse(translation.status().embedStatusDeactivatedBody()))
+                    .setDescription(maintenanceConfirmation(translation.status().embedStatusDeactivatedBody(), instanceName))
                     .build();
 
             event.replyEmbeds(deactivatedEmbed).setEphemeral(true).queue();
-
-            var instance = GlobalVariables.statusInstances.get(instanceKey);
-            String instanceName = instance != null ? instance.name() : "Unknown";
 
             var embed = new EmbedBuilder()
                     .setColor(0x2ECC70)
@@ -83,13 +82,10 @@ public class StatusCommand {
             var activatedEmbed = new EmbedBuilder()
                     .setColor(0x2ECC70)
                     .setTitle(new ColorTool().parse(translation.status().embedStatusActivatedTitle()))
-                    .setDescription(new ColorTool().parse(translation.status().embedStatusActivatedBody()))
+                    .setDescription(maintenanceConfirmation(translation.status().embedStatusActivatedBody(), instanceName))
                     .build();
 
             event.replyEmbeds(activatedEmbed).setEphemeral(true).queue();
-
-            var instance = GlobalVariables.statusInstances.get(instanceKey);
-            String instanceName = instance != null ? instance.name() : "Unknown";
 
             var embed = new EmbedBuilder()
                     .setColor(0xf1c40f)
@@ -109,5 +105,10 @@ public class StatusCommand {
                 channel.sendMessageEmbeds(embed).queue();
             }
         }
+    }
+
+    private String maintenanceConfirmation(String body, String instanceName) {
+        // Older German translation files used %server& instead of %server%.
+        return new ColorTool().parse(body.replace("%server%", instanceName).replace("%server&", instanceName));
     }
 }

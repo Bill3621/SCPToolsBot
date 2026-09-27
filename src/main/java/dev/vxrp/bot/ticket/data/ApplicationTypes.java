@@ -18,9 +18,19 @@ package dev.vxrp.bot.ticket.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 public record ApplicationTypes(
     String name,
     String description,
     String emoji,
-    @JsonProperty("role_id") String roleID
-) {}
+    @JsonProperty("role_id") String roleID,
+    List<ApplicationQuestion> questions
+) {
+    public ApplicationTypes {
+        if (questions != null) {
+            ApplicationQuestion.validate(questions, "questions for " + name);
+            questions = List.copyOf(questions);
+        }
+    }
+}

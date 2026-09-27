@@ -38,7 +38,8 @@ public class RegularsCommand {
         User user = event.getOptions().get(0).getAsUser();
         if (!checkExistence(event, user)) return;
 
-        var embed = new RegularsMessageHandler(event.getJDA(), config, translation).getSettings(event.getUser(), translation.regulars().embedSettingsViewTitle(), translation.regulars().embedSettingsViewBody());
+        var embed = new RegularsMessageHandler(event.getJDA(), config, translation).getSettings(user,
+                translation.regulars().embedSettingsViewTitle(), translation.regulars().embedSettingsViewBody());
         event.replyEmbeds(embed).setEphemeral(true).queue();
     }
 

@@ -29,6 +29,7 @@ import dev.vxrp.bot.modals.ApplicationTemplateModals;
 import dev.vxrp.bot.ticket.enums.TicketStatus;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
+import dev.vxrp.configuration.data.TranslationApplicationReview;
 import dev.vxrp.database.DatabaseManager;
 import dev.vxrp.database.tables.database.ApplicationAnswerTable;
 import dev.vxrp.database.tables.database.ApplicationTable;
@@ -44,6 +45,7 @@ import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /** Routes staff application review interactions and revalidates authorization on every action. */
@@ -132,7 +134,8 @@ public final class ApplicationReviewInteractions {
             return true;
         }
         if (!votes.tally(applicationId, application.quorumRequired()).quorumReached()) {
-            event.reply(feedback(false, translation.applicationReview().textCloseQuorum())).setEphemeral(true).queue();
+            event.reply(feedback(false, translation.applicationReview().textCloseQuorum()
+                    .replace("%quorum%", String.valueOf(application.quorumRequired())))).setEphemeral(true).queue();
             return true;
         }
 
@@ -151,12 +154,14 @@ public final class ApplicationReviewInteractions {
 
         ApplicationRecord locked = applications.retrieveById(applicationId).orElseThrow();
         refreshCanonical(event.getJDA(), locked);
+        new ApplicationMessageHandler(config, translation).refreshPublicPanel(event.getJDA());
         var thread = event.getJDA().getThreadChannelById(applicationId);
         if (thread != null) {
             thread.getManager().setLocked(true).setArchived(true).queue();
         }
         notifyApplicant(event, locked);
-        event.reply(feedback(true, translation.applicationReview().textCloseSuccess())).setEphemeral(true).queue();
+        event.reply(feedback(true, closeSuccess(translation.applicationReview(), locked.decision())))
+                .setEphemeral(true).queue();
         return true;
     }
 
@@ -198,7 +203,7 @@ public final class ApplicationReviewInteractions {
                     .setEphemeral(true).queue();
             return;
         }
-        event.reply(handler.openReview(application, roleName(application.roleId()), answers.list(applicationId),
+        event.reply(handler.personalReview(application, roleName(application.roleId()), answers.list(applicationId),
                 votes.tally(applicationId, application.quorumRequired()), votes.getCurrent(applicationId,
                         event.getUser().getId()), ticketUrl)).setEphemeral(true).queue();
     }
@@ -215,30 +220,53 @@ public final class ApplicationReviewInteractions {
         }
 
         String value = event.getValues().getFirst();
+        String confirmation;
         if ("REMOVE".equals(value)) {
             votes.remove(applicationId, event.getUser().getId());
+            confirmation = translation.applicationReview().textVoteRemoved();
         } else {
+            ApplicationVoteChoice choice;
             try {
-                votes.set(applicationId, event.getUser().getId(), ApplicationVoteChoice.valueOf(value));
+                choice = ApplicationVoteChoice.valueOf(value);
             } catch (IllegalArgumentException exception) {
                 event.reply(feedback(false, translation.applicationReview().textQueueError())).setEphemeral(true).queue();
                 return;
             }
+            var previous = votes.getCurrent(applicationId, event.getUser().getId());
+            votes.set(applicationId, event.getUser().getId(), choice);
+            confirmation = voteFeedback(translation.applicationReview(), choice,
+                    previous != null && previous.choice() != choice);
         }
 
         refreshCanonical(event.getJDA(), application);
-        var payload = new ApplicationMessageHandler(config, translation).openReview(application,
-                roleName(application.roleId()), answers.list(applicationId),
-                votes.tally(applicationId, application.quorumRequired()),
-                votes.getCurrent(applicationId, event.getUser().getId()),
-                ApplicationView.ticketUrl(config.settings().guildId(), application.id()));
         if (event.getMessage().isEphemeral()) {
+            var payload = new ApplicationMessageHandler(config, translation).personalReview(application,
+                    roleName(application.roleId()), answers.list(applicationId),
+                    votes.tally(applicationId, application.quorumRequired()),
+                    votes.getCurrent(applicationId, event.getUser().getId()),
+                    ApplicationView.ticketUrl(config.settings().guildId(), application.id()));
             event.editMessage(MessageEditBuilder.fromCreateData(payload).build()).queue();
         } else {
-            event.reply(feedback(true, "REMOVE".equals(value)
-                    ? translation.applicationReview().textVoteRemoved()
-                    : translation.applicationReview().textVoteRecorded())).setEphemeral(true).queue();
+            event.reply(feedback(true, confirmation)).setEphemeral(true).queue();
         }
+    }
+
+    static String voteFeedback(TranslationApplicationReview review, ApplicationVoteChoice choice, boolean changed) {
+        String label = switch (choice) {
+            case APPROVE -> review.textVoteApprove();
+            case DENY -> review.textVoteDeny();
+            case ABSTAIN -> review.textVoteAbstain();
+        };
+        return (changed ? review.textVoteChanged() : review.textVoteRecorded()).replace("%vote%", label);
+    }
+
+    static String closeSuccess(TranslationApplicationReview review, ApplicationDecision decision) {
+        String label = decision == ApplicationDecision.APPROVED
+                ? review.textDecisionApproved() : review.textDecisionDenied();
+        if (label == null || label.isBlank()) {
+            label = decision.name().toLowerCase(Locale.ROOT);
+        }
+        return review.textCloseSuccess().replace("%decision%", label);
     }
 
     private void showHistory(ButtonInteractionEvent event, String id) {
@@ -273,7 +301,8 @@ public final class ApplicationReviewInteractions {
         }
         var tally = votes.tally(applicationId, application.quorumRequired());
         if (!tally.quorumReached()) {
-            event.reply(feedback(false, translation.applicationReview().textCloseQuorum())).setEphemeral(true).queue();
+            event.reply(feedback(false, translation.applicationReview().textCloseQuorum()
+                    .replace("%quorum%", String.valueOf(application.quorumRequired())))).setEphemeral(true).queue();
             return;
         }
         event.reply(new ApplicationMessageHandler(config, translation).closeConfirmation(application, tally, null))
@@ -343,16 +372,17 @@ public final class ApplicationReviewInteractions {
         }
         new ApplicationMessageHandler(config, translation).editReviewMessage(channel, current.reviewMessageId(), current,
                 roleName(current.roleId()), answers.list(current.id()), votes.tally(current.id(), current.quorumRequired()),
-                null, votes.history(current.id()), ApplicationView.ticketUrl(config.settings().guildId(), current.id()));
+                votes.history(current.id()), ApplicationView.ticketUrl(config.settings().guildId(), current.id()));
     }
 
     private void notifyApplicant(ModalInteractionEvent event, ApplicationRecord application) {
         String title = application.decision() == ApplicationDecision.APPROVED
                 ? translation.applicationReview().textApplicantApprovedTitle()
                 : translation.applicationReview().textApplicantDeniedTitle();
-        String body = application.decision() == ApplicationDecision.APPROVED
+        String body = (application.decision() == ApplicationDecision.APPROVED
                 ? translation.applicationReview().textApplicantApprovedBody()
-                : translation.applicationReview().textApplicantDeniedBody();
+                : translation.applicationReview().textApplicantDeniedBody())
+                .replace("%position%", roleName(application.roleId()));
         var payload = ApplicationReviewView.applicantResult(title, body,
                 ApplicationView.ticketUrl(config.settings().guildId(), application.id()), application.decision());
         event.getJDA().retrieveUserById(application.issuer())

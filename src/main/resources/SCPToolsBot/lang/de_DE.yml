@@ -230,10 +230,10 @@ STATUS:
   EMBED_PLAYERLIST_PLAYER: "\n&reset&&bold&%nickname%&reset&"
 
   EMBED_STATUS_ACTIVATED_TITLE: "Wartungsarbeiten Aktiviert"
-  EMBED_STATUS_ACTIVATED_BODY: "Die Wartungsarbeiten für den Server: %server& wurden aktiviert."
+  EMBED_STATUS_ACTIVATED_BODY: "Die Wartungsarbeiten für den Server: %server% wurden aktiviert."
 
   EMBED_STATUS_DEACTIVATED_TITLE: "Wartungsarbeiten Deaktiviert"
-  EMBED_STATUS_DEACTIVATED_BODY: "Die Wartungsarbeiten für den Server: %server& wurden deaktiviert."
+  EMBED_STATUS_DEACTIVATED_BODY: "Die Wartungsarbeiten für den Server: %server% wurden deaktiviert."
 
 PLAYER:
   EMBED_STATISTICS_BODY: "
@@ -572,14 +572,8 @@ SUPPORT:
 
 APPLICATION:
   EMBED_ACTIVATION_MENU_TITLE: "Aktive Bewerbungseinstellungen"
-  EMBED_ACTIVATION_MENU_BODY: "
-                        Aktueller Status: %status%\n
-                        Aktive Rollen:\n
-                        %active_roles%
-                        _Diese Nachricht wird aktualisiert, wenn neue Positionen für den Bewerbungsstatus hinzugefügt werden_\n
-                        
-                        _Wenn du mit der Einrichtung fertig bist, klicke unten auf die Schaltfläche „Einrichtung abschließen“, um mit der Aktivierung fortzufahren._
-                        "
+  EMBED_ACTIVATION_MENU_BODY: "Wähle aus, für welche Positionen Bewerbungen angenommen werden sollen."
+
 
   EMBED_DEACTIVATION_MENU_TITLE: "Deaktiviere Bewerbung?"
   EMBED_DEACTIVATION_MENU_BODY: "
@@ -588,13 +582,14 @@ APPLICATION:
                         Alle laufenden bewerbungen werden beendet und alle Tickets geschlossen. Die aktuellen Einstellungen werden ebenfalls gelöscht und können nicht wiederhergestellt werden.
                         "
 
-  EMBED_APPLICATION_MESSAGE_TITLE: "Aktive Bewerbungsphase"
-  EMBED_APPLICATION_MESSAGE_BODY: "
-                        Aktueller Status: %status%\n
-                        Aktive Rollen:\n
-                        %active_roles%
-                        _Um ein Ticket zu öffnen nutze den unten angezeigten Knopf oder den Ticket-Support_
-                        "
+  EMBED_APPLICATION_MESSAGE_TITLE: "Bewerbungen"
+  EMBED_APPLICATION_MESSAGE_BODY: "Wähle eine Position für deine Bewerbung."
+  TEXT_APPLY: "Bewerben"
+  TEXT_CLOSED: "Geschlossen"
+  TEXT_NO_CANDIDATES: "Keine Bewerbungen"
+  TEXT_CANDIDATE: "Bewerbung"
+  TEXT_CANDIDATES: "Bewerbungen"
+  TEXT_NO_OPEN_POSITIONS: "Zurzeit sind keine Positionen offen."
 
   TEXT_ROLE_STATUS_TEMPLATE: "
                         > <@&%roleId%>\n
@@ -676,6 +671,8 @@ APPLICATION_REVIEW:
   TEXT_CLOSE_CONFIG: "Die Bewerbungsabstimmung ist nicht konfiguriert."
   TEXT_CLOSE_ERROR: "Die Bewerbung konnte nicht geschlossen werden. Versuche es erneut."
   TEXT_CLOSE_SUCCESS: "Bewerbung als %decision% geschlossen."
+  TEXT_DECISION_APPROVED: "angenommen"
+  TEXT_DECISION_DENIED: "abgelehnt"
   TEXT_CLOSE_ALREADY_CLOSED: "Diese Bewerbung ist bereits geschlossen."
 
   TEXT_HISTORY_TITLE: "Abstimmungsverlauf"

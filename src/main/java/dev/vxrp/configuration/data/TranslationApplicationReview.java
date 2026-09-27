@@ -71,6 +71,8 @@ public record TranslationApplicationReview(
     @JsonProperty("TEXT_CLOSE_CONFIG") String textCloseConfig,
     @JsonProperty("TEXT_CLOSE_ERROR") String textCloseError,
     @JsonProperty("TEXT_CLOSE_SUCCESS") String textCloseSuccess,
+    @JsonProperty("TEXT_DECISION_APPROVED") String textDecisionApproved,
+    @JsonProperty("TEXT_DECISION_DENIED") String textDecisionDenied,
     @JsonProperty("TEXT_CLOSE_ALREADY_CLOSED") String textCloseAlreadyClosed,
     @JsonProperty("TEXT_HISTORY_TITLE") String textHistoryTitle,
     @JsonProperty("TEXT_HISTORY_EMPTY") String textHistoryEmpty,

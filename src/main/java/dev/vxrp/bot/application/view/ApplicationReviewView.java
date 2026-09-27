@@ -49,9 +49,8 @@ import java.util.Locale;
 
 /** Components V2 renderers for the staff application review workflow. */
 public final class ApplicationReviewView {
-    public static final int DEFAULT_PAGE_SIZE = 8;
     // Seven entries leave room for the container, separators, filter, pagination, and refresh controls.
-    private static final int MAX_QUEUE_ENTRIES = 7;
+    public static final int DEFAULT_PAGE_SIZE = 7;
     private static final int HISTORY_PAGE_SIZE = 8;
 
     private ApplicationReviewView() {}
@@ -69,30 +68,41 @@ public final class ApplicationReviewView {
     }
 
     public static MessageCreateData openReview(ApplicationRecord application, String roleName,
-                                                List<ApplicationAnswer> answers, ApplicationTally tally,
-                                                ApplicationVote currentVote, String ticketUrl) {
+                                               List<ApplicationAnswer> answers, ApplicationTally tally, String ticketUrl) {
+        return createOpenReview(application, roleName, answers, tally, null, ticketUrl);
+    }
+
+    public static MessageCreateData personalReview(ApplicationRecord application, String roleName,
+                                                   List<ApplicationAnswer> answers, ApplicationTally tally,
+                                                   ApplicationVote currentVote, String ticketUrl) {
+        String vote = currentVote == null ? "not cast" : currentVote.choice().name();
+        return createOpenReview(application, roleName, answers, tally, vote, ticketUrl);
+    }
+
+    private static MessageCreateData createOpenReview(ApplicationRecord application, String roleName,
+                                                      List<ApplicationAnswer> answers, ApplicationTally tally,
+                                                      String personalVote, String ticketUrl) {
         requireApplication(application);
         ApplicationTally effectiveTally = effectiveTally(application, tally);
         List<ContainerChildComponent> content = reviewHeader(application, roleName, "Open review");
         content.add(Separator.createDivider(Separator.Spacing.SMALL));
         ApplicationView.appendAnswers(content, answers);
         content.add(Separator.createDivider(Separator.Spacing.SMALL));
-        content.add(TextDisplay.of(tallyText(effectiveTally, currentVote)));
+        content.add(TextDisplay.of(tallyText(effectiveTally)
+                + (personalVote == null ? "" : " · your vote: **" + personalVote + "**")));
         content.add(ActionRow.of(voteMenu(application.id())));
         content.add(ActionRow.of(openActions(application.id(), ticketUrl)));
         return ApplicationView.message(content, null);
     }
 
     public static MessageCreateData renderOpenReview(ApplicationRecord application, String roleName,
-                                                      List<ApplicationAnswer> answers, ApplicationTally tally,
-                                                      ApplicationVote currentVote, String ticketUrl) {
-        return openReview(application, roleName, answers, tally, currentVote, ticketUrl);
+                                                      List<ApplicationAnswer> answers, ApplicationTally tally, String ticketUrl) {
+        return openReview(application, roleName, answers, tally, ticketUrl);
     }
 
     public static MessageEditData editOpenReview(ApplicationRecord application, String roleName,
-                                                  List<ApplicationAnswer> answers, ApplicationTally tally,
-                                                  ApplicationVote currentVote, String ticketUrl) {
-        return MessageEditBuilder.fromCreateData(openReview(application, roleName, answers, tally, currentVote, ticketUrl)).build();
+                                                 List<ApplicationAnswer> answers, ApplicationTally tally, String ticketUrl) {
+        return MessageEditBuilder.fromCreateData(openReview(application, roleName, answers, tally, ticketUrl)).build();
     }
 
     public static MessageCreateData lockedReview(ApplicationRecord application, String roleName,
@@ -105,7 +115,7 @@ public final class ApplicationReviewView {
         ApplicationView.appendAnswers(content, answers);
         content.add(Separator.createDivider(Separator.Spacing.SMALL));
         content.add(TextDisplay.of("### Decision\n" + decisionText(application.decision())));
-        content.add(TextDisplay.of("**Vote tally**\n" + tallyText(effectiveTally, null)));
+        content.add(TextDisplay.of("**Vote tally**\n" + tallyText(effectiveTally)));
         content.add(TextDisplay.of("**Closed by**\n" + ApplicationView.displayActor(application.closedBy())
                 + " · " + ApplicationView.timestamp(application.closedAt())));
         content.add(TextDisplay.of("**Close reason**\n" + ApplicationView.quote(application.closeReason())));
@@ -146,7 +156,7 @@ public final class ApplicationReviewView {
         List<QueueEntry> safeEntries = entries == null ? List.of() : entries;
         int rendered = 0;
         for (QueueEntry entry : safeEntries) {
-            if (entry == null || rendered >= MAX_QUEUE_ENTRIES) {
+            if (entry == null || rendered >= effectivePageSize) {
                 break;
             }
             content.add(queueEntry(entry));
@@ -185,7 +195,7 @@ public final class ApplicationReviewView {
                 + "This locks all votes and records the staff decision."));
         content.add(Separator.createDivider(Separator.Spacing.SMALL));
         content.add(TextDisplay.of("**Suggested result**\n" + decision));
-        content.add(TextDisplay.of(tallyText(effectiveTally, null)));
+        content.add(TextDisplay.of(tallyText(effectiveTally)));
         content.add(TextDisplay.of("-# Confirm only after the application has been reviewed. A tie has no automatic result."));
         content.add(ActionRow.of(
                 Button.success("application_review_close_decision:" + application.id() + ":APPROVED", "Approve"),
@@ -291,11 +301,10 @@ public final class ApplicationReviewView {
         return content;
     }
 
-    private static String tallyText(ApplicationTally tally, ApplicationVote currentVote) {
-        String vote = currentVote == null ? "not cast" : currentVote.choice().name();
+    private static String tallyText(ApplicationTally tally) {
         return "### Review tally\n"
                 + "**Approve** `" + tally.approve() + "` · **Deny** `" + tally.deny() + "` · **Abstain** `" + tally.abstain() + "`\n"
-                + "Quorum: `" + tally.counted() + "/" + tally.quorumRequired() + "` counted · your vote: **" + vote + "**";
+                + "Quorum: `" + tally.counted() + "/" + tally.quorumRequired() + "` counted";
     }
 
     private static String historySummary(List<ApplicationVoteEvent> events) {

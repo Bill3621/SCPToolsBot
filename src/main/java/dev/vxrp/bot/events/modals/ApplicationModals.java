@@ -19,6 +19,7 @@ import dev.vxrp.bot.application.handler.ApplicationMessageHandler;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 
 public class ApplicationModals {
     private final ModalInteractionEvent event;
@@ -32,15 +33,15 @@ public class ApplicationModals {
 
         if (event.getModalId().startsWith("application_choose_count")) {
             String roleId = event.getModalId().split(":")[1];
-            String messageId = event.getModalId().split(":")[2];
             String membersStr = event.getValues().get(0).getAsString();
             Integer members = null;
             try {
                 members = Integer.parseInt(membersStr);
             } catch (NumberFormatException ignored) {}
 
-            event.deferEdit().queue();
-            new ApplicationMessageHandler(config, translation).editActivationMessage(event.getUser().getId(), roleId, event.getChannel().asTextChannel(), messageId, null, null, null, true, event.getUser().getId(), members);
+            var payload = new ApplicationMessageHandler(config, translation).updateActivationMenu(
+                    event.getUser().getId(), roleId, true, members);
+            event.editMessage(MessageEditBuilder.fromCreateData(payload).build()).queue();
         }
     }
 }

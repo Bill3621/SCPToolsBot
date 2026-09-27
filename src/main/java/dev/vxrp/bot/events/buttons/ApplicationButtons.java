@@ -16,12 +16,14 @@
 package dev.vxrp.bot.events.buttons;
 
 import dev.vxrp.bot.application.ApplicationManager;
+import dev.vxrp.bot.application.ApplicationSubmissionService;
 import dev.vxrp.bot.application.data.ApplicationType;
 import dev.vxrp.bot.application.handler.ApplicationMessageHandler;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.util.GlobalVariables;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,19 +49,31 @@ public class ApplicationButtons {
             return;
         }
 
+        if (buttonId.startsWith("application_continue:")) {
+            new ApplicationSubmissionService(config, translation)
+                    .continueApplication(event, buttonId.substring("application_continue:".length()));
+            return;
+        }
+
         ApplicationMessageHandler handler = new ApplicationMessageHandler(config, translation);
+        if (buttonId.startsWith("application_apply:")) {
+            var modal = handler.applicationModal(buttonId.substring("application_apply:".length()));
+            if (modal == null) {
+                event.reply(handler.positionNotActiveFeedback()).setEphemeral(true).queue();
+            } else {
+                event.replyModal(modal).queue();
+            }
+            return;
+        }
+
         if (buttonId.startsWith("application_activation_add") && !nullCheck()) {
-            event.reply(handler.activationSelectionPrompt(
-                    "application_activation_add:" + event.getUser().getId() + ":" + event.getMessage().getId()))
-                    .setEphemeral(true)
-                    .queue();
+            event.editMessage(MessageEditBuilder.fromCreateData(handler.activationSelectionPrompt(
+                    "application_activation_add:" + event.getUser().getId())).build()).queue();
         }
 
         if (buttonId.startsWith("application_activation_remove") && !nullCheck()) {
-            event.reply(handler.activationSelectionPrompt(
-                    "application_activation_remove:" + event.getUser().getId() + ":" + event.getMessageId()))
-                    .setEphemeral(true)
-                    .queue();
+            event.editMessage(MessageEditBuilder.fromCreateData(handler.activationSelectionPrompt(
+                    "application_activation_remove:" + event.getUser().getId())).build()).queue();
         }
 
         if (buttonId.startsWith("application_activation_complete_setup") && !nullCheck()) {
@@ -82,8 +96,8 @@ public class ApplicationButtons {
                 int position = -1;
                 for (var type : config.ticket().applicationTypes()) {
                     position += 1;
-                    listOfTypes.add(new ApplicationType(position, type.roleID(), "/", "/", "/", false,
-                            event.getUser().getId(), 0));
+                    listOfTypes.add(new ApplicationType(position, type.roleID(), type.name(), type.description(),
+                            type.emoji(), false, event.getUser().getId(), 0));
                 }
 
                 GlobalVariables.applicationTypeSet = new HashSet<>(listOfTypes);

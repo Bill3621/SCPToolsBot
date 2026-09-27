@@ -42,7 +42,7 @@ public class ApplicationTemplateModals {
                 .build();
     }
 
-    public Modal chooseCountModal(String roleId, String modalId) {
+    public Modal chooseCountModal(String roleId) {
         Label number = Label.of(translation.application().modalChooseCountNumberTitle(),
                 TextInput.create("application_choose_count_number",
                         TextInputStyle.SHORT)
@@ -51,7 +51,7 @@ public class ApplicationTemplateModals {
                         .setPlaceholder(translation.application().modalChooseCountNumberPlaceholder())
                         .build());
 
-        return Modal.create("application_choose_count:" + roleId + ":" + modalId,
+        return Modal.create("application_choose_count:" + roleId,
                 translation.application().modalChooseCountTitle())
                 .addComponents(number)
                 .build();
