@@ -586,9 +586,8 @@ APPLICATION:
   EMBED_APPLICATION_MESSAGE_BODY: "Wähle eine Position für deine Bewerbung."
   TEXT_APPLY: "Bewerben"
   TEXT_CLOSED: "Geschlossen"
-  TEXT_NO_CANDIDATES: "Keine Bewerbungen"
-  TEXT_CANDIDATE: "Bewerbung"
-  TEXT_CANDIDATES: "Bewerbungen"
+  TEXT_AVAILABLE: "verfügbar"
+  TEXT_UNLIMITED_AVAILABILITY: "Ohne Begrenzung"
   TEXT_NO_OPEN_POSITIONS: "Zurzeit sind keine Positionen offen."
 
   TEXT_ROLE_STATUS_TEMPLATE: "

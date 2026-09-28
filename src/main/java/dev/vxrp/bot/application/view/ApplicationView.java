@@ -66,14 +66,13 @@ public final class ApplicationView {
         return message(content, 0xE74D3C);
     }
 
-    public static MessageCreateData publicPanel(String title, String body, Collection<ApplicationType> types, Map<String, Long> openCounts,
+    public static MessageCreateData publicPanel(String title, String body, Collection<ApplicationType> types,
                                                 Map<String, Long> approvedCounts, boolean active, Translation translation) {
         List<ContainerChildComponent> content = new ArrayList<>();
         content.add(TextDisplay.of("## " + text(title, "Applications") + "\n" + text(body, "Choose a position to apply.")));
         List<ApplicationType> positions = types == null ? List.of() : types.stream()
                 .filter(type -> type != null && type.roleId() != null && !type.roleId().isBlank())
                 .sorted(Comparator.comparingInt(ApplicationType::pos)).toList();
-        Map<String, Long> pending = openCounts == null ? Map.of() : openCounts;
         Map<String, Long> accepted = approvedCounts == null ? Map.of() : approvedCounts;
         if (positions.isEmpty()) {
             content.add(TextDisplay.of("No positions configured."));
@@ -81,10 +80,9 @@ public final class ApplicationView {
             StringBuilder summary = new StringBuilder("### Positions");
             for (ApplicationType type : positions) {
                 long acceptedCount = count(accepted, type.roleId());
-                long candidateCount = count(pending, type.roleId()) + acceptedCount;
                 summary.append("\n").append(isOpen(type, acceptedCount, active) ? "🟢 " : "⚫ ")
                         .append("**").append(text(type.name(), type.roleId())).append("** · ")
-                        .append(candidateText(candidateCount, translation));
+                        .append(availableText(type, acceptedCount, active, translation));
             }
             content.add(Separator.createDivider(Separator.Spacing.SMALL));
             content.add(TextDisplay.of(summary.toString()));
@@ -105,7 +103,7 @@ public final class ApplicationView {
                 boolean open = isOpen(type, acceptedCount, active);
                 String description = text(type.description(), "Application position").replace("\n", "\n> ");
                 String summary = "**" + (open ? "🟢 " : "⚫ ") + text(type.name(), type.roleId())
-                        + "**\n> " + description + "\n" + candidateText(count(pending, type.roleId()) + acceptedCount, translation);
+                        + "**\n> " + description + "\n" + availableText(type, acceptedCount, active, translation);
                 Button button = Button.success("application_apply:" + type.roleId(),
                         text(translation.application().textApply(), "Apply"));
                 if (!open) {
@@ -254,17 +252,16 @@ public final class ApplicationView {
         return Math.max(0, counts.getOrDefault(roleId, 0L));
     }
 
-    /** Pending applications count as candidates, but only accepted ones fill a position. */
     private static boolean isOpen(ApplicationType type, long acceptedCount, boolean active) {
         return active && type.state() && acceptedCount < type.member();
     }
 
-    private static String candidateText(long count, Translation translation) {
-        if (count == 0) {
-            return text(translation.application().textNoCandidates(), "No candidates");
+    private static String availableText(ApplicationType type, long acceptedCount, boolean active, Translation translation) {
+        if (active && type.state() && type.member() == Integer.MAX_VALUE) {
+            return text(translation.application().textUnlimitedAvailability(), "No limit");
         }
-        return count + " " + text(count == 1 ? translation.application().textCandidate()
-                : translation.application().textCandidates(), count == 1 ? "candidate" : "candidates");
+        long available = active && type.state() ? Math.max(0, type.member() - acceptedCount) : 0;
+        return available + " " + text(translation.application().textAvailable(), "available");
     }
 
     private static String roleStatusText(Collection<ApplicationType> types) {

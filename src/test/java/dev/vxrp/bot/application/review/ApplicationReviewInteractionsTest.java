@@ -26,6 +26,9 @@ import dev.vxrp.bot.application.enums.ApplicationVoteChoice;
 import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.configuration.data.TranslationApplicationReview;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.managers.channel.concrete.ThreadChannelManager;
 import org.junit.jupiter.api.Test;
@@ -33,9 +36,14 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ApplicationReviewInteractionsTest {
@@ -105,6 +113,70 @@ class ApplicationReviewInteractionsTest {
             assertTrue(entry.getValue().archived, entry.getKey() + " should be archived");
             assertTrue(entry.getValue().queued, entry.getKey() + " should be queued");
         }
+    }
+
+    @Test
+    void approvalAssignsTheAppliedForRoleOnlyWhenNeeded() {
+        var role = (Role) Proxy.newProxyInstance(Role.class.getClassLoader(), new Class<?>[]{Role.class},
+                (proxy, method, args) -> switch (method.getName()) {
+                    case "getId" -> "123";
+                    case "equals" -> proxy == args[0];
+                    default -> null;
+                });
+        var assignments = new AtomicInteger();
+        var existingRoles = new AtomicReference<List<Role>>(List.of());
+        var member = (Member) Proxy.newProxyInstance(Member.class.getClassLoader(), new Class<?>[]{Member.class},
+                (proxy, method, args) -> "getRoles".equals(method.getName()) ? existingRoles.get() : null);
+        var guild = (Guild) Proxy.newProxyInstance(Guild.class.getClassLoader(), new Class<?>[]{Guild.class},
+                (proxy, method, args) -> switch (method.getName()) {
+                    case "getRoleById" -> {
+                        assertEquals("123", args[0]);
+                        yield role;
+                    }
+                    case "retrieveMemberById" -> action(method.getReturnType(), member);
+                    case "addRoleToMember" -> {
+                        assertSame(member, args[0]);
+                        assertSame(role, args[1]);
+                        assignments.incrementAndGet();
+                        yield action(method.getReturnType(), null);
+                    }
+                    default -> null;
+                });
+        var application = new ApplicationRecord("ticket", "123", "applicant", null, ApplicationLifecycle.CLOSED,
+                ApplicationDecision.APPROVED, null, null, null, null, null, null, null, 1);
+        var result = new AtomicReference<Boolean>();
+
+        ApplicationReviewInteractions.grantApprovedRole(guild, application, result::set);
+        assertEquals(true, result.get());
+        assertEquals(1, assignments.get());
+
+        existingRoles.set(List.of(role));
+        ApplicationReviewInteractions.grantApprovedRole(guild, application, result::set);
+        assertEquals(true, result.get());
+        assertEquals(1, assignments.get());
+    }
+
+    @Test
+    void approvalReportsMissingRoleRatherThanClaimingItWasAssigned() {
+        var guild = (Guild) Proxy.newProxyInstance(Guild.class.getClassLoader(), new Class<?>[]{Guild.class},
+                (proxy, method, args) -> null);
+        var application = new ApplicationRecord("ticket", "123", "applicant", null, ApplicationLifecycle.CLOSED,
+                ApplicationDecision.APPROVED, null, null, null, null, null, null, null, 1);
+        var result = new AtomicReference<Boolean>();
+
+        ApplicationReviewInteractions.grantApprovedRole(guild, application, result::set);
+
+        assertEquals(false, result.get());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Object action(Class<?> type, T response) {
+        return Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, (proxy, method, args) -> {
+            if ("queue".equals(method.getName())) {
+                ((Consumer<T>) args[0]).accept(response);
+            }
+            return null;
+        });
     }
 
     private static ThreadChannel thread(ThreadState state) {

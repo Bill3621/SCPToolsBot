@@ -37,13 +37,16 @@ import dev.vxrp.database.tables.database.ApplicationTypeTable;
 import dev.vxrp.database.tables.database.ApplicationVoteTable;
 import dev.vxrp.database.tables.database.TicketTable;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import org.slf4j.Logger;
@@ -51,6 +54,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 /** Routes staff application review interactions and revalidates authorization on every action. */
 public final class ApplicationReviewInteractions {
@@ -179,9 +183,57 @@ public final class ApplicationReviewInteractions {
         new ApplicationMessageHandler(config, translation).refreshPublicPanel(event.getJDA());
         archiveThreads(event.getJDA(), locked);
         notifyApplicant(event, locked);
-        event.reply(feedback(true, closeSuccess(translation.applicationReview(), locked.decision())))
-                .setEphemeral(true).queue();
+        if (locked.decision() == ApplicationDecision.APPROVED) {
+            event.deferReply(true).queue(hook -> grantApprovedRole(event.getJDA(), hook, locked));
+        } else {
+            event.reply(feedback(true, closeSuccess(translation.applicationReview(), locked.decision())))
+                    .setEphemeral(true).queue();
+        }
         return true;
+    }
+
+    private void grantApprovedRole(JDA api, InteractionHook hook, ApplicationRecord application) {
+        grantApprovedRole(api.getGuildById(config.settings().guildId()), application,
+                assigned -> replyRoleResult(hook, application, assigned));
+    }
+
+    static void grantApprovedRole(Guild guild, ApplicationRecord application, Consumer<Boolean> completed) {
+        Role role = guild == null || application.roleId() == null || !application.roleId().matches("\\d+")
+                ? null : guild.getRoleById(application.roleId());
+        if (role == null) {
+            logger.warn("Could not assign role {} for approved application {}: guild or role not found",
+                    application.roleId(), application.id());
+            completed.accept(false);
+            return;
+        }
+
+        guild.retrieveMemberById(application.issuer()).queue(member -> {
+            if (member.getRoles().contains(role)) {
+                completed.accept(true);
+                return;
+            }
+            try {
+                guild.addRoleToMember(member, role).queue(ignored -> completed.accept(true), error -> {
+                    logger.warn("Could not assign role {} for approved application {} to {}",
+                            role.getId(), application.id(), application.issuer(), error);
+                    completed.accept(false);
+                });
+            } catch (RuntimeException error) {
+                logger.warn("Could not assign role {} for approved application {} to {}",
+                        role.getId(), application.id(), application.issuer(), error);
+                completed.accept(false);
+            }
+        }, error -> {
+            logger.warn("Could not retrieve applicant {} for approved application {}",
+                    application.issuer(), application.id(), error);
+            completed.accept(false);
+        });
+    }
+
+    private void replyRoleResult(InteractionHook hook, ApplicationRecord application, boolean assigned) {
+        String body = assigned ? closeSuccess(translation.applicationReview(), application.decision())
+                : "Application approved, but the role could not be assigned. Please assign it manually.";
+        hook.editOriginal(MessageEditBuilder.fromCreateData(feedback(assigned, body)).build()).queue();
     }
 
     static void archiveThreads(JDA api, ApplicationRecord application) {

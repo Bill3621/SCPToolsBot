@@ -21,11 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ApplicationViewTest {
     @Test
-    void publicPanelShowsLiveCountsAndDirectButtonsInPositionOrder() throws IOException {
+    void publicPanelShowsRemainingSlotsAndDirectButtonsInPositionOrder() throws IOException {
         var message = ApplicationView.publicPanel("Applications", "Choose a position to apply.", List.of(
                 type(2, "3", "Event Host", false, 0),
                 type(0, "1", "SL Staff", true, 3),
-                type(1, "2", "Discord Staff", false, 0)), Map.of("1", 1L), Map.of(), true, translation());
+                type(1, "2", "Discord Staff", false, 0)), Map.of("1", 1L), true, translation());
         var components = message.getComponents().getFirst().asContainer().getComponents();
         var sections = components.stream().filter(component -> component instanceof Section)
                 .map(component -> (Section) component).toList();
@@ -40,35 +40,55 @@ class ApplicationViewTest {
         assertEquals("Closed", sections.get(1).getAccessory().asButton().getLabel());
         assertTrue(sections.get(2).getAccessory().asButton().isDisabled());
         assertTrue(sections.getFirst().getContentComponents().getFirst().asTextDisplay().getContent()
-                .contains("**🟢 SL Staff**\n> Role description\n1 candidate"));
+                .contains("**🟢 SL Staff**\n> Role description\n2 available"));
         assertTrue(sections.get(1).getContentComponents().getFirst().asTextDisplay().getContent()
-                .contains("**⚫ Discord Staff**\n> Role description\nNo candidates"));
+                .contains("**⚫ Discord Staff**\n> Role description\n0 available"));
         String header = components.getFirst().asTextDisplay().getContent();
         assertEquals("## Applications\nChoose a position to apply.", header);
         assertFalse(header.contains("Current status"));
     }
 
     @Test
-    void pendingApplicationDoesNotCloseThePosition() throws IOException {
+    void publicPanelShowsRemainingSlotsWithNoApprovedApplications() throws IOException {
         var message = ApplicationView.publicPanel("Applications", "Choose a position to apply.",
-                List.of(type(0, "1", "SL Staff", true, 1)), Map.of("1", 1L), Map.of(), true, translation());
+                List.of(type(0, "1", "SL Staff", true, 20)), Map.of(), true, translation());
+        String content = section(message).getContentComponents().getFirst().asTextDisplay().getContent();
+
+        assertTrue(content.contains("20 available"));
+        assertFalse(content.contains("1 candidate"));
+    }
+
+    @Test
+    void unfilledPositionKeepsApplyEnabled() throws IOException {
+        var message = ApplicationView.publicPanel("Applications", "Choose a position to apply.",
+                List.of(type(0, "1", "SL Staff", true, 1)), Map.of(), true, translation());
 
         assertFalse(section(message).getAccessory().asButton().isDisabled());
-        assertTrue(section(message).getContentComponents().getFirst().asTextDisplay().getContent().contains("1 candidate"));
+        assertTrue(section(message).getContentComponents().getFirst().asTextDisplay().getContent().contains("1 available"));
     }
 
     @Test
     void filledPositionAndDeactivatedPhaseHaveNoApplyActions() throws IOException {
         var type = type(0, "1", "SL Staff", true, 1);
         var filled = ApplicationView.publicPanel("Applications", "Choose a position to apply.",
-                List.of(type), Map.of(), Map.of("1", 1L), true, translation());
+                List.of(type), Map.of("1", 1L), true, translation());
         var deactivated = ApplicationView.publicPanel("Applications", "Choose a position to apply.",
-                List.of(type), Map.of(), Map.of(), false, translation());
+                List.of(type), Map.of(), false, translation());
 
         assertTrue(section(filled).getAccessory().asButton().isDisabled());
         assertTrue(section(deactivated).getAccessory().asButton().isDisabled());
         assertEquals("Closed", section(filled).getAccessory().asButton().getLabel());
-        assertTrue(section(filled).getContentComponents().getFirst().asTextDisplay().getContent().contains("1 candidate"));
+        assertTrue(section(filled).getContentComponents().getFirst().asTextDisplay().getContent().contains("0 available"));
+        assertTrue(section(deactivated).getContentComponents().getFirst().asTextDisplay().getContent().contains("0 available"));
+    }
+
+    @Test
+    void unlimitedPositionDoesNotDisplaySentinelAsAvailableSlots() throws IOException {
+        var message = ApplicationView.publicPanel("Applications", "Choose a position to apply.",
+                List.of(type(0, "1", "SL Staff", true, Integer.MAX_VALUE)), Map.of(), true, translation());
+
+        assertTrue(section(message).getContentComponents().getFirst().asTextDisplay().getContent().contains("No limit"));
+        assertFalse(section(message).getAccessory().asButton().isDisabled());
     }
 
     @Test
@@ -76,7 +96,7 @@ class ApplicationViewTest {
         var types = IntStream.range(0, 12)
                 .mapToObj(index -> type(index, String.valueOf(index + 1), "Role " + index, true, 2)).toList();
         var message = ApplicationView.publicPanel("Applications", "Choose a position to apply.",
-                types, Map.of(), Map.of(), true, translation());
+                types, Map.of(), true, translation());
 
         assertEquals(12, message.getComponents().getFirst().asContainer().getComponents().stream()
                 .filter(component -> component.getType() == Component.Type.SECTION).count());
@@ -87,12 +107,12 @@ class ApplicationViewTest {
         var types = IntStream.range(0, 13)
                 .mapToObj(index -> type(index, String.valueOf(index + 1), "Role " + index, true, 2)).toList();
         var message = ApplicationView.publicPanel("Applications", "Choose a position to apply.",
-                types, Map.of(), Map.of(), true, translation());
+                types, Map.of(), true, translation());
         var components = message.getComponents().getFirst().asContainer().getComponents();
 
         assertTrue(components.stream().noneMatch(component -> component.getType() == Component.Type.SECTION));
         assertTrue(components.stream().anyMatch(component -> component instanceof TextDisplay
-                && component.asTextDisplay().getContent().contains("Role 12")));
+                && component.asTextDisplay().getContent().contains("Role 12** · 2 available")));
         assertTrue(components.stream().anyMatch(component -> component.getType() == Component.Type.ACTION_ROW));
     }
 

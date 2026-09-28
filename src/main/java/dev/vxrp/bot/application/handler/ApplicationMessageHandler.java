@@ -263,12 +263,10 @@ public class ApplicationMessageHandler {
     }
 
     private MessageCreateData publicPanelPayload(boolean active, Collection<ApplicationType> types) {
-        Map<String, Long> openCounts = new HashMap<>();
         Map<String, Long> approvedCounts = new HashMap<>();
         var applications = new ApplicationTable();
         for (ApplicationType type : types) {
             if (type.roleId() != null && !type.roleId().isBlank()) {
-                openCounts.put(type.roleId(), applications.retrieveOpenCount(type.roleId()));
                 approvedCounts.put(type.roleId(), applications.retrieveApprovedCount(type.roleId()));
             }
         }
@@ -278,7 +276,7 @@ public class ApplicationMessageHandler {
                 : translation.application().textNoOpenPositions();
         return ApplicationView.publicPanel(
                 parse(translation.application().embedApplicationMessageTitle()),
-                parse(body), types, openCounts, approvedCounts, active, translation);
+                parse(body), types, approvedCounts, active, translation);
     }
 
     private void createRoleString(boolean useBaseValue) {
