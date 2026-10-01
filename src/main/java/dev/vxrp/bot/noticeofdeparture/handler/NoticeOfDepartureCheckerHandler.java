@@ -40,7 +40,7 @@ public class NoticeOfDepartureCheckerHandler {
 
     public void checkerTask() {
         long notices = new NoticeOfDepartureTable().retrieveSerial();
-        logger.info("Starting notice of departure checker, processing units starting...");
+        logger.debug("Starting notice of departure checker, processing units starting...");
         List<String> idList = new NoticeOfDepartureTable().retrieveAllIds();
         int redundantNotices = 0;
 
@@ -68,6 +68,6 @@ public class NoticeOfDepartureCheckerHandler {
             }
         }
 
-        logger.info("{} out of {} notices were found to be redundant, checker ending process...", redundantNotices, notices);
+        logger.debug("{} out of {} notices were found to be redundant, checker ending process...", redundantNotices, notices);
     }
 }
