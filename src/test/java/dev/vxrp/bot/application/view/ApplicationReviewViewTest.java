@@ -19,15 +19,19 @@ package dev.vxrp.bot.application.view;
 import dev.vxrp.bot.application.data.ApplicationRecord;
 import dev.vxrp.bot.application.data.ApplicationTally;
 import dev.vxrp.bot.application.data.ApplicationVote;
+import dev.vxrp.bot.application.enums.ApplicationDecision;
 import dev.vxrp.bot.application.enums.ApplicationVoteChoice;
 import dev.vxrp.bot.application.enums.ApplicationLifecycle;
 import dev.vxrp.bot.application.enums.ApplicationQueueFilter;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.time.Instant;
 import java.util.List;
@@ -60,13 +64,35 @@ class ApplicationReviewViewTest {
                 new ApplicationVote(application.id(), "42", ApplicationVoteChoice.APPROVE, Instant.parse("2026-08-12T10:00:00Z")), null, null);
         var notVotedReview = ApplicationReviewView.personalReview(application, "Supporter", List.of(), tally, null, null, null);
         var lockedReview = ApplicationReviewView.lockedReview(application, "Supporter", List.of(), tally, List.of(), null, null);
-        var closeConfirmation = ApplicationReviewView.closeConfirmation(application, tally, null);
+        var closeConfirmation = ApplicationReviewView.closeConfirmation(application, "Supporter", tally);
 
         assertFalse(text(publicReview).contains("your vote"));
         assertFalse(text(lockedReview).contains("your vote"));
         assertFalse(text(closeConfirmation).contains("your vote"));
         assertTrue(text(personalReview).contains("your vote: **APPROVE**"));
         assertTrue(text(notVotedReview).contains("your vote: **not cast**"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"4, 0, 2, APPROVED, SUCCESS", "0, 4, 0, DENIED, DANGER", "2, 2, 1, DENIED, DANGER"})
+    void closeConfirmationEmphasizesRecommendedDecisionIncludingDenialOnTies(int approve, int deny, int abstain, ApplicationDecision recommendation, ButtonStyle style) {
+        var application = application("review-1");
+        var message = ApplicationReviewView.closeConfirmation(application, "Moderator", new ApplicationTally(approve, deny, abstain, 4));
+        String action = recommendation == ApplicationDecision.APPROVED ? "Approve" : "Deny";
+        ApplicationDecision alternative = recommendation == ApplicationDecision.APPROVED ? ApplicationDecision.DENIED : ApplicationDecision.APPROVED;
+
+        assertTrue(text(message).startsWith("## " + action + " application?\n<@456> · Moderator\n"));
+        assertTrue(text(message).contains("**" + approve + "** approve · **" + deny + "** deny · **" + abstain + "** abstain"));
+        assertTrue(text(message).contains("Quorum met · **4/4** counted"));
+        assertTrue(text(message).contains("Choose a decision, then add a reason."));
+        var decisions = buttons(message);
+        assertEquals(2, decisions.size());
+        assertEquals(action, decisions.getFirst().getLabel());
+        assertEquals(style, decisions.getFirst().getStyle());
+        assertEquals("application_review_close_decision:review-1:" + recommendation, decisions.getFirst().getCustomId());
+        assertEquals(recommendation == ApplicationDecision.APPROVED ? "Deny" : "Approve", decisions.getLast().getLabel());
+        assertEquals(ButtonStyle.SECONDARY, decisions.getLast().getStyle());
+        assertEquals("application_review_close_decision:review-1:" + alternative, decisions.getLast().getCustomId());
     }
 
     @Test

@@ -451,7 +451,7 @@ public final class ApplicationReviewInteractions {
                     .replace("%quorum%", String.valueOf(application.quorumRequired())))).setEphemeral(true).queue();
             return;
         }
-        event.reply(new ApplicationMessageHandler(config, translation).closeConfirmation(application, tally, null))
+        event.reply(new ApplicationMessageHandler(config, translation).closeConfirmation(application, roleName(application.roleId()), tally))
                 .setEphemeral(true).queue();
     }
 

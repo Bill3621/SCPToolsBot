@@ -30,6 +30,7 @@ import net.dv8tion.jda.api.components.MessageTopLevelComponent;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
 import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.components.section.Section;
 import net.dv8tion.jda.api.components.selections.SelectOption;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
@@ -180,28 +181,29 @@ public final class ApplicationReviewView {
         return queue(requesterId, filter, page, pageSize, entries, total);
     }
 
-    public static MessageCreateData closeConfirmation(ApplicationRecord application, ApplicationTally tally,
-                                                       ApplicationDecision suggestedDecision) {
+    public static MessageCreateData closeConfirmation(ApplicationRecord application, String roleName, ApplicationTally tally) {
         requireApplication(application);
         ApplicationTally effectiveTally = effectiveTally(application, tally);
-        String decision = decisionText(suggestedDecision == null ? recommendedDecision(effectiveTally) : suggestedDecision);
+        boolean approveRecommended = effectiveTally.approve() > effectiveTally.deny();
         List<ContainerChildComponent> content = new ArrayList<>();
-        content.add(TextDisplay.of("## Close application `" + application.id() + "`?\n"
-                + "This locks all votes and records the staff decision."));
+        content.add(TextDisplay.of("## " + (approveRecommended ? "Approve" : "Deny") + " application?\n"
+                + ApplicationView.displayActor(application.issuer()) + " · " + ApplicationView.text(roleName, "Position")));
         content.add(Separator.createDivider(Separator.Spacing.SMALL));
-        content.add(TextDisplay.of("**Suggested result**\n" + decision));
-        content.add(TextDisplay.of(tallyText(effectiveTally)));
-        content.add(TextDisplay.of("-# Confirm only after the application has been reviewed. A tie has no automatic result."));
-        content.add(ActionRow.of(
-                Button.success("application_review_close_decision:" + application.id() + ":APPROVED", "Approve"),
-                Button.danger("application_review_close_decision:" + application.id() + ":DENIED", "Deny"),
-                Button.secondary("application_review_close_cancel:" + application.id(), "Keep open")));
+        content.add(TextDisplay.of("**" + effectiveTally.approve() + "** approve · **" + effectiveTally.deny()
+                + "** deny · **" + effectiveTally.abstain() + "** abstain\n"
+                + (effectiveTally.quorumReached() ? "Quorum met" : "Quorum pending") + " · **"
+                + effectiveTally.counted() + "/" + effectiveTally.quorumRequired() + "** counted\n\n"
+                + "Choose a decision, then add a reason."));
+        Button approve = Button.success("application_review_close_decision:" + application.id() + ":APPROVED", "Approve");
+        Button deny = Button.danger("application_review_close_decision:" + application.id() + ":DENIED", "Deny");
+        content.add(approveRecommended
+                ? ActionRow.of(approve, deny.withStyle(ButtonStyle.SECONDARY))
+                : ActionRow.of(deny, approve.withStyle(ButtonStyle.SECONDARY)));
         return ApplicationView.message(content, null);
     }
 
-    public static MessageCreateData renderCloseConfirmation(ApplicationRecord application, ApplicationTally tally,
-                                                            ApplicationDecision suggestedDecision) {
-        return closeConfirmation(application, tally, suggestedDecision);
+    public static MessageCreateData renderCloseConfirmation(ApplicationRecord application, String roleName, ApplicationTally tally) {
+        return closeConfirmation(application, roleName, tally);
     }
 
     public static MessageCreateData history(String applicationId, int page, int pageSize,
@@ -340,11 +342,6 @@ public final class ApplicationReviewView {
             return "No decision recorded";
         }
         return decision == ApplicationDecision.APPROVED ? "Approved" : "Denied";
-    }
-
-    private static ApplicationDecision recommendedDecision(ApplicationTally tally) {
-        Boolean recommendation = tally.recommendation();
-        return recommendation == null ? null : recommendation ? ApplicationDecision.APPROVED : ApplicationDecision.DENIED;
     }
 
     private static ApplicationTally effectiveTally(ApplicationRecord application, ApplicationTally tally) {

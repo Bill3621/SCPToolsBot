@@ -238,9 +238,8 @@ public class ApplicationMessageHandler {
         return ApplicationReviewView.queue(requesterId, filter, page, pageSize, entries, total);
     }
 
-    public MessageCreateData closeConfirmation(ApplicationRecord application, ApplicationTally tally,
-                                               ApplicationDecision suggestedDecision) {
-        return ApplicationReviewView.closeConfirmation(application, tally, suggestedDecision);
+    public MessageCreateData closeConfirmation(ApplicationRecord application, String roleName, ApplicationTally tally) {
+        return ApplicationReviewView.closeConfirmation(application, roleName, tally);
     }
 
     public MessageCreateData voteHistory(String applicationId, int page, int pageSize,
