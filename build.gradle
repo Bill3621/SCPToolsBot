@@ -19,7 +19,7 @@ repositories {
 
 def jacksonVersion = "2.22.0"
 def jacksonAnnotationsVersion = "2.22"
-def sqliteVersion = "3.53.2.0"
+def sqliteVersion = "3.53.4.0"
 def mySqlVersion = "9.7.0"
 def postgresSqlVersion = "42.7.11"
 def mariaDBVersion = "3.5.9"
