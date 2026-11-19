@@ -119,6 +119,28 @@
     },
     {
       "active": true,
+      "inherit": "commands.quota.default",
+      "name": "quota",
+      "description": "View weekly staff playtime quota progress",
+      "defaultPermissions": [],
+      "options": [
+        {
+          "type": "USER",
+          "name": "user",
+          "description": "Staff member to view, defaults to you",
+          "isRequired": false
+        }
+      ]
+    },
+    {
+      "active": true,
+      "inherit": "commands.quotareport.default",
+      "name": "quota-report",
+      "description": "View this week's staff quota report so far",
+      "defaultPermissions": []
+    },
+    {
+      "active": true,
       "inherit": "commands.settings.default",
       "name": "settings",
       "description": "Bot settings/configurations",

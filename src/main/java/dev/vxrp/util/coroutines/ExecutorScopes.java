@@ -19,6 +19,7 @@ package dev.vxrp.util.coroutines;
 import dev.vxrp.bot.BotManager;
 import dev.vxrp.bot.noticeofdeparture.NoticeOfDepartureManager;
 import dev.vxrp.bot.regulars.RegularsManager;
+import dev.vxrp.bot.staffquota.StaffQuotaManager;
 import dev.vxrp.bot.status.StatusManager;
 import dev.vxrp.web.WebServerManager;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,10 @@ public class ExecutorScopes {
     public static final ScheduledExecutorService regularsScope =
             Executors.newSingleThreadScheduledExecutor(
                     namedThreadFactory("regulars-scope", RegularsManager.class));
+
+    public static final ScheduledExecutorService staffQuotaScope =
+            Executors.newSingleThreadScheduledExecutor(
+                    namedThreadFactory("staff-quota-scope", StaffQuotaManager.class));
 
     public static final ScheduledExecutorService webServerScope =
             Executors.newSingleThreadScheduledExecutor(

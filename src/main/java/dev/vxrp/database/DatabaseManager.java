@@ -272,6 +272,19 @@ public class DatabaseManager {
                     "verify_time TEXT NOT NULL, " +
                     "steam_id TEXT NOT NULL)"
             );
+
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS staff_quota_leave (" +
+                    "user_id VARCHAR(32) NOT NULL, " +
+                    "day VARCHAR(10) NOT NULL, " +
+                    "PRIMARY KEY (user_id, day))"
+            );
+
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS staff_quota_reports (" +
+                    "week_start VARCHAR(10) PRIMARY KEY, " +
+                    "reported_at TEXT NOT NULL)"
+            );
         } catch (SQLException e) {
             logger.error("Failed to create tables", e);
         }

@@ -32,5 +32,10 @@ public record Translation(
     @JsonProperty("REGULARS") TranslationRegulars regulars,
     @JsonProperty("STATUS_BARS") TranslationStatusBars statusBars,
     @JsonProperty("BUTTONS") TranslationButtons buttons,
-    @JsonProperty("SELECT_MENUS") TranslationSelectMenus selectMenus
-) {}
+    @JsonProperty("SELECT_MENUS") TranslationSelectMenus selectMenus,
+    @JsonProperty("STAFF_QUOTA") TranslationStaffQuota staffQuota
+) {
+    public Translation {
+        if (staffQuota == null) staffQuota = TranslationStaffQuota.DEFAULT;
+    }
+}

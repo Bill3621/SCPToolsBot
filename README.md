@@ -20,6 +20,7 @@ The following is a list of changes made in this fork that differ from upstream:
 - Rewrote the entire codebase from Kotlin to Java
 - Per-instance API credentials for status bots (instances can override the global `api` and `account_id` with their own, supporting multi-server setups where different game servers are on different physical servers or use a different API key)
 - Notice of Departure: optional start date field allowing staff to schedule departures in advance
+- Staff quota: weekly CedMod playtime quotas per staff role, with a report channel, DMs for missed quotas, `/quota` to check progress, `/quota-report` for the whole team's week so far, and reduced quotas for days on notice of departure
 - And probably a lot of other small changes...
 
 <div align="left">

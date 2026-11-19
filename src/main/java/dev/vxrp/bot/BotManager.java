@@ -25,6 +25,7 @@ import dev.vxrp.bot.events.ModalListener;
 import dev.vxrp.bot.events.StringSelectListener;
 import dev.vxrp.bot.noticeofdeparture.NoticeOfDepartureManager;
 import dev.vxrp.bot.regulars.RegularsManager;
+import dev.vxrp.bot.staffquota.StaffQuotaManager;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.updates.handler.UpdatesFileHandler;
@@ -77,6 +78,7 @@ public class BotManager {
         api.addEventListener(new ModalListener(api, config, translation));
         new NoticeOfDepartureManager(api, config, translation).spinUpChecker();
         new RegularsManager(api, config, translation).spinUpChecker();
+        new StaffQuotaManager(api, config, translation).spinUpChecker();
 
         CommandManager commandManager = new CommandManager(config);
         commandManager.registerSpecificCommands(config.extra().commands().commands(), api);

@@ -27,6 +27,7 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger("Main");
 
     public static void main(String[] args) {
+        System.setProperty("java.awt.headless", "true");
         logger.info("Starting up...");
         new UpdateManager().checkUpdated();
 

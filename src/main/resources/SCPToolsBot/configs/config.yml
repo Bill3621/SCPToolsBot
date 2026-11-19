@@ -133,3 +133,19 @@ regulars:
   only_load_certain_folder: false
   # Specify which folders should be specified if the option above is active
   only_load_folders: []
+
+staff_quota:
+  # Activates weekly staff playtime quotas. Requires the cedmod integration, and staff need their Discord account linked in CedMod
+  # Weeks run Monday to Sunday. The report for a week is posted on the following Monday
+  active: false
+  # Which channel should the weekly report be sent to? (INPUT ID ONLY)
+  report_channel_id: ""
+  # Should staff who missed their quota receive a DM?
+  dm_missed: true
+  # Roles that can view other members' quotas with /quota <user> and the /quota-report command, administrators always can (INPUT ID'S ONLY)
+  roles_view_others: []
+  # Staff roles and the playtime hours they need each week. Members with several of these roles need the highest one.
+  # Days on an active notice of departure lower the requirement, a full week on leave is exempt
+  roles:
+    - role_id: ""
+      hours: 5

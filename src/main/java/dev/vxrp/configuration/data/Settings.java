@@ -36,5 +36,10 @@ public record Settings(
     @JsonProperty("XP") ConfigXP xp,
     ConfigVerify verify,
     @JsonProperty("notice_of_departure") ConfigNoticeOfDeparture noticeOfDeparture,
-    ConfigRegulars regulars
-) {}
+    ConfigRegulars regulars,
+    @JsonProperty("staff_quota") ConfigStaffQuota staffQuota
+) {
+    public Settings {
+        if (staffQuota == null) staffQuota = ConfigStaffQuota.DISABLED;
+    }
+}
