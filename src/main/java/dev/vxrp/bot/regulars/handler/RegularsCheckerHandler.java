@@ -32,6 +32,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 public class RegularsCheckerHandler {
+    private static final double SECONDS_PER_HOUR = 3600;
+
     private final JDA api;
     private final Config config;
     private final Translation translation;
@@ -92,7 +94,7 @@ public class RegularsCheckerHandler {
                 return false;
             }
 
-            if (!checkPlaytime(regular, steamId, lastCheckedDate)) return false;
+            if (!checkPlaytime(regular, steamId, lastCheckedDate, role)) return false;
 
             checkRoles(regular.id(), regular.groupRoleId(), regular.roleId());
         } else if (reqType == RequirementType.XP) {
@@ -110,7 +112,7 @@ public class RegularsCheckerHandler {
                 return false;
             }
 
-            if (!checkPlaytime(regular, steamId, lastCheckedDate) && !checkLevel(regular, steamId, role)) return false;
+            if (!checkPlaytime(regular, steamId, lastCheckedDate, role) && !checkLevel(regular, steamId, role)) return false;
 
             checkRoles(regular.id(), regular.groupRoleId(), regular.roleId());
         }
@@ -119,7 +121,7 @@ public class RegularsCheckerHandler {
         return true;
     }
 
-    private boolean checkPlaytime(RegularDatabaseEntry regular, String steamId, LocalDate lastCheckedDate) {
+    private boolean checkPlaytime(RegularDatabaseEntry regular, String steamId, LocalDate lastCheckedDate, RegularsConfigRole role) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         if (lastCheckedDate != null && lastCheckedDate.format(formatter).equals(LocalDate.now().format(formatter))) return false;
 
@@ -129,12 +131,13 @@ public class RegularsCheckerHandler {
             if (regular.playtime() == 0.0) {
                 var player = cedmod.playerQuery(steamId + "@steam", 10, 0, false, false, "id_field", null, 365, true, false);
 
+                double hours = player.getPlayers().get(0).getActivity() / SECONDS_PER_HOUR;
                 RegularsTable table = new RegularsTable();
-                table.setPlaytime(regular.id(), player.getPlayers().get(0).getActivity());
+                table.setPlaytime(regular.id(), hours);
                 table.setLastCheckedDate(regular.id(), LocalDate.now().toString());
-                logger.info("Updated user: {}'s regular playtime data for the first time, new playtime: {}", regular.id(), player.getPlayers().get(0).getActivity());
+                logger.info("Updated user: {}'s regular playtime data for the first time, new playtime: {}h", regular.id(), hours);
 
-                return true;
+                return hours >= role.playtimeRequirements();
             }
 
             if (lastCheckedDate == null) return false;
@@ -144,11 +147,12 @@ public class RegularsCheckerHandler {
             RegularsTable table = new RegularsTable();
             double currentPlaytime = table.getPlaytime(regular.id());
 
-            double newPlaytime = currentPlaytime + player.getPlayers().get(0).getActivity();
+            double addedHours = player.getPlayers().get(0).getActivity() / SECONDS_PER_HOUR;
+            double newPlaytime = currentPlaytime + addedHours;
 
             table.setPlaytime(regular.id(), newPlaytime);
-            logger.info("Updated user: {}'s regular playtime data by adding: {} to their already existing playtime of: {}, result: {}", regular.id(), player.getPlayers().get(0).getActivity(), currentPlaytime, newPlaytime);
-            return true;
+            logger.info("Updated user: {}'s regular playtime data by adding: {}h to their already existing playtime of: {}h, result: {}h", regular.id(), addedHours, currentPlaytime, newPlaytime);
+            return newPlaytime >= role.playtimeRequirements();
         } catch (Exception e) {
             logger.error("Could not correctly execute cedmod call {}", e.getMessage());
             return false;

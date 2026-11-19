@@ -20,6 +20,7 @@ import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Settings;
 import dev.vxrp.database.enums.DatabaseType;
 import dev.vxrp.database.migrations.ApplicationMigrationRunner;
+import dev.vxrp.database.migrations.RegularsPlaytimeMigration;
 import dev.vxrp.database.tables.database.ApplicationTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,6 +179,7 @@ public class DatabaseManager {
     private void runMigrations() {
         try {
             ApplicationMigrationRunner.run(connection);
+            RegularsPlaytimeMigration.run(connection);
             new ApplicationTable().markStaleProvisioningFailed();
         } catch (SQLException e) {
             logger.error("Failed to run database migrations", e);
