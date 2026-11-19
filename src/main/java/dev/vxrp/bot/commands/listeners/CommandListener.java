@@ -19,6 +19,8 @@ package dev.vxrp.bot.commands.listeners;
 import dev.vxrp.bot.commands.handler.bot.application.ApplicationCommand;
 import dev.vxrp.bot.commands.handler.bot.help.HelpCommand;
 import dev.vxrp.bot.commands.handler.bot.noticeofdeparture.NoticeOfDepartureCommand;
+import dev.vxrp.bot.commands.handler.bot.quota.QuotaCommand;
+import dev.vxrp.bot.commands.handler.bot.quota.QuotaReportCommand;
 import dev.vxrp.bot.commands.handler.bot.regulars.RegularsCommand;
 import dev.vxrp.bot.commands.handler.bot.settings.SettingsCommand;
 import dev.vxrp.bot.commands.handler.bot.template.TemplateCommandHandler;
@@ -102,6 +104,32 @@ public class CommandListener extends ListenerAdapter {
             case "commands.settings.default":
                 settingsCommand(event);
                 return;
+            case "commands.quota.default": {
+                MessageEmbed embed = new PermissionManager(config, translation).checkStatus(
+                        StatusMessageType.COMMAND,
+                        config.settings().staffQuota().active(),
+                        config.settings().cedmod().active()
+                );
+                if (embed != null) {
+                    event.replyEmbeds(embed).setEphemeral(true).queue();
+                } else {
+                    new QuotaCommand(config, translation).view(event);
+                }
+                return;
+            }
+            case "commands.quotareport.default": {
+                MessageEmbed embed = new PermissionManager(config, translation).checkStatus(
+                        StatusMessageType.COMMAND,
+                        config.settings().staffQuota().active(),
+                        config.settings().cedmod().active()
+                );
+                if (embed != null) {
+                    event.replyEmbeds(embed).setEphemeral(true).queue();
+                } else {
+                    new QuotaReportCommand(config, translation).view(event);
+                }
+                return;
+            }
             case "commands.applications.default":
                 new ApplicationCommand(config, translation).sendQueue(event);
                 return;

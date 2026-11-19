@@ -20,6 +20,7 @@ import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Settings;
 import dev.vxrp.database.enums.DatabaseType;
 import dev.vxrp.database.migrations.ApplicationMigrationRunner;
+import dev.vxrp.database.migrations.RegularsPlaytimeMigration;
 import dev.vxrp.database.tables.database.ApplicationTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,6 +179,7 @@ public class DatabaseManager {
     private void runMigrations() {
         try {
             ApplicationMigrationRunner.run(connection);
+            RegularsPlaytimeMigration.run(connection);
             new ApplicationTable().markStaleProvisioningFailed();
         } catch (SQLException e) {
             logger.error("Failed to run database migrations", e);
@@ -269,6 +271,19 @@ public class DatabaseManager {
                     "id TEXT PRIMARY KEY, " +
                     "verify_time TEXT NOT NULL, " +
                     "steam_id TEXT NOT NULL)"
+            );
+
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS staff_quota_leave (" +
+                    "user_id VARCHAR(32) NOT NULL, " +
+                    "day VARCHAR(10) NOT NULL, " +
+                    "PRIMARY KEY (user_id, day))"
+            );
+
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS staff_quota_reports (" +
+                    "week_start VARCHAR(10) PRIMARY KEY, " +
+                    "reported_at TEXT NOT NULL)"
             );
         } catch (SQLException e) {
             logger.error("Failed to create tables", e);
