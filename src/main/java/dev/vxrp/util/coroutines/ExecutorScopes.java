@@ -17,6 +17,7 @@
 package dev.vxrp.util.coroutines;
 
 import dev.vxrp.bot.BotManager;
+import dev.vxrp.bot.application.review.ApplicationVoteNotifier;
 import dev.vxrp.bot.noticeofdeparture.NoticeOfDepartureManager;
 import dev.vxrp.bot.regulars.RegularsManager;
 import dev.vxrp.bot.staffquota.StaffQuotaManager;
@@ -59,6 +60,10 @@ public class ExecutorScopes {
     public static final ScheduledExecutorService staffQuotaScope =
             Executors.newSingleThreadScheduledExecutor(
                     namedThreadFactory("staff-quota-scope", StaffQuotaManager.class));
+
+    public static final ScheduledExecutorService applicationScope =
+            Executors.newSingleThreadScheduledExecutor(
+                    namedThreadFactory("application-scope", ApplicationVoteNotifier.class));
 
     public static final ScheduledExecutorService webServerScope =
             Executors.newSingleThreadScheduledExecutor(

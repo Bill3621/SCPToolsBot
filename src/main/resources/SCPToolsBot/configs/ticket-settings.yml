@@ -20,6 +20,9 @@ settings:
     # quorum_percent: 60
     # Roles allowed to close application votes. These roles can also vote.
     senior_closer_roles: [ ]
+    # Days an application can stay below quorum before voters are pinged once in its staff discussion. 0 disables.
+    # Closer roles are pinged as soon as quorum is reached. Roles must be mentionable, or the bot needs Mention @everyone.
+    reminder_after_days: 3
 
 # Shared questions used unless an application type defines its own questions list.
 # Configure 1 to 10 questions per application type. For 6 to 10, applicants complete

@@ -33,6 +33,8 @@ public final class ApplicationMigrationRunner {
         createMigrationTable(connection);
         addApplicationColumns(connection);
         createApplicationTables(connection);
+        addColumnIfAbsent(connection, "application_answers", "position", "INTEGER");
+        addColumnIfAbsent(connection, "applications", "reminded_at", "VARCHAR(64)");
         createApplicationIndexes(connection);
         recordVersion(connection);
     }

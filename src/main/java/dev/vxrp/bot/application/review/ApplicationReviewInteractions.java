@@ -303,6 +303,7 @@ public final class ApplicationReviewInteractions {
         }
 
         String value = event.getValues().getFirst();
+        var before = votes.tally(applicationId, application.quorumRequired());
         String confirmation;
         if ("REMOVE".equals(value)) {
             votes.remove(applicationId, event.getUser().getId());
@@ -322,6 +323,8 @@ public final class ApplicationReviewInteractions {
         }
 
         refreshCanonical(event.getJDA(), application.id());
+        new ApplicationVoteNotifier(config).voteChanged(event.getJDA(), application, before,
+                votes.tally(applicationId, application.quorumRequired()));
         if (event.getMessage().isEphemeral()) {
             var payload = new ApplicationMessageHandler(config, translation).personalReview(application,
                     roleName(application.roleId()), answers.list(applicationId),

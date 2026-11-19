@@ -170,20 +170,10 @@ public class NoticeOfDepartureMessageHandler {
         NoticeOfDepartureTable table = new NoticeOfDepartureTable();
         String channelId = table.retrieveChannel(userId);
         String messageId = table.retrieveMessage(userId);
-        if (channelId != null) {
-            TextChannel channel = api.getTextChannelById(channelId);
-            if (channel != null) {
-                List<ContainerChildComponent> publicContent = new ArrayList<>();
-                publicContent.add(TextDisplay.of("## " + title));
-                publicContent.add(Separator.createDivider(Separator.Spacing.SMALL));
-                publicContent.add(TextDisplay.of("<@" + userId + ">\n" + summary + "\n"
-                        + discordCurrentDate + " → " + discordEndDate));
-                channel.sendMessage(message(publicContent, null)).queue();
-                if (messageId != null) {
-                    channel.retrieveMessageById(messageId).queue(notice -> notice.delete().queue(),
-                            error -> logger.warn("Could not delete expired notice of departure message for {}", userId));
-                }
-            }
+        TextChannel channel = channelId == null ? null : api.getTextChannelById(channelId);
+        if (channel != null && messageId != null) {
+            channel.retrieveMessageById(messageId).queue(notice -> notice.delete().queue(),
+                    error -> logger.warn("Could not delete expired notice of departure message for {}", userId));
         }
     }
 

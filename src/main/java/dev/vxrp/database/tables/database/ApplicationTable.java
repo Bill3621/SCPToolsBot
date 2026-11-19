@@ -124,6 +124,17 @@ public class ApplicationTable {
         }
     }
 
+    public boolean markReminded(String id) {
+        try (PreparedStatement statement = DatabaseManager.getConnection().prepareStatement(
+                "UPDATE applications SET reminded_at = ? WHERE id = ? AND reminded_at IS NULL")) {
+            statement.setString(1, Instant.now().toString());
+            statement.setString(2, id);
+            return statement.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void markFailed(String id) {
         DatabaseManager.transaction(connection -> {
             markFailed(connection, id);

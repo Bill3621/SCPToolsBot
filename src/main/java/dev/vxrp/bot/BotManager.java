@@ -17,6 +17,7 @@
 package dev.vxrp.bot;
 
 import dev.vxrp.bot.application.handler.ApplicationMessageHandler;
+import dev.vxrp.bot.application.review.ApplicationVoteNotifier;
 import dev.vxrp.bot.commands.CommandManager;
 import dev.vxrp.bot.commands.listeners.CommandListener;
 import dev.vxrp.bot.events.ButtonListener;
@@ -79,6 +80,7 @@ public class BotManager {
         new NoticeOfDepartureManager(api, config, translation).spinUpChecker();
         new RegularsManager(api, config, translation).spinUpChecker();
         new StaffQuotaManager(api, config, translation).spinUpChecker();
+        new ApplicationVoteNotifier(config).spinUpChecker(api);
 
         CommandManager commandManager = new CommandManager(config);
         commandManager.registerSpecificCommands(config.extra().commands().commands(), api);

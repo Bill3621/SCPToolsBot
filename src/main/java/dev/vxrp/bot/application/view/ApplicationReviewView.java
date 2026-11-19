@@ -83,7 +83,7 @@ public final class ApplicationReviewView {
                                                       ApplicationTally tally, String personalVote, String ticketUrl, String discussionUrl) {
         requireApplication(application);
         ApplicationTally effectiveTally = effectiveTally(application, tally);
-        List<ContainerChildComponent> content = reviewHeader(application, roleName, "Open review");
+        List<ContainerChildComponent> content = reviewHeader(application, roleName);
         content.add(Separator.createDivider(Separator.Spacing.SMALL));
         ApplicationView.appendAnswers(content, answers);
         content.add(Separator.createDivider(Separator.Spacing.SMALL));
@@ -108,19 +108,24 @@ public final class ApplicationReviewView {
                                                   ApplicationTally tally, List<ApplicationVoteEvent> history, String ticketUrl, String discussionUrl) {
         requireApplication(application);
         ApplicationTally effectiveTally = effectiveTally(application, tally);
-        List<ContainerChildComponent> content = reviewHeader(application, roleName, "Locked review");
+        List<ContainerChildComponent> content = reviewHeader(application, roleName);
         content.add(Separator.createDivider(Separator.Spacing.SMALL));
         ApplicationView.appendAnswers(content, answers);
         content.add(Separator.createDivider(Separator.Spacing.SMALL));
         content.add(TextDisplay.of("### Decision\n" + decisionText(application.decision())));
-        content.add(TextDisplay.of("**Vote tally**\n" + tallyText(effectiveTally)));
+        content.add(TextDisplay.of(tallyText(effectiveTally)));
         content.add(TextDisplay.of("**Closed by**\n" + ApplicationView.displayActor(application.closedBy())
                 + " · " + ApplicationView.timestamp(application.closedAt())));
         content.add(TextDisplay.of("**Close reason**\n" + ApplicationView.quote(application.closeReason())));
         content.add(Separator.createDivider(Separator.Spacing.SMALL));
         content.add(TextDisplay.of(historySummary(history)));
         content.add(ActionRow.of(lockedActions(application, ticketUrl, discussionUrl)));
-        return ApplicationView.message(content, application.decision() == ApplicationDecision.DENIED ? 0xE74D3C : null);
+        Integer accent = switch (application.decision()) {
+            case APPROVED -> 0x2ECC70;
+            case DENIED -> 0xE74D3C;
+            case null -> null;
+        };
+        return ApplicationView.message(content, accent);
     }
 
     public static MessageCreateData renderLockedReview(ApplicationRecord application, String roleName, List<ApplicationAnswer> answers,
@@ -192,7 +197,7 @@ public final class ApplicationReviewView {
         content.add(TextDisplay.of("**" + effectiveTally.approve() + "** approve · **" + effectiveTally.deny()
                 + "** deny · **" + effectiveTally.abstain() + "** abstain\n"
                 + (effectiveTally.quorumReached() ? "Quorum met" : "Quorum pending") + " · **"
-                + effectiveTally.counted() + "/" + effectiveTally.quorumRequired() + "** counted\n\n"
+                + effectiveTally.counted() + "/" + effectiveTally.quorumRequired() + "**\n\n"
                 + "Choose a decision, then add a reason."));
         Button approve = Button.success("application_review_close_decision:" + application.id() + ":APPROVED", "Approve");
         Button deny = Button.danger("application_review_close_decision:" + application.id() + ":DENIED", "Deny");
@@ -293,11 +298,10 @@ public final class ApplicationReviewView {
         return "application_review_history:" + ApplicationView.text(applicationId, "unknown") + ":" + Math.max(0, page);
     }
 
-    private static List<ContainerChildComponent> reviewHeader(ApplicationRecord application, String roleName,
-                                                               String state) {
+    private static List<ContainerChildComponent> reviewHeader(ApplicationRecord application, String roleName) {
         List<ContainerChildComponent> content = new ArrayList<>();
         content.add(TextDisplay.of("## Application `" + application.id() + "` · " + ApplicationView.text(roleName, "Position")
-                + "\n" + ApplicationView.displayActor(application.issuer()) + " · " + state));
+                + "\n" + ApplicationView.displayActor(application.issuer())));
         content.add(TextDisplay.of("Submitted " + ApplicationView.timestamp(application.createdAt())));
         return content;
     }
@@ -305,7 +309,7 @@ public final class ApplicationReviewView {
     private static String tallyText(ApplicationTally tally) {
         return "### Review tally\n"
                 + "**Approve** `" + tally.approve() + "` · **Deny** `" + tally.deny() + "` · **Abstain** `" + tally.abstain() + "`\n"
-                + "Quorum: `" + tally.counted() + "/" + tally.quorumRequired() + "` counted";
+                + "Quorum: `" + tally.counted() + "/" + tally.quorumRequired() + "`";
     }
 
     private static String historySummary(List<ApplicationVoteEvent> events) {

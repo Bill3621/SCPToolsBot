@@ -82,5 +82,5 @@
     }
   ],
 
-  "additionalInformation": "Application voting now includes a review queue, configurable quorum and senior closer roles, vote history, applicant decisions, and compact Components V2 messages. Notices of departure are now filed immediately, mark active members with a configurable nickname prefix, and announce when members return."
+  "additionalInformation": "Application voting now includes a review queue, configurable quorum and senior closer roles, vote history, applicant decisions, and compact Components V2 messages. Closer roles are pinged when an application reaches quorum, and voters get a reminder when one stays below quorum (application_voting.reminder_after_days). Notices of departure are now filed immediately, mark active members with a configurable nickname prefix, and message members privately when they return."
 }

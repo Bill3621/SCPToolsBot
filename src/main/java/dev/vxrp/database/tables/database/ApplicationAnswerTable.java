@@ -41,31 +41,16 @@ public class ApplicationAnswerTable {
         }
 
         try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO application_answers (application_id, field_key, answer) VALUES (?, ?, ?)")) {
-            for (ApplicationAnswer answer : answers) {
+                "INSERT INTO application_answers (application_id, field_key, answer, position) VALUES (?, ?, ?, ?)")) {
+            for (int position = 0; position < answers.size(); position++) {
+                ApplicationAnswer answer = answers.get(position);
                 statement.setString(1, applicationId);
                 statement.setString(2, answer.fieldKey());
                 statement.setString(3, answer.value());
+                statement.setInt(4, position);
                 statement.addBatch();
             }
             statement.executeBatch();
-        }
-    }
-
-    public void add(String applicationId, ApplicationAnswer answer) {
-        DatabaseManager.transaction(connection -> {
-            add(connection, applicationId, answer);
-            return null;
-        });
-    }
-
-    public void add(Connection connection, String applicationId, ApplicationAnswer answer) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO application_answers (application_id, field_key, answer) VALUES (?, ?, ?)")) {
-            statement.setString(1, applicationId);
-            statement.setString(2, answer.fieldKey());
-            statement.setString(3, answer.value());
-            statement.executeUpdate();
         }
     }
 
@@ -91,7 +76,7 @@ public class ApplicationAnswerTable {
     public List<ApplicationAnswer> list(Connection connection, String applicationId) {
         List<ApplicationAnswer> answers = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT field_key, answer FROM application_answers WHERE application_id = ? ORDER BY field_key")) {
+                "SELECT field_key, answer FROM application_answers WHERE application_id = ? ORDER BY position, field_key")) {
             statement.setString(1, applicationId);
             try (ResultSet results = statement.executeQuery()) {
                 while (results.next()) {
@@ -103,9 +88,5 @@ public class ApplicationAnswerTable {
             throw new RuntimeException(e);
         }
         return answers;
-    }
-
-    public List<ApplicationAnswer> retrieve(String applicationId) {
-        return list(applicationId);
     }
 }

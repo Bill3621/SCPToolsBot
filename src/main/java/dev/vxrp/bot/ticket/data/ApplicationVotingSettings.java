@@ -23,7 +23,8 @@ import java.util.List;
 public record ApplicationVotingSettings(
     int quorum,
     @JsonProperty("quorum_percent") Integer quorumPercent,
-    @JsonProperty("senior_closer_roles") List<String> seniorCloserRoles
+    @JsonProperty("senior_closer_roles") List<String> seniorCloserRoles,
+    @JsonProperty("reminder_after_days") Integer reminderAfterDays
 ) {
     public ApplicationVotingSettings {
         quorum = quorum < 1 ? 3 : quorum;
@@ -31,10 +32,14 @@ public record ApplicationVotingSettings(
             throw new IllegalArgumentException("application_voting.quorum_percent must be between 1 and 100");
         }
         seniorCloserRoles = seniorCloserRoles == null ? List.of() : List.copyOf(seniorCloserRoles);
+        if (reminderAfterDays != null && reminderAfterDays < 0) {
+            throw new IllegalArgumentException("application_voting.reminder_after_days must be 0 or more");
+        }
+        reminderAfterDays = reminderAfterDays == null ? 3 : reminderAfterDays;
     }
 
     public ApplicationVotingSettings() {
-        this(3, null, List.of());
+        this(3, null, List.of(), 3);
     }
 
     /** Resolve the quorum once per application so later staff changes do not shift its threshold. */
