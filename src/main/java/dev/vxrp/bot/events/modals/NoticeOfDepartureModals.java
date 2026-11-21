@@ -15,17 +15,24 @@
 
 package dev.vxrp.bot.events.modals;
 
+import dev.vxrp.bot.modals.NoticeOfDepartureTemplateModals;
+import dev.vxrp.bot.noticeofdeparture.LeaveDateParser;
+import dev.vxrp.bot.noticeofdeparture.NoticeOfDepartureDrafts;
 import dev.vxrp.bot.noticeofdeparture.NoticeOfDepartureManager;
 import dev.vxrp.bot.noticeofdeparture.handler.NoticeOfDepartureMessageHandler;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
 import dev.vxrp.database.tables.database.NoticeOfDepartureTable;
 import dev.vxrp.util.color.ColorTool;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.interactions.modals.ModalMapping;
+import net.dv8tion.jda.api.utils.TimeFormat;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+import java.util.Optional;
 
 public class NoticeOfDepartureModals {
     private final ModalInteractionEvent event;
@@ -42,72 +49,8 @@ public class NoticeOfDepartureModals {
         event.deferReply(true).queue();
 
         if (event.getModalId().startsWith("notice_of_departure_general")) {
-            String date = event.getValues().get(0).getAsString();
-            String startDateStr = event.getValues().get(1).getAsString();
-            String reason = event.getValues().get(2).getAsString();
-            var formatter = DateTimeFormatter.ofPattern(config.settings().noticeOfDeparture().dateFormatting());
-
-            LocalDate parsedDate;
-            try {
-                parsedDate = LocalDate.parse(date, formatter);
-            } catch (DateTimeParseException e) {
-                reply(translation.noticeOfDeparture().embedEnterValidDateTitle(),
-                        translation.noticeOfDeparture().embedEnterValidDateBody()
-                                .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting()),
-                        0xE74D3C);
-                return;
-            }
-
-            var today = LocalDate.now();
-            if (parsedDate.isBefore(today) || parsedDate.isEqual(today)) {
-                reply(translation.noticeOfDeparture().embedEnterFutureDateTitle(),
-                        translation.noticeOfDeparture().embedEnterFutureDateBody()
-                                .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting()),
-                        0xE74D3C);
-                return;
-            }
-
-            LocalDate parsedStartDate;
-            if (startDateStr != null && !startDateStr.isBlank()) {
-                try {
-                    parsedStartDate = LocalDate.parse(startDateStr, formatter);
-                } catch (DateTimeParseException e) {
-                    reply(translation.noticeOfDeparture().embedStartDateInvalidTitle(),
-                            translation.noticeOfDeparture().embedStartDateInvalidBody()
-                                    .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting()),
-                            0xE74D3C);
-                    return;
-                }
-
-                if (parsedStartDate.isBefore(today)) {
-                    reply(translation.noticeOfDeparture().embedStartDatePastTitle(),
-                            translation.noticeOfDeparture().embedStartDatePastBody()
-                                    .replace("%formatter%", config.settings().noticeOfDeparture().dateFormatting()),
-                            0xE74D3C);
-                    return;
-                }
-
-                if (!parsedStartDate.isBefore(parsedDate)) {
-                    reply(translation.noticeOfDeparture().embedStartDateAfterEndTitle(),
-                            translation.noticeOfDeparture().embedStartDateAfterEndBody(), 0xE74D3C);
-                    return;
-                }
-            } else {
-                parsedStartDate = today;
-            }
-
-            String startDateFormatted = parsedStartDate.format(formatter);
-            if (new NoticeOfDepartureTable().exists(event.getUser().getId())) {
-                reply("Notice of Departure Already Filed",
-                        "You already have an active notice of departure.", 0xE74D3C);
-                return;
-            }
-
-            new NoticeOfDepartureManager(event.getJDA(), config, translation)
-                    .createNotice(reason, event.getUser().getId(), event.getUser().getId(), date, startDateFormatted);
-
-            reply(translation.noticeOfDeparture().embedDecisionSentTitle(),
-                    translation.noticeOfDeparture().embedDecisionSentBody(), 0x2ECC70);
+            fileNotice();
+            return;
         }
 
         if (event.getModalId().startsWith("notice_of_departure_reason_action_REVOKING")) {
@@ -120,12 +63,75 @@ public class NoticeOfDepartureModals {
             new NoticeOfDepartureManager(event.getJDA(), config, translation).revokeNotice(reason, userId, date);
 
             reply(translation.noticeOfDeparture().embedRevokationSentTitle(),
-                    translation.noticeOfDeparture().embedRevokationSentBody(), 0x2ECC70);
+                    translation.noticeOfDeparture().embedRevokationSentBody(), true);
         }
     }
 
-    private void reply(String title, String body, int color) {
+    private void fileNotice() {
+        var text = translation.noticeOfDeparture();
+        String userId = event.getUser().getId();
+        String dateFormat = config.settings().noticeOfDeparture().dateFormatting();
+        var draft = new NoticeOfDepartureDrafts.Draft(value(NoticeOfDepartureTemplateModals.START_DATE_ID),
+                value(NoticeOfDepartureTemplateModals.RETURN_DATE_ID), value(NoticeOfDepartureTemplateModals.EXPLANATION_ID));
+
+        if (new NoticeOfDepartureTable().exists(userId)) {
+            reply(text.embedAlreadyFiledTitle(), text.embedAlreadyFiledBody(), false);
+            return;
+        }
+
+        var parser = new LeaveDateParser(dateFormat);
+        var today = LocalDate.now();
+        Optional<LocalDate> start = draft.startDate().isBlank() ? Optional.of(today) : parser.parse(draft.startDate(), today);
+        if (start.isEmpty()) {
+            reject(draft, text.embedStartDateInvalidTitle(), text.embedStartDateInvalidBody().replace("%formatter%", dateFormat));
+            return;
+        }
+        if (start.get().isBefore(today)) {
+            reject(draft, text.embedStartDatePastTitle(), text.embedStartDatePastBody().replace("%formatter%", dateFormat));
+            return;
+        }
+
+        Optional<LocalDate> end = parser.parse(draft.returnDate(), start.get());
+        if (end.isEmpty()) {
+            reject(draft, text.embedEnterValidDateTitle(), text.embedEnterValidDateBody().replace("%formatter%", dateFormat));
+            return;
+        }
+        if (!end.get().isAfter(today)) {
+            reject(draft, text.embedEnterFutureDateTitle(), text.embedEnterFutureDateBody().replace("%formatter%", dateFormat));
+            return;
+        }
+        if (!start.get().isBefore(end.get())) {
+            reject(draft, text.embedStartDateAfterEndTitle(), text.embedStartDateAfterEndBody());
+            return;
+        }
+
+        var formatter = DateTimeFormatter.ofPattern(dateFormat);
+        new NoticeOfDepartureManager(event.getJDA(), config, translation)
+                .createNotice(draft.explanation(), userId, userId, end.get().format(formatter), start.get().format(formatter));
+
+        String range = date(TimeFormat.DATE_LONG, start.get()) + " → " + date(TimeFormat.DATE_LONG, end.get())
+                + " · " + date(TimeFormat.RELATIVE, end.get());
+        reply(text.embedDecisionSentTitle(), text.embedDecisionSentBody() + "\n" + range, true);
+    }
+
+    private String value(String id) {
+        ModalMapping mapping = event.getValue(id);
+        return mapping == null ? "" : mapping.getAsString().strip();
+    }
+
+    private void reject(NoticeOfDepartureDrafts.Draft draft, String title, String body) {
+        NoticeOfDepartureDrafts.save(event.getUser().getId(), draft);
+        Button retry = Button.primary("notice_of_departure_retry", translation.buttons().textNoticeOfDepartureRetry());
         event.getHook().sendMessage(NoticeOfDepartureMessageHandler.feedback(
-                new ColorTool().parse(title), new ColorTool().parse(body), color == 0x2ECC70)).setEphemeral(true).queue();
+                new ColorTool().parse(title), new ColorTool().parse(body), false, retry)).setEphemeral(true).queue();
+    }
+
+    private void reply(String title, String body, boolean success) {
+        event.getHook().sendMessage(NoticeOfDepartureMessageHandler.feedback(
+                new ColorTool().parse(title), new ColorTool().parse(body), success)).setEphemeral(true).queue();
+    }
+
+    private static String date(TimeFormat format, LocalDate date) {
+        return format.atInstant(date.atStartOfDay(ZoneId.systemDefault()).toInstant()).toString();
     }
 }

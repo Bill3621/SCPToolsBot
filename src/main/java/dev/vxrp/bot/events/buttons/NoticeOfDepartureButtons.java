@@ -16,12 +16,15 @@
 package dev.vxrp.bot.events.buttons;
 
 import dev.vxrp.bot.modals.NoticeOfDepartureTemplateModals;
+import dev.vxrp.bot.noticeofdeparture.NoticeOfDepartureDrafts;
 import dev.vxrp.bot.noticeofdeparture.enums.ActionId;
 import dev.vxrp.bot.noticeofdeparture.handler.NoticeOfDepartureMessageHandler;
 import dev.vxrp.bot.permissions.PermissionManager;
 import dev.vxrp.bot.permissions.enums.PermissionType;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
+import dev.vxrp.database.tables.database.NoticeOfDepartureTable;
+import dev.vxrp.util.color.ColorTool;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
 public class NoticeOfDepartureButtons {
@@ -40,8 +43,16 @@ public class NoticeOfDepartureButtons {
         if (buttonId == null)
             return;
 
-        if (buttonId.startsWith("notice_of_departure_file")) {
-            event.replyModal(new NoticeOfDepartureTemplateModals(config, translation).generalModal()).queue();
+        if (buttonId.startsWith("notice_of_departure_file") || buttonId.equals("notice_of_departure_retry")) {
+            String userId = event.getUser().getId();
+            if (new NoticeOfDepartureTable().exists(userId)) {
+                var text = translation.noticeOfDeparture();
+                event.reply(NoticeOfDepartureMessageHandler.feedback(new ColorTool().parse(text.embedAlreadyFiledTitle()),
+                        new ColorTool().parse(text.embedAlreadyFiledBody()), false)).setEphemeral(true).queue();
+                return;
+            }
+            var draft = NoticeOfDepartureDrafts.take(userId).orElse(NoticeOfDepartureDrafts.Draft.EMPTY);
+            event.replyModal(new NoticeOfDepartureTemplateModals(config, translation).generalModal(draft)).queue();
         }
 
         if (buttonId.startsWith("notice_of_departure_revoke")) {

@@ -16,6 +16,7 @@
 
 package dev.vxrp.bot.modals;
 
+import dev.vxrp.bot.noticeofdeparture.NoticeOfDepartureDrafts;
 import dev.vxrp.bot.noticeofdeparture.enums.ActionId;
 import dev.vxrp.configuration.data.Config;
 import dev.vxrp.configuration.data.Translation;
@@ -36,34 +37,36 @@ public class NoticeOfDepartureTemplateModals {
         this.translation = translation;
     }
 
+    public static final String START_DATE_ID = "notice_of_departure_general_start";
+    public static final String RETURN_DATE_ID = "notice_of_departure_general_time";
+    public static final String EXPLANATION_ID = "notice_of_departure_general_explanation";
+
     public Modal generalModal() {
+        return generalModal(NoticeOfDepartureDrafts.Draft.EMPTY);
+    }
+
+    public Modal generalModal(NoticeOfDepartureDrafts.Draft draft) {
+        var text = translation.noticeOfDeparture();
         String dateFormat = config.settings().noticeOfDeparture().dateFormatting();
         String exampleDate = LocalDate.now().plusMonths(1).format(DateTimeFormatter.ofPattern(dateFormat));
 
-        Label time = Label.of(translation.noticeOfDeparture().modalTimeTitle(), TextInput
-                .create("notice_of_departure_general_time", TextInputStyle.SHORT).setRequired(true)
-                .setRequiredRange(10, 10)
-                .setPlaceholder(translation.noticeOfDeparture().modalTimePlaceHolder().replace(
-                        "%formatter%", dateFormat).replace("%example%", exampleDate))
-                .build());
+        Label startDate = Label.of(text.modalStartDateTitle(), fill(text.modalStartDateDescription(), dateFormat, exampleDate),
+                TextInput.create(START_DATE_ID, TextInputStyle.SHORT).setRequired(false).setMaxLength(20)
+                        .setPlaceholder(fill(text.modalStartDatePlaceholder(), dateFormat, exampleDate))
+                        .setValue(valueOrNull(draft.startDate())).build());
 
-        Label startDate = Label.of(translation.noticeOfDeparture().modalStartDateTitle(), TextInput
-                .create("notice_of_departure_general_start", TextInputStyle.SHORT).setRequired(false)
-                .setPlaceholder(translation.noticeOfDeparture().modalStartDatePlaceholder().replace(
-                        "%formatter%", dateFormat).replace("%example%", exampleDate))
-                .build());
+        Label returnDate = Label.of(text.modalTimeTitle(), fill(text.modalTimeDescription(), dateFormat, exampleDate),
+                TextInput.create(RETURN_DATE_ID, TextInputStyle.SHORT).setRequired(true).setMaxLength(20)
+                        .setPlaceholder(fill(text.modalTimePlaceHolder(), dateFormat, exampleDate))
+                        .setValue(valueOrNull(draft.returnDate())).build());
 
-        Label explanation = Label.of(translation.noticeOfDeparture().modalExplanationTitle(),
-                TextInput
-                        .create("notice_of_departure_general_explanation", TextInputStyle.PARAGRAPH)
-                        .setRequired(true).setRequiredRange(4, 2000)
-                        .setPlaceholder(
-                                translation.noticeOfDeparture().modalExplanationPlaceHolder())
-                        .build());
+        Label explanation = Label.of(text.modalExplanationTitle(),
+                TextInput.create(EXPLANATION_ID, TextInputStyle.PARAGRAPH).setRequired(true).setRequiredRange(4, 2000)
+                        .setPlaceholder(text.modalExplanationPlaceHolder())
+                        .setValue(valueOrNull(draft.explanation())).build());
 
-        return Modal
-                .create("notice_of_departure_general", translation.noticeOfDeparture().modalTitle())
-                .addComponents(time, startDate, explanation).build();
+        return Modal.create("notice_of_departure_general", text.modalTitle())
+                .addComponents(startDate, returnDate, explanation).build();
     }
 
     public Modal reasonActionModal(ActionId actionId, String userId, String endTime) {
@@ -82,4 +85,11 @@ public class NoticeOfDepartureTemplateModals {
                 .addComponents(reason).build();
     }
 
+    private static String fill(String template, String dateFormat, String exampleDate) {
+        return template.replace("%formatter%", dateFormat).replace("%example%", exampleDate);
+    }
+
+    private static String valueOrNull(String value) {
+        return value.isBlank() ? null : value;
+    }
 }

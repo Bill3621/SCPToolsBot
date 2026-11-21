@@ -717,31 +717,36 @@ VERIFY:
 NOTICE_OF_DEPARTURE:
   EMBED_TEMPLATE_TITLE: "Notice of Departure Form"
   EMBED_TEMPLATE_BODY: "File your time off here. Notices take effect automatically."
-  TEXT_TEMPLATE_RETURN_DATE: "The date you plan to return. Use **%formatter%** (for example **%example%**)."
+  TEXT_TEMPLATE_RETURN_DATE: "The day you are back. Use **%formatter%** (for example **%example%**) or a length like **2w** or **10d**."
   TEXT_TEMPLATE_START_DATE: "The first day of your leave. Leave it empty to start today."
   TEXT_TEMPLATE_REASON: "A short explanation for your absence. Avoid unnecessary personal details."
   TEXT_TEMPLATE_FOOTER: "Higher staff can revoke an active notice when necessary."
 
   MODAL_TITLE: "File Notice of Departure"
-  MODAL_TIME_TITLE: "Away time?"
-  MODAL_TIME_PLACEHOLDER: "How long will you be away [%formatter%, e.g. %example%]"
-  MODAL_EXPLANATION_TITLE: "Explanation"
-  MODAL_EXPLANATION_PLACEHOLDER: "Why are you going to be away [exclude details]"
+  MODAL_TIME_TITLE: "Return date"
+  MODAL_TIME_PLACEHOLDER: "%example%, 2w, 10d"
+  MODAL_TIME_DESCRIPTION: "%formatter% or a length counted from the start date"
+  MODAL_EXPLANATION_TITLE: "Reason"
+  MODAL_EXPLANATION_PLACEHOLDER: "Short reason, e.g. vacation or exams. No personal details needed."
 
-  EMBED_ENTER_VALID_DATE_TITLE: "Enter a valid date format"
-  EMBED_ENTER_VALID_DATE_BODY: "You need to enter a valid date format to proceed. The accepted format is: **%formatter%**"
+  EMBED_ENTER_VALID_DATE_TITLE: "Return date not recognized"
+  EMBED_ENTER_VALID_DATE_BODY: "Use **%formatter%** or a length like **2w**, **10d** or **1m**."
 
-  EMBED_ENTER_FUTURE_DATE_TITLE: "Enter a future date"
-  EMBED_ENTER_FUTURE_DATE_BODY: "You need to enter a date in the future to proceed. Make sure you used the correct format: **%formatter%**"
+  EMBED_ENTER_FUTURE_DATE_TITLE: "Return date must be in the future"
+  EMBED_ENTER_FUTURE_DATE_BODY: "Pick a return date after today."
 
-  MODAL_START_DATE_TITLE: "Start date?"
-  MODAL_START_DATE_PLACEHOLDER: "When does your leave start (leave empty for today)"
-  EMBED_START_DATE_INVALID_TITLE: "Enter a valid start date format"
-  EMBED_START_DATE_INVALID_BODY: "You need to enter a valid date format for the start date. The accepted format is: **%formatter%**"
-  EMBED_START_DATE_PAST_TITLE: "Start date must be today or in the future"
-  EMBED_START_DATE_PAST_BODY: "The start date must be today or in the future. Make sure you used the correct format: **%formatter%**"
-  EMBED_START_DATE_AFTER_END_TITLE: "Start date must be before end date"
-  EMBED_START_DATE_AFTER_END_BODY: "The start date you entered is after or the same as the end date."
+  MODAL_START_DATE_TITLE: "Start date"
+  MODAL_START_DATE_PLACEHOLDER: "Empty for today"
+  MODAL_START_DATE_DESCRIPTION: "%formatter% or a delay like 3d"
+  EMBED_START_DATE_INVALID_TITLE: "Start date not recognized"
+  EMBED_START_DATE_INVALID_BODY: "Use **%formatter%**, a delay like **3d**, or leave it empty for today."
+  EMBED_START_DATE_PAST_TITLE: "Start date is in the past"
+  EMBED_START_DATE_PAST_BODY: "Pick today or a later day, or leave it empty for today."
+  EMBED_START_DATE_AFTER_END_TITLE: "Start date is not before the return date"
+  EMBED_START_DATE_AFTER_END_BODY: "Your leave has to start before the day you return."
+
+  EMBED_ALREADY_FILED_TITLE: "Notice already active"
+  EMBED_ALREADY_FILED_BODY: "You already have an active notice of departure. Ask staff to revoke it if your plans changed."
 
 
   EMBED_DECISION_SENT_TITLE: "Notice of Departure Filed"
@@ -912,6 +917,7 @@ BUTTONS:
   TEXT_VERIFY_DELETE: "Delete Data"
 
   TEXT_NOTICE_OF_DEPARTURE_FILE: "File Notice of Departure"
+  TEXT_NOTICE_OF_DEPARTURE_RETRY: "Try again"
   TEXT_NOTICE_OF_DEPARTURE_REVOKED: "Revoke Notice of Departure"
   TEXT_NOTICE_OF_DEPARTURE_DELETE: "Delete Processed Notice of Departure"
 

@@ -69,8 +69,8 @@ public class NoticeOfDepartureMessageHandler {
         List<ContainerChildComponent> content = new ArrayList<>();
         content.add(TextDisplay.of("## " + title + "\n" + intro));
         content.add(Separator.createDivider(Separator.Spacing.SMALL));
-        content.add(TextDisplay.of("### " + translation.noticeOfDeparture().modalTimeTitle() + "\n" + returnDate));
         content.add(TextDisplay.of("### " + translation.noticeOfDeparture().modalStartDateTitle() + "\n" + startDate));
+        content.add(TextDisplay.of("### " + translation.noticeOfDeparture().modalTimeTitle() + "\n" + returnDate));
         content.add(TextDisplay.of("### " + translation.noticeOfDeparture().modalExplanationTitle() + "\n" + reason));
         content.add(Separator.createDivider(Separator.Spacing.SMALL));
         content.add(TextDisplay.of("-# " + new ColorTool().parse(translation.noticeOfDeparture().textTemplateFooter())));
@@ -177,9 +177,11 @@ public class NoticeOfDepartureMessageHandler {
         }
     }
 
-    public static MessageCreateData feedback(String title, String body, boolean success) {
-        return message(List.of(TextDisplay.of("### " + title + "\n" + body.strip())),
-                success ? 0x2ECC70 : 0xE74D3C);
+    public static MessageCreateData feedback(String title, String body, boolean success, Button... actions) {
+        List<ContainerChildComponent> content = new ArrayList<>();
+        content.add(TextDisplay.of("### " + title + "\n" + body.strip()));
+        if (actions.length > 0) content.add(ActionRow.of(List.of(actions)));
+        return message(content, success ? 0x2ECC70 : 0xE74D3C);
     }
 
     public static MessageCreateData error(MessageEmbed embed) {
