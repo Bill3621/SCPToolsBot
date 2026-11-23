@@ -17,8 +17,8 @@
 package dev.vxrp.database.enums;
 
 public enum DatabaseType {
-    SQlITE,
+    SQLITE,
     MYSQL,
     POSTGRESQL,
-    MARiADB
+    MARIADB
 }

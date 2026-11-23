@@ -133,14 +133,14 @@ public class DatabaseManager {
 
         DatabaseType type;
         try {
-            type = DatabaseType.valueOf(settings.database().customType());
+            type = DatabaseType.valueOf(settings.database().customType().toUpperCase());
         } catch (IllegalArgumentException e) {
-            type = DatabaseType.SQlITE;
+            type = DatabaseType.SQLITE;
         }
 
         try {
             switch (type) {
-                case SQlITE: {
+                case SQLITE: {
                     String url = "jdbc:sqlite://" + settings.database().customUrl();
                     Class.forName("org.sqlite.JDBC");
                     connection = DriverManager.getConnection(url, settings.database().customUsername(), settings.database().customPassword());
@@ -158,7 +158,7 @@ public class DatabaseManager {
                     connection = DriverManager.getConnection(url, settings.database().customUsername(), settings.database().customPassword());
                     return true;
                 }
-                case MARiADB: {
+                case MARIADB: {
                     String url = withMariaDbSslDefault("jdbc:mariadb://" + settings.database().customUrl());
                     Class.forName("org.mariadb.jdbc.Driver");
                     connection = DriverManager.getConnection(url, settings.database().customUsername(), settings.database().customPassword());
