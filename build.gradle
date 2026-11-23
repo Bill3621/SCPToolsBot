@@ -1,7 +1,7 @@
 plugins {
     id("application")
     id("java")
-    id("com.gradleup.shadow") version("9.4.1")
+    id("com.gradleup.shadow") version("9.6.1")
 }
 
 application.mainClass = "dev.vxrp.Main"
@@ -17,11 +17,11 @@ repositories {
     mavenCentral()
 }
 
-def jacksonVersion = "2.22.0"
+def jacksonVersion = "2.22.4"
 def jacksonAnnotationsVersion = "2.22"
 def sqliteVersion = "3.53.4.0"
 def mySqlVersion = "26.10.0"
-def postgresSqlVersion = "42.7.11"
+def postgresSqlVersion = "42.7.14"
 def mariaDBVersion = "4.0.0"
 def jdaVersion = "6.7.0"
 def secretLabKotlinVersion = "0.4.3"
