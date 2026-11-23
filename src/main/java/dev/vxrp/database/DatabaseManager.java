@@ -133,14 +133,14 @@ public class DatabaseManager {
 
         DatabaseType type;
         try {
-            type = DatabaseType.valueOf(settings.database().customType());
+            type = DatabaseType.valueOf(settings.database().customType().toUpperCase());
         } catch (IllegalArgumentException e) {
-            type = DatabaseType.SQlITE;
+            type = DatabaseType.SQLITE;
         }
 
         try {
             switch (type) {
-                case SQlITE: {
+                case SQLITE: {
                     String url = "jdbc:sqlite://" + settings.database().customUrl();
                     Class.forName("org.sqlite.JDBC");
                     connection = DriverManager.getConnection(url, settings.database().customUsername(), settings.database().customPassword());
@@ -158,8 +158,8 @@ public class DatabaseManager {
                     connection = DriverManager.getConnection(url, settings.database().customUsername(), settings.database().customPassword());
                     return true;
                 }
-                case MARiADB: {
-                    String url = "jdbc:mariadb://" + settings.database().customUrl();
+                case MARIADB: {
+                    String url = withMariaDbSslDefault("jdbc:mariadb://" + settings.database().customUrl());
                     Class.forName("org.mariadb.jdbc.Driver");
                     connection = DriverManager.getConnection(url, settings.database().customUsername(), settings.database().customPassword());
                     return true;
@@ -174,6 +174,12 @@ public class DatabaseManager {
             logger.error("Driver not found for {} database", type.name().toLowerCase());
             return false;
         }
+    }
+
+    // MariaDB Connector/J 4 defaults to sslMode=verify-full; keep the 3.x default (no TLS) unless the URL sets sslMode itself.
+    private static String withMariaDbSslDefault(String url) {
+        if (url.contains("sslMode=")) return url;
+        return url + (url.contains("?") ? "&" : "?") + "sslMode=disable";
     }
 
     private void runMigrations() {
