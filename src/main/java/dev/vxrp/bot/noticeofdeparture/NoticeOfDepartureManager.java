@@ -75,7 +75,14 @@ public class NoticeOfDepartureManager {
                         config.settings().noticeOfDeparture().checkRate(),
                         DurationType.valueOf(config.settings().noticeOfDeparture().checkUnit())),
                 ExecutorScopes.noticeOfDepartureScope,
-                () -> new NoticeOfDepartureCheckerHandler(api, config, translation).checkerTask()
+                () -> {
+                    try {
+                        api.awaitReady();
+                        new NoticeOfDepartureCheckerHandler(api, config, translation).checkerTask();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
         );
     }
 

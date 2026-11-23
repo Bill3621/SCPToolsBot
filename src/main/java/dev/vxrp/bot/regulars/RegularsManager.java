@@ -82,7 +82,14 @@ public class RegularsManager {
         new Timer().runWithTimer(
                 Duration.ofHours(2),
                 ExecutorScopes.regularsScope,
-                () -> new RegularsCheckerHandler(api, config, translation).checkerTask()
+                () -> {
+                    try {
+                        api.awaitReady();
+                        new RegularsCheckerHandler(api, config, translation).checkerTask();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
         );
     }
 }
