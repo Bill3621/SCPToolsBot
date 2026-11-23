@@ -47,7 +47,7 @@ public class QuotaReportCommand {
         event.deferReply(true).queue(hook -> ExecutorScopes.staffQuotaScope.execute(() -> {
             LocalDate today = LocalDate.now();
             QuotaWeek week = QuotaWeek.containing(today);
-            var rows = new QuotaRoster(config).evaluate(guild, week, week.daysElapsed(today));
+            var rows = new QuotaRoster(config).evaluate(guild, week, today);
             hook.editOriginal(messages.currentReport(week, today, rows)).queue();
         }));
     }

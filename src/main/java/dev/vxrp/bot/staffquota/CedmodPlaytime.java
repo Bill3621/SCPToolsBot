@@ -29,12 +29,12 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
-import java.util.OptionalDouble;
+import java.util.OptionalLong;
 
 final class CedmodPlaytime {
     private static final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(60)).build();
     private static final Gson gson = new Gson();
-    private static final double SECONDS_PER_HOUR = 3600;
+    static final int LIFETIME_DAYS = 3650;
 
     private final ConfigCedmod config;
 
@@ -42,7 +42,7 @@ final class CedmodPlaytime {
         this.config = config;
     }
 
-    OptionalDouble hoursPlayed(String discordId, int windowDays) throws IOException, InterruptedException {
+    OptionalLong secondsPlayed(String discordId, int windowDays) throws IOException, InterruptedException {
         String query = URLEncoder.encode(discordId + "@discord", StandardCharsets.UTF_8);
         String base = config.instance().replaceAll("/+$", "");
         var request = HttpRequest.newBuilder(URI.create(base + "/Api/Player/Query?q=" + query + "&discordQuery=true&max=1&page=0&staffOnly=false&create=false&sortLabel=id_field&activityMin=" + windowDays + "&basicStats=true&moderationData=false"))
@@ -56,8 +56,8 @@ final class CedmodPlaytime {
 
         try {
             var players = gson.fromJson(response.body(), PlayerQuery.class).players();
-            if (players == null || players.isEmpty()) return OptionalDouble.empty();
-            return OptionalDouble.of(players.getFirst().activity() / SECONDS_PER_HOUR);
+            if (players == null || players.isEmpty()) return OptionalLong.empty();
+            return OptionalLong.of(Math.round(players.getFirst().activity()));
         } catch (JsonParseException e) {
             throw new IOException("CedMod player query returned unreadable JSON", e);
         }

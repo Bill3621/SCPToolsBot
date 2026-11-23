@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.OptionalLong;
 import java.util.Set;
 
 public class StaffQuotaTable {
@@ -93,6 +94,53 @@ public class StaffQuotaTable {
                 "INSERT INTO staff_quota_reports (week_start, reported_at) VALUES (?, ?)")) {
             stmt.setString(1, weekStart.toString());
             stmt.setString(2, Instant.now().toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public OptionalLong baseline(String userId, LocalDate weekStart) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                "SELECT seconds FROM staff_quota_baselines WHERE user_id = ? AND week_start = ?")) {
+            stmt.setString(1, userId);
+            stmt.setString(2, weekStart.toString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? OptionalLong.of(rs.getLong("seconds")) : OptionalLong.empty();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean hasBaselines(LocalDate weekStart) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                "SELECT 1 FROM staff_quota_baselines WHERE week_start = ?")) {
+            stmt.setString(1, weekStart.toString());
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void recordBaseline(String userId, LocalDate weekStart, long seconds) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                "INSERT INTO staff_quota_baselines (user_id, week_start, seconds) VALUES (?, ?, ?)")) {
+            stmt.setString(1, userId);
+            stmt.setString(2, weekStart.toString());
+            stmt.setLong(3, seconds);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void pruneBaselinesBefore(LocalDate weekStart) {
+        try (PreparedStatement stmt = DatabaseManager.getConnection().prepareStatement(
+                "DELETE FROM staff_quota_baselines WHERE week_start < ?")) {
+            stmt.setString(1, weekStart.toString());
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);

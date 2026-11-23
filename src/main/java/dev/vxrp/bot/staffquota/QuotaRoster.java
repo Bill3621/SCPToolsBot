@@ -26,6 +26,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -40,9 +41,26 @@ public final class QuotaRoster {
         this.evaluator = new QuotaEvaluator(config);
     }
 
-    public List<QuotaRow> evaluate(Guild guild, QuotaWeek week, int windowDays) {
-        List<Member> staff = guild.findMembers(member -> evaluator.weeklyHours(member).isPresent()).get();
-        return staff.stream().map(member -> new QuotaRow(evaluator.evaluate(member.getId(), evaluator.weeklyHours(member).orElseThrow(), week, windowDays), member.getEffectiveName(), avatar(member))).toList();
+    public List<QuotaRow> evaluate(Guild guild, QuotaWeek week, LocalDate today) {
+        return evaluate(staff(guild), week, today);
+    }
+
+    public List<QuotaRow> evaluate(List<Member> staff, QuotaWeek week, LocalDate today) {
+        return staff.stream().map(member -> new QuotaRow(evaluator.evaluate(member.getId(), evaluator.weeklyHours(member).orElseThrow(), week, today), member.getEffectiveName(), avatar(member))).toList();
+    }
+
+    public void recordBaselines(List<Member> staff, QuotaWeek week) throws InterruptedException {
+        for (Member member : staff) {
+            try {
+                evaluator.recordBaseline(member.getId(), week);
+            } catch (IOException e) {
+                logger.error("Could not record the weekly playtime baseline for staff member {}", member.getId(), e);
+            }
+        }
+    }
+
+    public List<Member> staff(Guild guild) {
+        return guild.findMembers(member -> evaluator.weeklyHours(member).isPresent()).get();
     }
 
     private static BufferedImage avatar(Member member) {

@@ -22,6 +22,7 @@ import dev.vxrp.database.tables.database.StaffQuotaTable;
 import dev.vxrp.util.coroutines.ExecutorScopes;
 import dev.vxrp.util.coroutines.Timer;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Member;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,26 +65,41 @@ public final class StaffQuotaManager {
         }
     }
 
-    private void runTick() {
+    private void runTick() throws InterruptedException {
         LocalDate today = LocalDate.now();
         if (config.settings().noticeOfDeparture().active()) new LeaveDays(config).recordToday(today);
 
-        QuotaWeek week = QuotaWeek.containing(today).previous();
-        if (table.isReported(week.start())) return;
-        report(week, today);
-    }
-
-    private void report(QuotaWeek week, LocalDate today) {
         var guild = api.getGuildById(config.settings().guildId());
-        var channel = api.getTextChannelById(config.settings().staffQuota().reportChannel());
-        if (guild == null || channel == null) {
-            logger.error("Could not post the staff quota report, check guild_id and staff_quota.report_channel_id");
+        if (guild == null) {
+            logger.error("Could not track staff quota, check guild_id");
             return;
         }
 
-        if (!today.equals(week.end().plusDays(1))) logger.warn("Staff quota report for week of {} is late, playtime covers the 7 days before {}", week.start(), today);
+        QuotaWeek current = QuotaWeek.containing(today);
+        QuotaWeek week = current.previous();
+        boolean needsBaselines = !table.hasBaselines(current.start());
+        boolean needsReport = !table.isReported(week.start());
+        if (!needsBaselines && !needsReport) return;
 
-        List<QuotaRow> rows = new QuotaRoster(config).evaluate(guild, week, QuotaWeek.DAYS);
+        var roster = new QuotaRoster(config);
+        List<Member> staff = roster.staff(guild);
+        if (needsBaselines) {
+            roster.recordBaselines(staff, current);
+            table.pruneBaselinesBefore(week.start());
+        }
+        if (needsReport) report(roster, staff, week, today);
+    }
+
+    private void report(QuotaRoster roster, List<Member> staff, QuotaWeek week, LocalDate today) {
+        var channel = api.getTextChannelById(config.settings().staffQuota().reportChannel());
+        if (channel == null) {
+            logger.error("Could not post the staff quota report, check staff_quota.report_channel_id");
+            return;
+        }
+
+        if (!today.equals(week.end().plusDays(1))) logger.warn("Staff quota report for week of {} is late, playtime after the week ended may be counted", week.start());
+
+        List<QuotaRow> rows = roster.evaluate(staff, week, today);
         table.markReported(week.start());
         logger.info("Staff quota report for week of {} evaluated {} staff members", week.start(), rows.size());
 

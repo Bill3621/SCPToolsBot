@@ -285,6 +285,14 @@ public class DatabaseManager {
                     "week_start VARCHAR(10) PRIMARY KEY, " +
                     "reported_at TEXT NOT NULL)"
             );
+
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS staff_quota_baselines (" +
+                    "user_id VARCHAR(32) NOT NULL, " +
+                    "week_start VARCHAR(10) NOT NULL, " +
+                    "seconds BIGINT NOT NULL, " +
+                    "PRIMARY KEY (user_id, week_start))"
+            );
         } catch (SQLException e) {
             logger.error("Failed to create tables", e);
         }

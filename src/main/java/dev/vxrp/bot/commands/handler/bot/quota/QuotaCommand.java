@@ -62,7 +62,7 @@ public class QuotaCommand {
         event.deferReply(true).queue(hook -> ExecutorScopes.staffQuotaScope.execute(() -> {
             LocalDate today = LocalDate.now();
             QuotaWeek week = QuotaWeek.containing(today);
-            var standing = evaluator.evaluate(target.getId(), weeklyHours.getAsDouble(), week, week.daysElapsed(today));
+            var standing = evaluator.evaluate(target.getId(), weeklyHours.getAsDouble(), week, today);
             hook.editOriginal(messages.view(target.getEffectiveName(), week, today, standing)).queue();
         }));
     }
